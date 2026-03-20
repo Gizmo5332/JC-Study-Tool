@@ -102,6 +102,12 @@ select option{background:var(--bg2);color:var(--txt1)}
 .scractions{display:flex;gap:7px;margin-top:4px}
 .fnref{background:var(--bg1);border:1px solid var(--border);border-left:3px solid var(--golddim);border-radius:var(--r);padding:12px 14px;margin-bottom:16px}
 .fnref p{font-size:14px;color:var(--txt2);line-height:1.7;white-space:pre-wrap;font-style:italic}
+.fnotes-collapsible{margin-bottom:14px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg2)}
+.fnotes-toggle{width:100%;display:flex;align-items:center;gap:7px;background:var(--bg2);border:none;padding:9px 12px;cursor:pointer;font-family:'Crimson Pro',serif;font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;min-height:36px;transition:background .15s}
+.fnotes-toggle:active{background:var(--bg3)}
+.fnotes-body{max-height:0;overflow:hidden;transition:max-height .35s ease;background:var(--bg1)}
+.fnotes-body.open{max-height:600px}
+.fnotes-body-inner{padding:12px 14px;border-top:1px solid var(--border)}
 .aitools{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
 .aitoolbtn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:15px 12px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px;transition:all .15s}
 .aitoolbtn:active{background:var(--bg3);border-color:var(--borderlit)}
@@ -420,8 +426,17 @@ select option{background:var(--bg2);color:var(--txt1)}
       <div id="d-title" style="font-size:14px;color:var(--txt2)"></div>
       <div id="d-teacher" style="font-size:12px;color:var(--txt3);margin-top:2px"></div>
     </div>
-    <div class="seclabel">Field Notes</div>
-    <div class="fnref"><p id="d-fnotes">No field notes recorded.</p></div>
+    <div class="fnotes-collapsible" id="fnotes-collapsible">
+      <button class="fnotes-toggle" onclick="toggleFnotes()" id="fnotes-toggle-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span>Field Notes</span>
+        <span id="fnotes-wc-badge" style="font-size:10px;color:var(--txt4);margin-left:2px"></span>
+        <svg id="fnotes-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13" style="margin-left:auto;transition:transform .2s"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="fnotes-body" id="fnotes-body">
+        <div class="fnotes-body-inner"><p id="d-fnotes" style="font-size:14px;color:var(--txt2);line-height:1.7;white-space:pre-wrap">No field notes recorded.</p></div>
+      </div>
+    </div>
     <div style="display:flex;align-items:center;margin-bottom:10px"><div class="seclabel" style="margin-bottom:0;flex:1">AI Study Tools</div></div>
     <div class="scope-toggle">
       <button class="scope-btn on" id="scope-passage" onclick="setScope('passage')">&#128214; This Passage</button>
@@ -860,7 +875,7 @@ var TEMPLATES={
 var activeTagFilter=null;
 var obStep=0;
 
-var mfBlob=new Blob([JSON.stringify({name:'Arché · Pilgrim',short_name:'Pilgrim',start_url:'./',display:'standalone',background_color:'#0b0907',theme_color:'#0b0907'})],{type:'application/json'});
+var mfBlob=new Blob([JSON.stringify({name:'Arche - Pilgrim',short_name:'Pilgrim',start_url:'./',display:'standalone',background_color:'#0b0907',theme_color:'#0b0907'})],{type:'application/json'});
 document.getElementById('pwa-manifest').href=URL.createObjectURL(mfBlob);
 
 window.addEventListener('load',function(){loadStudies();loadTags();loadSett();renderLib();updateOffline();document.getElementById('f-date').value=todayStr();setTimeout(checkImportHash,300);setInterval(autoSave,30000);initSwipe();checkOnboarding();});
@@ -909,7 +924,7 @@ function navTo(id){
   document.getElementById('scr-'+id).classList.add('on');
   document.getElementById('nav-'+id).classList.add('on');
   if(id==='library')renderLib();
-  if(id==='deep'){syncFromInputs();populateDeep();}
+  if(id==='deep'){syncFromInputs();_fnotesOpen=false;var fb=document.getElementById('fnotes-body');if(fb)fb.classList.remove('open');var fc=document.getElementById('fnotes-chev');if(fc)fc.style.transform='';populateDeep();}
   if(id==='field'&&cur)populateField();
   if(id==='stats')renderStats();
   if(id==='settings')renderTagManager();
@@ -1126,9 +1141,22 @@ function populateDeep(){
   var dispTrans=cur.pastedTranslation||(cur.translation||'ESV');document.getElementById('d-trans').textContent=dispTrans.toUpperCase();
   document.getElementById('d-title').textContent=cur.title||'';
   document.getElementById('d-teacher').textContent=cur.teacher||'';
-  document.getElementById('d-fnotes').textContent=cur.fieldNotes||'No field notes recorded.';
+  var notes=cur.fieldNotes||'';
+  document.getElementById('d-fnotes').textContent=notes||'No field notes recorded.';
+  // Word count badge
+  var wc=notes.trim()?notes.trim().split(/\s+/).length:0;
+  var badge=document.getElementById('fnotes-wc-badge');
+  if(badge)badge.textContent=wc?'('+wc+' words)':'';
   document.getElementById('d-conclusions').value=cur.deep?(cur.deep.conclusions||''):'';
   closeAIPanel();updateToolDots();renderResources();setScope(studyScope);
+}
+var _fnotesOpen=false;
+function toggleFnotes(){
+  _fnotesOpen=!_fnotesOpen;
+  var body=document.getElementById('fnotes-body');
+  var chev=document.getElementById('fnotes-chev');
+  if(body)body.classList.toggle('open',_fnotesOpen);
+  if(chev)chev.style.transform=_fnotesOpen?'rotate(180deg)':'';
 }
 function setScope(s){
   studyScope=s;
@@ -1256,7 +1284,7 @@ function shareAIResult(){
   if(!content){toast('No content to share');return;}
   var base=aiActiveTab.replace('_book','');
   var title=(TOOL_LABELS[base]||base)+' — '+(cur&&cur.reference?cur.reference:'');
-  var text=title+'\n\n'+content+'\n\n— Arché · Pilgrim';
+  var text=title+'\n\n'+content+'\n\n- Arche Pilgrim';
   if(navigator.share){navigator.share({title:title,text:text}).catch(function(){});}
   else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('Copied to clipboard');});}
   else{window.prompt('Copy this result:',text);}
@@ -1362,7 +1390,7 @@ async function exportPDF(opts){
     var concl=document.getElementById('d-conclusions').value||(cur.deep&&cur.deep.conclusions);
     if(opts.conclusions&&concl){section('My Conclusions');txt(pdfSafe(concl),10,'normal',[30,25,15]);}
     var total=doc.internal.getNumberOfPages();
-    for(var i=1;i<=total;i++){doc.setPage(i);doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(100,95,90);var footY=ph-8;doc.setFillColor(140,105,30);doc.rect(mgL,footY-5,cw,0.4,'F');doc.text('Arche· Pilgrim  -  '+(cur.reference||'')+' - Page '+i+' of '+total,mgL,footY);}
+    for(var i=1;i<=total;i++){doc.setPage(i);doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(100,95,90);var footY=ph-8;doc.setFillColor(140,105,30);doc.rect(mgL,footY-5,cw,0.4,'F');doc.text('Arche Pilgrim  -  '+(cur.reference||'')+' - Page '+i+' of '+total,mgL,footY);}
     var fname=pdfSafe((cur.title||'study').replace(/[^a-z0-9]/gi,'_'))+'_'+(cur.date||'undated')+'.pdf';
     if(navigator.share&&/Mobi|Android/i.test(navigator.userAgent)){try{var blob=doc.output('blob'),file=new File([blob],fname,{type:'application/pdf'});await navigator.share({files:[file],title:cur.title||'Arche Pilgrim Study'});toast('PDF shared');return;}catch(e){}}
     doc.save(fname);toast('PDF downloaded');
@@ -1543,7 +1571,7 @@ function clearAll(){if(!confirm('Delete ALL studies? Cannot be undone.'))return;
 function closeOverlay(id){document.getElementById(id).classList.remove('on');}
 var _tt;function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){el.classList.remove('show');},2400);}
 
-if('serviceWorker' in navigator){var sw="const CACHE='arche-v1';const SHELL=['./'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;var u=e.request.url;if(u.includes('googleapis.com')||u.includes('api.esv.org')||u.includes('bible-api.com')||u.includes('fonts.googleapis.com')||u.includes('cdnjs'))return;e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request)));});";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(function(){});}
+if('serviceWorker' in navigator){var sw="const CACHE='arche-v2';const SHELL=['./'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;var u=e.request.url;if(u.includes('googleapis.com')||u.includes('api.esv.org')||u.includes('bible-api.com')||u.includes('fonts.googleapis.com')||u.includes('cdnjs'))return;e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request)));});";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(function(){});}
 </script>
 </body>
 </html>
