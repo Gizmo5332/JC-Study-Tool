@@ -394,6 +394,7 @@ let state = {
   memMode:'read', memSid:null, memTyped:'', memChecked:false,
   showNewStudy:false, confirmDeleteId:null,
   newPassage:'', newTitle:'', newTranslation:'asv', creating:false,
+  searchQuery:'',
   aiLoading:{},
 };
 
@@ -542,6 +543,9 @@ function renderDashboard(){
 
   const newStudyModal=state.showNewStudy?renderNewStudyModal():'';
 
+  const q=state.searchQuery.toLowerCase().trim();
+  const filtered=q?allProgress.filter(s=>(s.passage||'').toLowerCase().includes(q)||(s.title||'').toLowerCase().includes(q)):allProgress;
+
   const studiesHTML=studies.length===0?`<div class="card empty-state" style="margin-top:16px;">
     <div class="empty">
       <div class="empty-icon">✦</div>
@@ -549,8 +553,10 @@ function renderDashboard(){
       <p>Enter a passage and choose a translation to open the full exegetical study workspace.</p>
       <button class="btn btn-primary" style="margin-top:20px;" onclick="state.showNewStudy=true;render()">+ New Study</button>
     </div>
-  </div>`:`<div class="studies-grid">
-    ${allProgress.map(item=>{
+  </div>`:`<div>
+    <div style="margin-bottom:12px;"><input type="search" placeholder="Search by passage or title…" value="${escHtml(state.searchQuery)}" oninput="state.searchQuery=this.value;render()" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--txt1);font-family:'Crimson Pro',Georgia,serif;font-size:15px;padding:10px 12px;outline:none;"></div>
+    ${filtered.length===0?`<div style="text-align:center;padding:24px 0;color:var(--txt4);font-style:italic;font-size:14px;">No studies match "${escHtml(state.searchQuery)}"</div>`:`<div class="studies-grid">
+    ${filtered.map(item=>{
       const methodsDone=Object.values(item.methods).filter(m=>m.completed).length;
       const dots=METHODS.map(m=>{const done=item.methods[m.id]&&item.methods[m.id].completed,has=item.methods[m.id]&&(item.methods[m.id].notes||item.methods[m.id].aiResponse);return`<div class="dot" title="${m.name}" style="background:${done?C.gold:has?C.golddim:C.border}"></div>`;}).join('');
       return`<div class="study-card" onclick="openStudy('${item.id}')">
@@ -568,13 +574,17 @@ function renderDashboard(){
         <div class="dot-row">${dots}</div>
         <div class="study-card-footer">
           <div class="updated-label">Updated ${fmtDate(item.updatedAt)}</div>
-          <button class="delete-btn" onclick="event.stopPropagation();state.confirmDeleteId='${item.id}';document.getElementById('del-overlay').classList.add('on');">Delete</button>
+          <div style="display:flex;gap:6px;">
+            <button class="delete-btn" style="background:var(--bg3);color:var(--txt3);border:1px solid var(--border);" onclick="event.stopPropagation();duplicateStudy('${item.id}')">Duplicate</button>
+            <button class="delete-btn" onclick="event.stopPropagation();state.confirmDeleteId='${item.id}';document.getElementById('del-overlay').classList.add('on');">Delete</button>
+          </div>
         </div>
       </div>`;
     }).join('')}
     <div class="add-card" onclick="state.showNewStudy=true;render()">
       <div style="text-align:center;"><div style="color:var(--golddim);font-size:2rem;margin-bottom:6px;">+</div><div style="color:var(--txt4);font-size:13px;font-family:'Crimson Pro',Georgia,serif;">New Study</div></div>
     </div>
+  </div>`}
   </div>`;
 
   return`<div class="view on" id="view-dashboard">
@@ -612,6 +622,7 @@ function renderDashboard(){
         <div class="ornament">✦ ✦ ✦</div>
         <div class="footer-text" style="margin-top:10px;">Arché · Scribe</div>
         <div style="font-family:'Crimson Pro',Georgia,serif;font-size:11px;color:var(--txt4);font-style:italic;margin-top:4px;letter-spacing:.05em;">Part of Arché Study Tools</div>
+        <div style="margin-top:12px;"><a href="https://gizmo5332.github.io/JC-Study-Tool/" target="_blank" style="font-family:'Crimson Pro',Georgia,serif;font-size:12px;color:var(--golddim);text-decoration:none;letter-spacing:.05em;">Open in Arché · Pilgrim →</a></div>
       </div>
     </div>
   </div>`;
@@ -887,7 +898,15 @@ function renderMemorize(){
 // ── CHANGELOG ────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'1.2',date:'March 22, 2026',label:'Latest',
+    version:'1.3',date:'March 22, 2026',label:'Latest',
+    items:[
+      'Library search bar — filter studies by passage reference or title',
+      'Study duplication — Duplicate button on each dashboard card',
+      'Cross-app navigation — "Open in Arché · Pilgrim →" link in dashboard footer'
+    ]
+  },
+  {
+    version:'1.2',date:'March 22, 2026',
     items:[
       'JSON backup — Backup button exports all studies; opens native share sheet on mobile (iCloud Drive, Google Drive, etc.) with download fallback on desktop',
       'JSON restore — Restore button imports studies from a backup file; skips duplicates',
@@ -1091,6 +1110,19 @@ function bpGoStage(n){
   document.getElementById('bp-back-btn').style.display=n===1?'none':'flex';
 }
 // ── END S11 ───────────────────────────────────────────────────
+// ── S5: DUPLICATE STUDY ───────────────────────────────────────
+function duplicateStudy(id){
+  var src=state.studies.find(function(s){return s.id===id;});
+  if(!src)return;
+  var copy=JSON.parse(JSON.stringify(src));
+  copy.id=Date.now().toString();
+  copy.title=(copy.title?copy.title+' (Copy)':copy.passage+' (Copy)');
+  copy.createdAt=new Date().toISOString();
+  copy.updatedAt=new Date().toISOString();
+  var idx=state.studies.findIndex(function(s){return s.id===id;});
+  state.studies.splice(idx+1,0,copy);
+  saveStudies();render();toast('Study duplicated');
+}
 // ── Boot ─────────────────────────────────────────────────────────────────────
 loadStudies();
 render();
