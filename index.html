@@ -245,6 +245,34 @@ select option{background:var(--bg2);color:var(--txt1)}
 .cl-item{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--txt2);line-height:1.55}
 .cl-item::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--golddim);margin-top:6px;flex-shrink:0}
 
+/* ── Book Picker ─────────────────────────────────────────────── */
+.bp-open-btn{display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--borderlit);border-radius:var(--r);cursor:pointer;transition:all .15s;min-height:44px;min-width:44px;flex-shrink:0;color:var(--gold)}
+.bp-open-btn:active{background:var(--bg4)}
+.bp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.bp-overlay.on{opacity:1;pointer-events:all}
+.bp-sheet{background:var(--bg1);border-radius:var(--rl) var(--rl) 0 0;width:100%;max-width:520px;max-height:82vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s ease}
+.bp-overlay.on .bp-sheet{transform:translateY(0)}
+.bp-hdr{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.bp-hdr-title{font-family:'EB Garamond',serif;font-size:18px;color:var(--gold);font-weight:500;flex:1}
+.bp-back{background:none;border:none;color:var(--txt3);font-family:'Crimson Pro',serif;font-size:13px;cursor:pointer;padding:4px 8px;border-radius:var(--r);display:flex;align-items:center;gap:4px;min-height:36px}
+.bp-back:active{background:var(--bg3)}
+.bp-close{background:none;border:none;color:var(--txt4);font-size:20px;cursor:pointer;padding:4px 8px;min-height:36px;line-height:1}
+.bp-tt{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:50px;padding:3px;gap:3px;margin:10px 16px 6px;flex-shrink:0}
+.bp-tt-btn{flex:1;border:none;border-radius:50px;padding:6px;font-family:'Crimson Pro',serif;font-size:13px;cursor:pointer;transition:all .2s;background:none;color:var(--txt3);font-weight:500}
+.bp-tt-btn.on{background:var(--gold);color:var(--bg0);font-weight:600}
+.bp-scroll{flex:1;overflow-y:auto;padding:10px 14px 20px;-webkit-overflow-scrolling:touch}
+.bp-scroll::-webkit-scrollbar{display:none}
+.bp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.bp-pill{border:1px solid var(--border);background:var(--bg3);border-radius:var(--r);padding:8px 6px;font-family:'Crimson Pro',serif;font-size:13px;color:var(--txt1);cursor:pointer;text-align:center;transition:all .15s;line-height:1.3;min-height:44px;display:flex;align-items:center;justify-content:center}
+.bp-pill:active{background:var(--bg4);border-color:var(--gold);color:var(--gold)}
+.bp-ch-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.bp-ch-pill{border:1px solid var(--border);background:var(--bg3);border-radius:var(--r);font-family:'Crimson Pro',serif;font-size:15px;color:var(--txt1);cursor:pointer;text-align:center;transition:all .15s;min-height:44px;display:flex;align-items:center;justify-content:center}
+.bp-ch-pill:active{background:var(--bg4);border-color:var(--gold);color:var(--gold)}
+.bp-verse-area{padding:16px;display:flex;flex-direction:column;gap:12px}
+.bp-verse-label{font-size:10px;font-weight:500;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.bp-verse-hint{font-size:12px;color:var(--txt4);font-style:italic}
+.bp-stage{display:none}.bp-stage.on{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+/* ── Ref Pills ───────────────────────────────────────────────── */
 .ref-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
 .ref-pill{display:inline-flex;align-items:center;gap:4px;border-radius:50px;padding:5px 12px;font-size:12px;font-family:'Crimson Pro',serif;border:1px solid var(--border);background:var(--bg3);color:var(--txt3);cursor:pointer;transition:all .15s;min-height:32px;-webkit-user-select:none;user-select:none}
 .ref-pill.on{border-color:var(--gold);color:var(--gold);background:color-mix(in srgb,var(--bg3),var(--golddim) 15%)}
@@ -392,9 +420,10 @@ select option{background:var(--bg2);color:var(--txt1)}
         <div class="ig" style="flex:1"><label>Teacher / Preacher</label><input type="text" id="f-teacher" placeholder="Name"></div>
       </div>
       <div id="f-ref-pills" class="ref-pills"></div>
-      <div class="frow">
-        <div class="ig" style="flex:2"><label>Scripture Reference</label><input type="text" id="f-ref" placeholder="e.g. John 3:16-17" onblur="fetchScr()"></div>
-        <div class="ig" style="flex:0 0 76px"><label>Version</label>
+      <div class="frow" style="align-items:flex-end">
+        <div class="ig" style="flex:0 0 auto;margin-bottom:0"><label style="visibility:hidden">Pick</label><button class="bp-open-btn" onclick="bpOpen()" title="Pick book &amp; chapter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button></div>
+        <div class="ig" style="flex:2;margin-bottom:0"><label>Scripture Reference</label><input type="text" id="f-ref" placeholder="e.g. John 3:16-17" onblur="fetchScr()"></div>
+        <div class="ig" style="flex:0 0 76px;margin-bottom:0"><label>Version</label>
           <select id="f-trans" onchange="fetchScr()">
             <option value="esv">ESV</option><option value="kjv">KJV</option>
             <option value="asv">ASV</option><option value="web">WEB</option>
@@ -701,6 +730,46 @@ select option{background:var(--bg2);color:var(--txt1)}
     <div style="display:flex;gap:10px">
       <button class="btn btn-sec" style="flex:1" onclick="closeOverlay('import-overlay');window.location.hash=''">Skip</button>
       <button class="btn btn-primary" style="flex:1" onclick="confirmImportLink()">Import Study</button>
+    </div>
+  </div>
+</div>
+<!-- BOOK PICKER MODAL -->
+<div class="bp-overlay" id="bp-overlay">
+  <div class="bp-sheet">
+    <div class="bp-hdr">
+      <button class="bp-back" id="bp-back-btn" onclick="bpBack()" style="display:none">&#8592; Back</button>
+      <div class="bp-hdr-title" id="bp-hdr-title">Choose Book</div>
+      <button class="bp-close" onclick="bpClose()">&#215;</button>
+    </div>
+    <!-- Stage 1: Testament + Book -->
+    <div class="bp-stage on" id="bp-stage1">
+      <div class="bp-tt">
+        <button class="bp-tt-btn on" id="bp-ot-btn" onclick="bpSetTestament('OT')">Old Testament</button>
+        <button class="bp-tt-btn" id="bp-nt-btn" onclick="bpSetTestament('NT')">New Testament</button>
+      </div>
+      <div class="bp-scroll"><div class="bp-grid" id="bp-book-grid"></div></div>
+    </div>
+    <!-- Stage 2: Chapter -->
+    <div class="bp-stage" id="bp-stage2">
+      <div class="bp-scroll"><div class="bp-ch-grid" id="bp-ch-grid"></div></div>
+    </div>
+    <!-- Stage 3: Verse -->
+    <div class="bp-stage" id="bp-stage3">
+      <div class="bp-verse-area">
+        <div>
+          <div class="bp-verse-label">Selected</div>
+          <div id="bp-sel-preview" style="font-family:'EB Garamond',serif;font-size:18px;color:var(--gold);margin-bottom:4px"></div>
+        </div>
+        <div>
+          <div class="bp-verse-label">Verse(s)</div>
+          <div class="bp-verse-hint">Type a single verse (e.g. 16) or a range (e.g. 16-18)</div>
+          <input type="text" id="bp-verse-input" placeholder="e.g. 16 or 16-18" inputmode="text" style="margin-bottom:0" oninput="bpUpdatePreview()">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn btn-sec" style="flex:1" onclick="bpClose()">Cancel</button>
+          <button class="btn btn-primary" style="flex:1" onclick="bpConfirm()">Load Scripture</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1734,6 +1803,85 @@ function statCard(val,label,icon,sub){
     '</div>';
 }
 
+// ── BOOK PICKER ───────────────────────────────────────────────
+var BP_BOOKS={
+  OT:[
+    {n:'Genesis',c:50},{n:'Exodus',c:40},{n:'Leviticus',c:27},{n:'Numbers',c:36},{n:'Deuteronomy',c:34},
+    {n:'Joshua',c:24},{n:'Judges',c:21},{n:'Ruth',c:4},{n:'1 Samuel',c:31},{n:'2 Samuel',c:24},
+    {n:'1 Kings',c:22},{n:'2 Kings',c:25},{n:'1 Chronicles',c:29},{n:'2 Chronicles',c:36},
+    {n:'Ezra',c:10},{n:'Nehemiah',c:13},{n:'Esther',c:10},{n:'Job',c:42},{n:'Psalms',c:150},
+    {n:'Proverbs',c:31},{n:'Ecclesiastes',c:12},{n:'Song of Solomon',c:8},{n:'Isaiah',c:66},
+    {n:'Jeremiah',c:52},{n:'Lamentations',c:5},{n:'Ezekiel',c:48},{n:'Daniel',c:12},{n:'Hosea',c:14},
+    {n:'Joel',c:3},{n:'Amos',c:9},{n:'Obadiah',c:1},{n:'Jonah',c:4},{n:'Micah',c:7},
+    {n:'Nahum',c:3},{n:'Habakkuk',c:3},{n:'Zephaniah',c:3},{n:'Haggai',c:2},{n:'Zechariah',c:14},
+    {n:'Malachi',c:4}
+  ],
+  NT:[
+    {n:'Matthew',c:28},{n:'Mark',c:16},{n:'Luke',c:24},{n:'John',c:21},{n:'Acts',c:28},
+    {n:'Romans',c:16},{n:'1 Corinthians',c:16},{n:'2 Corinthians',c:13},{n:'Galatians',c:6},
+    {n:'Ephesians',c:6},{n:'Philippians',c:4},{n:'Colossians',c:4},{n:'1 Thessalonians',c:5},
+    {n:'2 Thessalonians',c:3},{n:'1 Timothy',c:6},{n:'2 Timothy',c:4},{n:'Titus',c:3},
+    {n:'Philemon',c:1},{n:'Hebrews',c:13},{n:'James',c:5},{n:'1 Peter',c:5},{n:'2 Peter',c:3},
+    {n:'1 John',c:5},{n:'2 John',c:1},{n:'3 John',c:1},{n:'Jude',c:1},{n:'Revelation',c:22}
+  ]
+};
+var _bpTestament='OT',_bpBook=null,_bpChapter=null;
+function bpOpen(){
+  _bpBook=null;_bpChapter=null;
+  bpSetTestament(_bpTestament);
+  bpGoStage(1);
+  document.getElementById('bp-overlay').classList.add('on');
+}
+function bpClose(){document.getElementById('bp-overlay').classList.remove('on');}
+function bpSetTestament(t){
+  _bpTestament=t;
+  document.getElementById('bp-ot-btn').classList.toggle('on',t==='OT');
+  document.getElementById('bp-nt-btn').classList.toggle('on',t==='NT');
+  var books=BP_BOOKS[t];
+  document.getElementById('bp-book-grid').innerHTML=books.map(function(b){
+    return '<button class="bp-pill" onclick="bpPickBook(\''+b.n.replace(/'/g,'\\\'')+'\')">'+b.n+'</button>';
+  }).join('');
+}
+function bpPickBook(name){
+  _bpBook=name;
+  var book=BP_BOOKS[_bpTestament].find(function(b){return b.n===name;});
+  document.getElementById('bp-hdr-title').textContent=name;
+  var chs=[];for(var i=1;i<=book.c;i++)chs.push(i);
+  document.getElementById('bp-ch-grid').innerHTML=chs.map(function(n){
+    return '<button class="bp-ch-pill" onclick="bpPickChapter('+n+')">'+n+'</button>';
+  }).join('');
+  bpGoStage(2);
+}
+function bpPickChapter(n){
+  _bpChapter=n;
+  document.getElementById('bp-hdr-title').textContent=_bpBook+' '+n;
+  document.getElementById('bp-sel-preview').textContent=_bpBook+' '+n+':';
+  document.getElementById('bp-verse-input').value='';
+  bpGoStage(3);
+  setTimeout(function(){document.getElementById('bp-verse-input').focus();},350);
+}
+function bpUpdatePreview(){
+  var v=document.getElementById('bp-verse-input').value.trim();
+  document.getElementById('bp-sel-preview').textContent=_bpBook+' '+_bpChapter+(v?':'+v:'');
+}
+function bpConfirm(){
+  var v=document.getElementById('bp-verse-input').value.trim();
+  if(!v){toast('Please enter a verse or range');return;}
+  var ref=_bpBook+' '+_bpChapter+':'+v;
+  var fref=document.getElementById('f-ref');
+  if(fref){fref.value=ref;var ar=activeRef();if(ar)ar.reference=ref;}
+  bpClose();
+  fetchScr();
+}
+function bpBack(){
+  if(document.getElementById('bp-stage3').classList.contains('on')){bpGoStage(2);document.getElementById('bp-hdr-title').textContent=_bpBook;}
+  else if(document.getElementById('bp-stage2').classList.contains('on')){bpGoStage(1);document.getElementById('bp-hdr-title').textContent='Choose Book';}
+}
+function bpGoStage(n){
+  [1,2,3].forEach(function(i){document.getElementById('bp-stage'+i).classList.toggle('on',i===n);});
+  document.getElementById('bp-back-btn').style.display=n===1?'none':'flex';
+}
+// ── END BOOK PICKER ───────────────────────────────────────────
 async function exportData(){
   var json=JSON.stringify(studies,null,2);
   var blob=new Blob([json],{type:'application/json'});
@@ -1817,7 +1965,16 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 // ── CHANGELOG ────────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'2.1',date:'March 22, 2026',label:'Latest',
+    version:'2.2',date:'March 22, 2026',label:'Latest',
+    items:[
+      'Book picker added to Field Mode — tap the book icon to select book, chapter, and verse(s) without typing',
+      'Old Testament / New Testament toggle in picker for quick navigation',
+      'Picking a reference auto-fills the Scripture Reference field and loads the passage',
+      'Manual reference typing still available alongside the picker'
+    ]
+  },
+  {
+    version:'2.1',date:'March 22, 2026',
     items:[
       'Export / Backup now opens the native share sheet on supported devices (save to iCloud Drive, Google Drive, etc.)',
       'Falls back to direct file download on desktop browsers that do not support file sharing'
