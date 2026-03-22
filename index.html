@@ -135,6 +135,9 @@ select option{background:var(--bg2);color:var(--txt1)}
 .conndot{width:8px;height:8px;border-radius:50%;background:var(--sagebright);flex-shrink:0}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;justify-content:center;z-index:100;padding-bottom:var(--safe-b)}
 .overlay.on{display:flex}
+.gemini-setup-overlay{position:fixed;inset:0;background:rgba(11,9,7,.96);display:none;align-items:center;justify-content:center;z-index:400;padding:20px}
+.gemini-setup-overlay.on{display:flex}
+.gemini-setup-card{background:var(--bg2);border:1px solid var(--borderlit);border-radius:var(--rl);padding:28px 24px;width:100%;max-width:420px}
 .modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl) var(--rl) 0 0;padding:20px 16px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto}
 .modal::-webkit-scrollbar{display:none}
 .modal-title{font-family:'EB Garamond',serif;font-size:20px;color:var(--txt1);margin-bottom:14px}
@@ -528,8 +531,8 @@ select option{background:var(--bg2);color:var(--txt1)}
   <div class="scroll">
     <div style="margin-bottom:22px">
       <div class="sethead">AI Study Tools</div>
-      <div class="setsub">Your Google Gemini API key is pre-configured. If tools return errors visit aistudio.google.com to get a fresh key.</div>
-      <div class="conntag" style="margin-bottom:10px"><div class="conndot"></div>Gemini API key loaded</div>
+      <div class="setsub">Enter your Google Gemini API key to enable AI tools. Your key is stored only on this device and never uploaded anywhere. Get a free key at aistudio.google.com.</div>
+      <div class="conntag" id="gemini-status-tag" style="margin-bottom:10px"><div class="conndot" id="gemini-status-dot"></div><span id="gemini-status-text">No API key saved</span></div>
       <div class="ig"><label>Google Gemini API Key</label><input type="password" id="set-gemini" placeholder="AIza..." autocomplete="off" spellcheck="false"></div>
       <button class="btn btn-primary btn-full" onclick="saveSettings()">Save API Key</button>
     </div>
@@ -735,14 +738,28 @@ select option{background:var(--bg2);color:var(--txt1)}
   </div>
 </div>
 
+<!-- GEMINI SETUP OVERLAY -->
+<div class="gemini-setup-overlay" id="gemini-setup-overlay">
+  <div class="gemini-setup-card">
+    <div class="ornament" style="margin-bottom:16px">&#10022;</div>
+    <div style="font-family:'EB Garamond',serif;font-size:22px;color:var(--gold);text-align:center;margin-bottom:8px">AI Study Tools Setup</div>
+    <p style="font-size:14px;color:var(--txt2);text-align:center;line-height:1.65;margin-bottom:20px">Arché uses Google Gemini for lexical, historical, and cultural analysis. Enter your free API key to enable AI tools.<br><br><a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--gold);font-size:13px">Get a free key at aistudio.google.com ↗</a></p>
+    <div class="ig" style="margin-bottom:16px">
+      <label>Google Gemini API Key</label>
+      <input type="password" id="gemini-setup-input" placeholder="AIza..." autocomplete="off" spellcheck="false">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveGeminiSetup()" style="margin-bottom:10px">Save &amp; Continue</button>
+    <button class="btn btn-ghost btn-full" onclick="skipGeminiSetup()" style="font-size:13px">Skip for now — I'll use Paste mode</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 </div>
 
 <script>
 var ESV_KEY='6788a84f19616a65bf00f0edda9f45ea83486ccf';
-var DEFAULT_GEMINI_KEY='AIzaSyA6pz5un5Dyg5IMjuoYUgzcft6gGm9vrfQ';
 var SK='bsn_studies_v2', SK_SETT='bsn_settings_v1', SK_TAGS='bsn_tags_v1';
-var studies=[], cur=null, online=navigator.onLine, sett={geminiKey:DEFAULT_GEMINI_KEY, scrMode:'auto'};
+var studies=[], cur=null, online=navigator.onLine, sett={geminiKey:'', scrMode:'auto'};
 var hdrCollapsed=false, scrCollapsed=false, studyScope='passage';
 var _editingTagId=null;
 var TOOL_LABELS={lexical:'Lexical Study',grammar:'Grammar & Syntax',historical:'Historical Context',cultural:'Cultural Context',crossrefs:'Cross-References'};
@@ -878,7 +895,7 @@ var obStep=0;
 var mfBlob=new Blob([JSON.stringify({name:'Arche - Pilgrim',short_name:'Pilgrim',start_url:'./',display:'standalone',background_color:'#0b0907',theme_color:'#0b0907'})],{type:'application/json'});
 document.getElementById('pwa-manifest').href=URL.createObjectURL(mfBlob);
 
-window.addEventListener('load',function(){loadStudies();loadTags();loadSett();renderLib();updateOffline();document.getElementById('f-date').value=todayStr();setTimeout(checkImportHash,300);setInterval(autoSave,30000);initSwipe();checkOnboarding();});
+window.addEventListener('load',function(){loadStudies();loadTags();loadSett();renderLib();updateOffline();document.getElementById('f-date').value=todayStr();setTimeout(checkImportHash,300);setInterval(autoSave,30000);initSwipe();checkOnboarding();checkGeminiSetup();});
 
 // WORD COUNT & FONT SIZE
 var notesFontLarge=false;
@@ -901,7 +918,7 @@ function todayStr(){return new Date().toISOString().split('T')[0];}
 function updateOffline(){document.getElementById('offbadge').classList.toggle('show',!online);}
 function loadStudies(){try{studies=JSON.parse(localStorage.getItem(SK))||[];}catch(e){studies=[];}}
 function persist(){try{localStorage.setItem(SK,JSON.stringify(studies));}catch(e){toast('Storage full');}}
-function loadSett(){try{var s=JSON.parse(localStorage.getItem(SK_SETT));if(s)sett=Object.assign({},sett,s);if(!sett.geminiKey)sett.geminiKey=DEFAULT_GEMINI_KEY;if(!sett.scrMode)sett.scrMode='auto';document.getElementById('set-gemini').value=sett.geminiKey||'';updateScrModeUI();}catch(e){}}
+function loadSett(){try{var s=JSON.parse(localStorage.getItem(SK_SETT));if(s)sett=Object.assign({},sett,s);if(!sett.scrMode)sett.scrMode='auto';document.getElementById('set-gemini').value=sett.geminiKey||'';updateScrModeUI();}catch(e){}}
 function setScrMode(mode){sett.scrMode=mode;localStorage.setItem(SK_SETT,JSON.stringify(sett));updateScrModeUI();if(mode==='paste'&&cur&&cur.reference){openPasteModal();}else if(mode==='auto'&&cur&&cur.reference){fetchScr();}}
 function updateScrModeUI(){
   var isAuto=sett.scrMode!=='paste';
@@ -915,7 +932,10 @@ function updateScrModeUI(){
     btnAuto.style.background='none';btnAuto.style.color='var(--txt3)';btnAuto.style.fontWeight='400';
   }
 }
-function saveSettings(){sett.geminiKey=document.getElementById('set-gemini').value.trim()||DEFAULT_GEMINI_KEY;localStorage.setItem(SK_SETT,JSON.stringify(sett));toast('Settings saved');}
+function saveSettings(){var k=document.getElementById('set-gemini').value.trim();sett.geminiKey=k;localStorage.setItem(SK_SETT,JSON.stringify(sett));toast('Settings saved');if(k){var ov=document.getElementById('gemini-setup-overlay');if(ov)ov.classList.remove('on');}}
+function checkGeminiSetup(){if(!sett.geminiKey){setTimeout(function(){document.getElementById('gemini-setup-overlay').classList.add('on');},600);}}
+function saveGeminiSetup(){var k=document.getElementById('gemini-setup-input').value.trim();if(!k){toast('Please enter your API key');return;}sett.geminiKey=k;localStorage.setItem(SK_SETT,JSON.stringify(sett));document.getElementById('set-gemini').value=k;document.getElementById('gemini-setup-overlay').classList.remove('on');toast('API key saved — AI tools ready');}
+function skipGeminiSetup(){document.getElementById('gemini-setup-overlay').classList.remove('on');}
 
 function navTo(id){
   if(cur)syncFromInputs();
@@ -927,7 +947,7 @@ function navTo(id){
   if(id==='deep'){syncFromInputs();_fnotesOpen=false;var fb=document.getElementById('fnotes-body');if(fb)fb.classList.remove('open');var fc=document.getElementById('fnotes-chev');if(fc)fc.style.transform='';populateDeep();}
   if(id==='field'&&cur)populateField();
   if(id==='stats')renderStats();
-  if(id==='settings')renderTagManager();
+  if(id==='settings'){renderTagManager();var dot=document.getElementById('gemini-status-dot'),txt=document.getElementById('gemini-status-text');if(dot&&txt){if(sett.geminiKey){dot.style.background='var(--sagebright)';txt.textContent='API key saved';}else{dot.style.background='var(--crimsonbright)';txt.textContent='No API key saved — tap below to add one';}}}
 }
 function saveAndGoLib(){saveStudy();navTo('library');}
 function goField(){navTo('field');}
