@@ -228,6 +228,11 @@ select option{background:var(--bg2);color:var(--txt1)}
 .res-add-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .res-status{font-size:12px;color:var(--txt3);font-style:italic;text-align:center;padding:6px 0}
 /* ── Changelog ──────────────────────────────────────────────── */
+.cl-section-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;-webkit-user-select:none;user-select:none;margin-bottom:4px}
+.cl-section-hdr .sethead{margin-bottom:0}
+.cl-toggle-btn{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:50px;padding:4px 12px;font-size:11px;color:var(--txt3);font-family:'Crimson Pro',serif;cursor:pointer;transition:all .15s;white-space:nowrap;min-height:28px}
+.cl-toggle-btn:active{background:var(--bg4)}
+.cl-body{overflow:hidden;transition:max-height .35s ease}
 .cl-version{margin-bottom:18px}
 .cl-version-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;cursor:pointer;-webkit-user-select:none;user-select:none}
 .cl-version-num{font-family:'EB Garamond',serif;font-size:17px;color:var(--gold);font-weight:500}
@@ -607,9 +612,14 @@ select option{background:var(--bg2);color:var(--txt1)}
     </div>
     <div class="divider"></div>
     <div style="margin-bottom:22px">
-      <div class="sethead">What&#8217;s New</div>
-      <div class="setsub">A full history of changes to Arch&#275; &middot; Pilgrim, newest first.</div>
-      <div id="changelog-list"></div>
+      <div class="cl-section-hdr" onclick="clSectionToggle()">
+        <div class="sethead">What&#8217;s New</div>
+        <button class="cl-toggle-btn" id="cl-section-btn">Show &#8964;</button>
+      </div>
+      <div class="cl-body" id="cl-body">
+        <div class="setsub" style="margin-top:4px">Full history of changes to Arch&#275; &middot; Pilgrim, newest first.</div>
+        <div id="changelog-list" style="margin-top:12px"></div>
+      </div>
     </div>
     <div class="divider"></div>
     <div class="ornament">&#10022; &#10022; &#10022;</div>
@@ -1796,117 +1806,130 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 // ── CHANGELOG ────────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'2.0',date:'March 2026',label:'New',
+    version:'2.0',date:'March 22, 2026',label:'Latest',
     items:[
       'Multiple scripture references — up to 4 passages per study',
-      'Reference pill selector in Field Mode to add, switch, and remove passages',
-      'Reference pill selector in Deep Study to switch active passage for analysis',
+      'Passage pill selector in Field Mode: add, switch, and remove references',
+      'Passage pill selector in Deep Study: switch active passage for analysis',
       'Each passage stores its own scripture text, AI tool results, and scope setting',
-      'Library cards show primary reference with +N badge when multiple passages exist',
-      'Existing studies automatically migrated — no data lost',
-      'Confirm modal when removing a passage that has saved content'
+      'Library cards show the primary reference with a +N badge when multiple passages exist',
+      'Existing studies automatically migrated to the new format — no data lost',
+      'Confirm modal shown when removing a passage that has saved content',
+      'What\'s New changelog added to Settings'
     ]
   },
   {
-    version:'1.7',date:'February 2026',
+    version:'1.6',date:'March 22, 2026',
     items:[
-      'Gemini API key setup — first-launch overlay guides new users through key entry',
-      'Key stored only on-device via localStorage — never in the source file',
-      'Settings screen shows live green/red key status indicator',
-      'AI tools redirect to Settings if no key is saved',
-      'Skip option routes to Paste mode for users without a key'
+      'Delete button added to library cards — red Del button triggers custom confirm modal without opening the study',
+      'Passage/Book scope toggle now persists per study — restored when the study is reopened',
+      'All remaining native browser dialogs replaced with custom modals: Clear All Data, Delete Tag, Rename Resource',
+      'Fixed: getBookFromRef now resolves multi-word book names (Song of Solomon, 1 Samuel, 2 Kings) correctly',
+      'Fixed: pre-existing JS syntax error in resViewFull caused blank screen on load — identified via node --check'
     ]
   },
   {
-    version:'1.6',date:'January 2026',
+    version:'1.5',date:'March 22, 2026',
     items:[
-      'Desktop layout — full sidebar nav at 901px+, two-column Deep Study',
-      'Tablet layout — wider card grid, sticky bottom nav at 481–900px',
-      'Swipe gestures — horizontal swipe switches Field ↔ Deep Study on mobile',
-      'Field Notes collapsible panel in Deep Study — collapsed by default, shows word count',
+      'Field Notes panel in Deep Study is now collapsible — starts collapsed, shows word count in toggle bar',
+      'Resource display switched from full cards to a compact 2-col thumbnail tile grid in both Field Mode and Deep Study',
+      'Camera and Gallery capture buttons moved from Deep Study into Field Mode notes area',
+      'Insert OCR text into Notes button added to image viewer modal',
+      'Gemini API key first-launch setup overlay — shown on first open if no key is saved; skip option routes to Paste mode',
+      'Settings shows live green/red indicator for API key status',
+      'Fixed: display:flex hardcoded on #scr-field caused Field Mode to show simultaneously on all screens',
+      'Fixed: missing display:none on desktop .scr rule caused all screens to show at once'
+    ]
+  },
+  {
+    version:'1.4',date:'March 19–21, 2026',
+    items:[
+      'Study tags — 6 default colored tags plus unlimited custom tags; tag picker in Field Mode header; colored dot chips on library cards',
+      'Custom tag manager in Settings — create tags with name and color picker, edit or delete any tag; deletions propagate to all studies',
+      'Tag filter bar in library — filter cards by any tag currently in use',
+      'Study templates — new study picker offers Blank, Sermon Notes, Devotional, and Small Group starting points',
+      'Onboarding flow — 3-step welcome card shown on first launch',
+      'Stats dashboard — streak counter, total studies, words written, AI tools run; top books bar chart; recent activity list',
+      'Library grid layout — 2-col mobile / 3-col desktop card grid with a + New Study card slot',
+      'Share Study Link — encodes a study as a URL hash for sharing; image data stripped to keep URLs short',
+      'Study duplication — Dup button on every library card',
+      'AI panel tabs — all run tools persist as tabs and are switchable without re-running',
+      'Word count live display on Field Notes textarea',
+      'Scripture font size toggle (A+ / A−) in Field Mode',
+      'Library search bar and sort options (Latest, Reference, Teacher, Modified)',
       'Auto-save every 30 seconds — silent, no toast',
-      'studyScope (passage/book) now persists per study',
-      'All native browser confirm/prompt dialogs replaced with custom modals',
+      'Swipe gestures — horizontal swipe switches Field ↔ Deep Study on mobile',
+      'Responsive desktop layout — sidebar nav at 901px+, two-column Deep Study; tablet layout at 481–900px',
       'Suite branding — sidebar ornament and Part of Arché Study Tools footer'
     ]
   },
   {
-    version:'1.5',date:'December 2025',
+    version:'1.3',date:'March 19, 2026',
     items:[
-      'Study templates — template picker on new study: Blank, Sermon Notes, Devotional, Small Group',
-      'Onboarding flow — 3-step card shown on first launch',
-      'Stats dashboard — streak, total studies, words written, AI tools run, top books chart, recent activity',
-      'Library grid — 2-col mobile, 3-col desktop card layout with + New Study card slot',
-      'Scripture font size toggle (A+ / A−) in Field Mode'
+      'App renamed to Arché · Pilgrim across all locations — title, PWA manifest, PDF footer, backup filename',
+      'Auto / Paste scripture input mode toggle added to Field Mode header — mode persists across sessions',
+      'Paste modal: Translation / Version field added; auto-uppercases as typed',
+      'Paste modal: reference hint line shows current reference so users know what to look up',
+      'Paste modal: smart focus — empty translation field gets focus first, otherwise jumps to textarea',
+      'Paste modal: remembers last used translation and pre-fills it on next open',
+      'Pasted translation stored on the study and shown in Deep Study header, library cards, and PDF footer',
+      'Fixed: PDF export selection modal completely non-functional on Android Chrome — native checkbox inputs replaced with div + .on class toggle system throughout'
     ]
   },
   {
-    version:'1.4',date:'November 2025',
+    version:'1.2',date:'March 18, 2026',
     items:[
-      'Study tags — 6 default colored tags (Sermon, Devotional, Small Group, Personal, Prayer, Study)',
-      'Unlimited custom tags with name and color picker',
-      'Custom tag manager in Settings — create, edit, delete; deletions propagate to all studies',
-      'Tag picker in Field Mode header',
-      'Colored dot tag chips on library cards',
-      'Tag filter bar in library — filter cards by any tag in use'
+      'Passage / Whole Book scope toggle added to Deep Study — analyze the current passage or the entire book',
+      'Separate AI result cache per scope — passage and book results stored independently',
+      'PDF export selection modal — choose which sections and AI tools to include; Select All / Clear All',
+      'PDF layout engine rewritten — proper bottom-margin clearance, per-line page-break detection, section dividers',
+      'Fixed: AI responses truncating mid-sentence — maxOutputTokens raised from 1800 to 8192 with explicit no-truncate prompt instruction',
+      'Fixed: getBookFromRef added — was missing, caused scope toggle to fail',
+      'Fixed: pdfSafe() rewritten using charCodeAt loop — regex Unicode ranges caused silent character corruption for Greek and Hebrew'
     ]
   },
   {
-    version:'1.3',date:'October 2025',
+    version:'1.1',date:'March 18, 2026',
     items:[
-      'Camera and gallery capture buttons in Field Mode',
-      'Captured images compressed and stored with each study',
-      'OCR via Gemini — text extracted from photos automatically',
-      'Image tile grid — 2-col thumbnail grid in Field Mode and Deep Study',
-      'Tap any tile to open full image modal with extracted text',
-      'Insert OCR text into Field Notes button',
-      'Rename and re-extract actions on each resource',
-      'Deep Study shows read-only resource tiles captured in Field Mode'
+      'Field Mode header made collapsible — summary pill bar shows date and reference when collapsed; collapse state preserved when switching tabs',
+      'Scripture panel made collapsible with hide/show bar',
+      'Delete Study button added to Field Mode topbar with confirm modal',
+      'Fixed: isBook not defined error in buildPrompt — missing variable declaration added',
+      'Fixed: unescaped apostrophe in Strong\'s numbers string literal caused JS syntax error',
+      'Fixed: invalid Unicode regex range in pdfSafe caused silent failure — switched to charCodeAt approach'
     ]
   },
   {
-    version:'1.2',date:'September 2025',
+    version:'1.0',date:'March 18, 2026',label:'Initial release',
     items:[
-      'AI panel tabs — all run tools persist as tabs, switchable without re-running',
-      'Passage / Whole Book scope toggle — analyze the passage or the entire book',
-      'Copy and Share buttons on AI results',
-      'Ready dot indicators on tool buttons when results are saved',
-      'Word count live display on Field Notes textarea',
-      'Study duplication — Duplicate button on library cards',
-      'Delete button on library cards with custom confirm modal'
-    ]
-  },
-  {
-    version:'1.1',date:'August 2025',
-    items:[
-      'Library search bar — searches title, reference, and teacher fields',
-      'Library sort — Latest, Reference, Teacher, Modified',
-      'Share Study Link — encodes study as URL hash for sharing (strips image data)',
-      'JSON backup and restore — export all studies; import merges without overwriting',
-      'Scripture paste fallback — manual paste modal for offline or blocked API use',
-      'Auto/Paste mode toggle for scripture input'
-    ]
-  },
-  {
-    version:'1.0',date:'July 2025',label:'Initial release',
-    items:[
-      'Field Mode — capture scripture reference, translation, date, teacher, and notes',
-      'Deep Study — 5 AI tools: Lexical Study, Grammar & Syntax, Historical Context, Cultural Context, Cross-References',
-      'My Conclusions — AI-free zone for personal theological conclusions',
-      'Scripture auto-fetch via ESV API and bible-api.com (KJV, ASV, WEB, YLT, Darby)',
-      'Library — browse, open, and manage all studies',
-      'PDF export — select sections and AI tools to include',
-      'Offline indicator and graceful offline fallbacks',
-      'PWA manifest — installable via Add to Home Screen'
+      'Complete app built from scratch as a single-file HTML PWA — installable via Chrome Add to Home Screen',
+      'Field Mode — capture Date, Teacher, Scripture Reference, Translation, Title, and Notes',
+      'Scripture auto-fetch via ESV API (Crossway) and bible-api.com (KJV, ASV, WEB, YLT, Darby)',
+      'Paste fallback modal for offline or API-blocked scripture entry',
+      'Deep Study — 5 AI tools via Gemini 2.5 Flash: Lexical Study, Grammar & Syntax, Historical Context, Cultural Context, Cross-References',
+      'All AI prompts instruct Gemini to provide scholarly data only — no theological conclusions',
+      'My Conclusions textarea — AI-Free Zone with gold border, fully separate from AI tools',
+      'Library screen — searchable study list with FAB to create new studies',
+      'Settings — Gemini API key input, ESV API status, translation list, JSON backup/restore, Clear All Data',
+      'PDF export via jsPDF — gold header bar, metadata block, section dividers, page footers',
+      'PWA service worker — cache-first strategy, offline badge indicator in topbar'
     ]
   }
 ];
 
 var _clOpen={};
+var _clSectionOpen=false;
+function clSectionToggle(){
+  _clSectionOpen=!_clSectionOpen;
+  var body=document.getElementById('cl-body');
+  var btn=document.getElementById('cl-section-btn');
+  if(body){body.style.maxHeight=_clSectionOpen?body.scrollHeight+'px':'0';}
+  if(btn)btn.textContent=_clSectionOpen?'Hide \u8964':'Show \u8964';
+}
 function renderChangelog(){
   var el=document.getElementById('changelog-list');if(!el)return;
   el.innerHTML=CHANGELOG.map(function(v,i){
-    var isOpen=_clOpen.hasOwnProperty(i)?_clOpen[i]:(i===0);
+    var isOpen=_clOpen.hasOwnProperty(i)?_clOpen[i]:false;
     return '<div class="cl-version">'+
       '<div class="cl-version-hdr" onclick="clToggle('+i+')">'+
         '<span class="cl-version-num">v'+v.version+'</span>'+
@@ -1919,9 +1942,12 @@ function renderChangelog(){
       '</div>'+
     '</div>';
   }).join('');
+  // Sync section body height after render
+  var body=document.getElementById('cl-body');
+  if(body&&_clSectionOpen)body.style.maxHeight=body.scrollHeight+'px';
 }
 function clToggle(i){
-  _clOpen[i]=!(_clOpen.hasOwnProperty(i)?_clOpen[i]:(i===0));
+  _clOpen[i]=!(_clOpen.hasOwnProperty(i)?_clOpen[i]:false);
   renderChangelog();
 }
 
