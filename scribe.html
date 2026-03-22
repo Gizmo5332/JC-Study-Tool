@@ -478,11 +478,18 @@ function updateExegField(stageId,field,value){const id=state.currentStudyId;upda
 async function handleCreate(){
   if(!state.newPassage.trim()||state.creating)return;
   state.creating=true;render();
-  const result=await fetchPassageText(state.newPassage.trim(),state.newTranslation);
-  const study=newStudyObj(state.newPassage,state.newTranslation,result.text||'',result.textTranslation,state.newTitle.trim());
-  state.studies=[study,...state.studies];saveStudies();
-  state.currentStudyId=study.id;state.activeMethod='analytical';state.progressTab='exegesis';
-  state.creating=false;state.showNewStudy=false;state.newPassage='';state.newTitle='';state.view='study';render();
+  try{
+    const result=await fetchPassageText(state.newPassage.trim(),state.newTranslation);
+    const study=newStudyObj(state.newPassage,state.newTranslation,result.text||'',result.textTranslation,state.newTitle.trim());
+    state.studies=[study,...state.studies];saveStudies();
+    state.currentStudyId=study.id;state.activeMethod='analytical';state.progressTab='exegesis';
+    state.creating=false;state.showNewStudy=false;state.newPassage='';state.newTitle='';state.view='study';
+    if(!result.text)toast('Scripture not loaded — use Reload or Paste Text');
+  }catch(e){
+    state.creating=false;
+    toast('Something went wrong — please try again');
+  }
+  render();
 }
 function handleDeleteConfirm(){
   if(!state.confirmDeleteId)return;
@@ -665,7 +672,7 @@ function renderStudy(){
   const prog=calcProgress(study);
   const method=METHODS.find(m=>m.id===state.activeMethod);
   const mData=study.methods[state.activeMethod];
-  const textAvailable=study.text&&!study.text.startsWith('[');
+  const textAvailable=!!(study.text&&study.text.trim());
 
   // Sidebar exegesis
   const exegHTML=EXEG_STAGES.map(s=>{
