@@ -602,9 +602,9 @@ select option{background:var(--bg2);color:var(--txt1)}
     <div class="divider"></div>
     <div style="margin-bottom:22px">
       <div class="sethead">Data &amp; Storage</div>
-      <div class="setsub">All notes stored locally on this device. Use backup/restore to move data between devices.</div>
+      <div class="setsub">All notes stored locally on this device. Export to save a backup to iCloud Drive, Google Drive, or any file app.</div>
       <div style="display:flex;gap:10px;margin-bottom:10px">
-        <button class="btn btn-ghost" style="flex:1" onclick="exportData()">Backup JSON</button>
+        <button class="btn btn-ghost" style="flex:1" onclick="exportData()">Export / Backup</button>
         <button class="btn btn-ghost" style="flex:1" onclick="importDataPrompt()">Restore JSON</button>
       </div>
       <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" onchange="importDataFromFile(this)">
@@ -1734,7 +1734,18 @@ function statCard(val,label,icon,sub){
     '</div>';
 }
 
-function exportData(){var blob=new Blob([JSON.stringify(studies,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='arche-pilgrim-backup.json';a.click();URL.revokeObjectURL(url);toast('Backup downloaded');}
+async function exportData(){
+  var json=JSON.stringify(studies,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var fname='arche-pilgrim-backup.json';
+  var file=new File([blob],fname,{type:'application/json'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Arché · Pilgrim Backup'});toast('Backup shared');return;}
+    catch(e){if(e.name==='AbortError')return;/* fall through */}
+  }
+  var url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=fname;a.click();URL.revokeObjectURL(url);toast('Backup downloaded');
+}
 function importDataPrompt(){document.getElementById('import-file-input').click();}
 function importDataFromFile(input){
   var file=input.files[0];if(!file)return;
@@ -1806,7 +1817,14 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 // ── CHANGELOG ────────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'2.0',date:'March 22, 2026',label:'Latest',
+    version:'2.1',date:'March 22, 2026',label:'Latest',
+    items:[
+      'Export / Backup now opens the native share sheet on supported devices (save to iCloud Drive, Google Drive, etc.)',
+      'Falls back to direct file download on desktop browsers that do not support file sharing'
+    ]
+  },
+  {
+    version:'2.0',date:'March 22, 2026',
     items:[
       'Multiple scripture references — up to 4 passages per study',
       'Passage pill selector in Field Mode: add, switch, and remove references',
