@@ -1125,6 +1125,7 @@ function bpConfirm(){
   var inp=document.getElementById('new-passage-input');
   if(inp){inp.value=ref;state.newPassage=ref;}
   bpClose();
+  render();
 }
 function bpBack(){
   if(document.getElementById('bp-stage3').classList.contains('on')){bpGoStage(2);document.getElementById('bp-hdr-title').textContent=_bpBook;}
