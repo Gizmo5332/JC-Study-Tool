@@ -291,8 +291,32 @@ a{color:var(--gold);text-decoration:none;}
 .cl-items.open{display:flex}
 .cl-item{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--txt2);line-height:1.55}
 .cl-item::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--golddim);margin-top:6px;flex-shrink:0}
+/* ── Book Picker ─────────────────────────────────────────────── */
+.bp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.bp-overlay.on{opacity:1;pointer-events:all}
+.bp-sheet{background:var(--bg1);border-radius:var(--rl) var(--rl) 0 0;width:100%;max-width:520px;max-height:82vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s ease}
+.bp-overlay.on .bp-sheet{transform:translateY(0)}
+.bp-hdr{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.bp-hdr-title{font-family:'EB Garamond',Georgia,serif;font-size:18px;color:var(--gold);font-weight:500;flex:1}
+.bp-back{background:none;border:none;color:var(--txt3);font-family:'Crimson Pro',Georgia,serif;font-size:13px;cursor:pointer;padding:4px 8px;border-radius:var(--r);display:flex;align-items:center;gap:4px;min-height:36px}
+.bp-back:active{background:var(--bg3)}
+.bp-close{background:none;border:none;color:var(--txt4);font-size:20px;cursor:pointer;padding:4px 8px;min-height:36px;line-height:1}
+.bp-tt{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:50px;padding:3px;gap:3px;margin:10px 16px 6px;flex-shrink:0}
+.bp-tt-btn{flex:1;border:none;border-radius:50px;padding:6px;font-family:'Crimson Pro',Georgia,serif;font-size:13px;cursor:pointer;transition:all .2s;background:none;color:var(--txt3);font-weight:500}
+.bp-tt-btn.on{background:var(--gold);color:var(--bg0);font-weight:600}
+.bp-scroll{flex:1;overflow-y:auto;padding:10px 14px 20px;-webkit-overflow-scrolling:touch}
+.bp-scroll::-webkit-scrollbar{display:none}
+.bp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.bp-pill{border:1px solid var(--border);background:var(--bg3);border-radius:var(--r);padding:8px 6px;font-family:'Crimson Pro',Georgia,serif;font-size:13px;color:var(--txt1);cursor:pointer;text-align:center;transition:all .15s;line-height:1.3;min-height:44px;display:flex;align-items:center;justify-content:center}
+.bp-pill:active{background:var(--bg4);border-color:var(--gold);color:var(--gold)}
+.bp-ch-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.bp-ch-pill{border:1px solid var(--border);background:var(--bg3);border-radius:var(--r);font-family:'Crimson Pro',Georgia,serif;font-size:15px;color:var(--txt1);cursor:pointer;text-align:center;transition:all .15s;min-height:44px;display:flex;align-items:center;justify-content:center}
+.bp-ch-pill:active{background:var(--bg4);border-color:var(--gold);color:var(--gold)}
+.bp-verse-area{padding:16px;display:flex;flex-direction:column;gap:12px}
+.bp-verse-label{font-size:10px;font-weight:500;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.bp-verse-hint{font-size:12px;color:var(--txt4);font-style:italic}
+.bp-stage{display:none}.bp-stage.on{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0}
 </style>
-</head>
 <body>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
@@ -559,6 +583,9 @@ function renderDashboard(){
       <div style="width:1px;height:18px;background:var(--border);margin:0 4px;"></div>
       <div style="font-family:'Crimson Pro',Georgia,serif;font-size:12px;color:var(--txt3);letter-spacing:.1em;text-transform:uppercase;">Scribe</div>
       <div class="topbar-right">
+        <button class="btn btn-sec btn-sm" onclick="exportData()" title="Backup all studies to JSON">Backup</button>
+        <button class="btn btn-sec btn-sm" onclick="importDataPrompt()" title="Restore from JSON backup">Restore</button>
+        <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" onchange="importDataFromFile(this)">
         <button class="btn btn-sec btn-sm" onclick="openMemorize()">Memorize</button>
         <button class="btn btn-primary btn-sm" onclick="state.showNewStudy=true;render()">+ Study</button>
       </div>
@@ -601,7 +628,7 @@ function renderNewStudyModal(){
       <div class="modal-title">New Study</div>
       <p style="font-size:14px;color:var(--txt3);margin-bottom:18px;line-height:1.5;">Enter a passage to begin your exegetical study</p>
       <div class="ig"><label>Title <span style="color:var(--txt4);font-weight:400;font-style:italic;">(optional)</span></label><input id="new-title-input" value="${escHtml(state.newTitle)}" placeholder="e.g. The Bread of Life" oninput="state.newTitle=this.value"></div>
-      <div class="ig"><label>Passage</label><input id="new-passage-input" value="${escHtml(state.newPassage)}" placeholder="e.g. John 3:16 or Romans 8:1-11" oninput="state.newPassage=this.value" onkeydown="if(event.key==='Enter')handleCreate()"></div>
+      <div class="ig"><label>Passage</label><div style="display:flex;gap:8px;align-items:center"><button type="button" onclick="bpOpen()" style="display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--borderlit);border-radius:var(--r);cursor:pointer;min-height:44px;min-width:44px;flex-shrink:0;color:var(--gold);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button><input id="new-passage-input" style="flex:1" value="${escHtml(state.newPassage)}" placeholder="e.g. John 3:16 or Romans 8:1-11" oninput="state.newPassage=this.value" onkeydown="if(event.key==='Enter')handleCreate()"></div></div>
       <div class="ig"><label>Translation</label><div style="position:relative;"><select onchange="state.newTranslation=this.value;render()">${opts}</select></div></div>
       <div class="trans-note ${exact?'exact':'approx'}">${noteText}</div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
@@ -860,7 +887,15 @@ function renderMemorize(){
 // ── CHANGELOG ────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'1.1',date:'March 22, 2026',label:'Latest',
+    version:'1.2',date:'March 22, 2026',label:'Latest',
+    items:[
+      'JSON backup — Backup button exports all studies; opens native share sheet on mobile (iCloud Drive, Google Drive, etc.) with download fallback on desktop',
+      'JSON restore — Restore button imports studies from a backup file; skips duplicates',
+      'Book picker — tap the book icon in New Study to pick book, chapter, and verse(s) without typing; OT/NT toggle for quick navigation'
+    ]
+  },
+  {
+    version:'1.1',date:'March 22, 2026',
     items:[
       'Study title field added to New Study modal — optional name distinct from passage reference',
       'Dashboard cards now display the study title when set; falls back to passage reference',
@@ -944,6 +979,118 @@ function toggleMethodComplete(methodId){const study=currentStudy();if(!study)ret
 function updateMethodNotes(methodId,val){updateMethodField(methodId,'notes',val);}
 function setMemMode(mode){state.memMode=mode;state.memTyped='';state.memChecked=false;render();}
 
+// ── S1: JSON BACKUP / RESTORE ─────────────────────────────────
+async function exportData(){
+  var json=JSON.stringify(state.studies,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var fname='arche-scribe-backup.json';
+  var file=new File([blob],fname,{type:'application/json'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Arché · Scribe Backup'});toast('Backup shared');return;}
+    catch(e){if(e.name==='AbortError')return;}
+  }
+  var url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=fname;a.click();URL.revokeObjectURL(url);toast('Backup downloaded');
+}
+function importDataPrompt(){document.getElementById('import-file-input').click();}
+function importDataFromFile(input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var imported=JSON.parse(e.target.result);
+      if(!Array.isArray(imported))throw new Error('Invalid format');
+      var added=0,skipped=0;
+      imported.forEach(function(s){
+        if(!s.id)return;
+        if(s.title===undefined)s.title='';
+        var exists=state.studies.findIndex(function(x){return x.id===s.id;});
+        if(exists===-1){state.studies.push(s);added++;}else{skipped++;}
+      });
+      saveStudies();render();
+      toast(added+' imported'+(skipped?' ('+skipped+' already existed)':''));
+    }catch(err){toast('Restore failed: invalid file');}
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+// ── S11: BOOK PICKER ──────────────────────────────────────────
+var BP_BOOKS={
+  OT:[
+    {n:'Genesis',c:50},{n:'Exodus',c:40},{n:'Leviticus',c:27},{n:'Numbers',c:36},{n:'Deuteronomy',c:34},
+    {n:'Joshua',c:24},{n:'Judges',c:21},{n:'Ruth',c:4},{n:'1 Samuel',c:31},{n:'2 Samuel',c:24},
+    {n:'1 Kings',c:22},{n:'2 Kings',c:25},{n:'1 Chronicles',c:29},{n:'2 Chronicles',c:36},
+    {n:'Ezra',c:10},{n:'Nehemiah',c:13},{n:'Esther',c:10},{n:'Job',c:42},{n:'Psalms',c:150},
+    {n:'Proverbs',c:31},{n:'Ecclesiastes',c:12},{n:'Song of Solomon',c:8},{n:'Isaiah',c:66},
+    {n:'Jeremiah',c:52},{n:'Lamentations',c:5},{n:'Ezekiel',c:48},{n:'Daniel',c:12},{n:'Hosea',c:14},
+    {n:'Joel',c:3},{n:'Amos',c:9},{n:'Obadiah',c:1},{n:'Jonah',c:4},{n:'Micah',c:7},
+    {n:'Nahum',c:3},{n:'Habakkuk',c:3},{n:'Zephaniah',c:3},{n:'Haggai',c:2},{n:'Zechariah',c:14},
+    {n:'Malachi',c:4}
+  ],
+  NT:[
+    {n:'Matthew',c:28},{n:'Mark',c:16},{n:'Luke',c:24},{n:'John',c:21},{n:'Acts',c:28},
+    {n:'Romans',c:16},{n:'1 Corinthians',c:16},{n:'2 Corinthians',c:13},{n:'Galatians',c:6},
+    {n:'Ephesians',c:6},{n:'Philippians',c:4},{n:'Colossians',c:4},{n:'1 Thessalonians',c:5},
+    {n:'2 Thessalonians',c:3},{n:'1 Timothy',c:6},{n:'2 Timothy',c:4},{n:'Titus',c:3},
+    {n:'Philemon',c:1},{n:'Hebrews',c:13},{n:'James',c:5},{n:'1 Peter',c:5},{n:'2 Peter',c:3},
+    {n:'1 John',c:5},{n:'2 John',c:1},{n:'3 John',c:1},{n:'Jude',c:1},{n:'Revelation',c:22}
+  ]
+};
+var _bpTestament='OT',_bpBook=null,_bpChapter=null;
+function bpOpen(){
+  _bpBook=null;_bpChapter=null;
+  bpSetTestament(_bpTestament);
+  bpGoStage(1);
+  document.getElementById('bp-overlay').classList.add('on');
+}
+function bpClose(){document.getElementById('bp-overlay').classList.remove('on');}
+function bpSetTestament(t){
+  _bpTestament=t;
+  document.getElementById('bp-ot-btn').classList.toggle('on',t==='OT');
+  document.getElementById('bp-nt-btn').classList.toggle('on',t==='NT');
+  document.getElementById('bp-book-grid').innerHTML=BP_BOOKS[t].map(function(b){
+    return '<button class="bp-pill" onclick="bpPickBook(\''+b.n.replace(/'/g,'\\\'')+'\')">'+b.n+'</button>';
+  }).join('');
+}
+function bpPickBook(name){
+  _bpBook=name;
+  var book=BP_BOOKS[_bpTestament].find(function(b){return b.n===name;});
+  document.getElementById('bp-hdr-title').textContent=name;
+  var chs=[];for(var i=1;i<=book.c;i++)chs.push(i);
+  document.getElementById('bp-ch-grid').innerHTML=chs.map(function(n){
+    return '<button class="bp-ch-pill" onclick="bpPickChapter('+n+')">'+n+'</button>';
+  }).join('');
+  bpGoStage(2);
+}
+function bpPickChapter(n){
+  _bpChapter=n;
+  document.getElementById('bp-hdr-title').textContent=_bpBook+' '+n;
+  document.getElementById('bp-sel-preview').textContent=_bpBook+' '+n+':';
+  document.getElementById('bp-verse-input').value='';
+  bpGoStage(3);
+  setTimeout(function(){document.getElementById('bp-verse-input').focus();},350);
+}
+function bpUpdatePreview(){
+  var v=document.getElementById('bp-verse-input').value.trim();
+  document.getElementById('bp-sel-preview').textContent=_bpBook+' '+_bpChapter+(v?':'+v:'');
+}
+function bpConfirm(){
+  var v=document.getElementById('bp-verse-input').value.trim();
+  if(!v){toast('Please enter a verse or range');return;}
+  var ref=_bpBook+' '+_bpChapter+':'+v;
+  var inp=document.getElementById('new-passage-input');
+  if(inp){inp.value=ref;state.newPassage=ref;}
+  bpClose();
+}
+function bpBack(){
+  if(document.getElementById('bp-stage3').classList.contains('on')){bpGoStage(2);document.getElementById('bp-hdr-title').textContent=_bpBook;}
+  else if(document.getElementById('bp-stage2').classList.contains('on')){bpGoStage(1);document.getElementById('bp-hdr-title').textContent='Choose Book';}
+}
+function bpGoStage(n){
+  [1,2,3].forEach(function(i){document.getElementById('bp-stage'+i).classList.toggle('on',i===n);});
+  document.getElementById('bp-back-btn').style.display=n===1?'none':'flex';
+}
+// ── END S11 ───────────────────────────────────────────────────
 // ── Boot ─────────────────────────────────────────────────────────────────────
 loadStudies();
 render();
@@ -957,6 +1104,43 @@ render();
     <div style="display:flex;gap:10px;">
       <button class="btn btn-sec" style="flex:1;" onclick="closePasteModal()">Cancel</button>
       <button class="btn btn-primary" style="flex:1;" onclick="confirmPaste()">Use This Text</button>
+    </div>
+  </div>
+</div>
+<!-- BOOK PICKER MODAL -->
+<div class="bp-overlay" id="bp-overlay">
+  <div class="bp-sheet">
+    <div class="bp-hdr">
+      <button class="bp-back" id="bp-back-btn" onclick="bpBack()" style="display:none">&#8592; Back</button>
+      <div class="bp-hdr-title" id="bp-hdr-title">Choose Book</div>
+      <button class="bp-close" onclick="bpClose()">&#215;</button>
+    </div>
+    <div class="bp-stage on" id="bp-stage1">
+      <div class="bp-tt">
+        <button class="bp-tt-btn on" id="bp-ot-btn" onclick="bpSetTestament('OT')">Old Testament</button>
+        <button class="bp-tt-btn" id="bp-nt-btn" onclick="bpSetTestament('NT')">New Testament</button>
+      </div>
+      <div class="bp-scroll"><div class="bp-grid" id="bp-book-grid"></div></div>
+    </div>
+    <div class="bp-stage" id="bp-stage2">
+      <div class="bp-scroll"><div class="bp-ch-grid" id="bp-ch-grid"></div></div>
+    </div>
+    <div class="bp-stage" id="bp-stage3">
+      <div class="bp-verse-area">
+        <div>
+          <div class="bp-verse-label">Selected</div>
+          <div id="bp-sel-preview" style="font-family:'EB Garamond',Georgia,serif;font-size:18px;color:var(--gold);margin-bottom:4px"></div>
+        </div>
+        <div>
+          <div class="bp-verse-label">Verse(s)</div>
+          <div class="bp-verse-hint">Type a single verse (e.g. 16) or a range (e.g. 16-18)</div>
+          <input type="text" id="bp-verse-input" placeholder="e.g. 16 or 16-18" inputmode="text" style="margin-bottom:0" oninput="bpUpdatePreview()">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn btn-sec" style="flex:1" onclick="bpClose()">Cancel</button>
+          <button class="btn btn-primary" style="flex:1" onclick="bpConfirm()">Use This Passage</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
