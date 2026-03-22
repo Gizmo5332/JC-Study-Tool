@@ -391,7 +391,7 @@ const STORAGE_KEY = 'bsapp-v2-studies';
 let state = {
   view:'dashboard', studies:[], currentStudyId:null,
   activeMethod:'analytical', progressTab:'exegesis',
-  memMode:'read', memSid:null, memTyped:'', memChecked:false,
+  memMode:'read', memSid:null, memTyped:'', memChecked:false, memReturnTo:'dashboard',
   showNewStudy:false, confirmDeleteId:null,
   newPassage:'', newTitle:'', newTranslation:'asv', creating:false,
   searchQuery:'',
@@ -432,15 +432,22 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 
 // ── API ──────────────────────────────────────────────────────────────────────
 async function fetchPassageText(passageRef,tid){
-  // ESV — use Crossway API directly
+  // ESV — try Crossway API first, fall back to bible-api.com
   if(tid==='esv'){
     try{
       const params=new URLSearchParams({q:passageRef,'include-headings':'false','include-footnotes':'false','include-verse-numbers':'true','include-short-copyright':'false','include-passage-references':'false'});
       const r=await fetch('https://api.esv.org/v3/passage/text/?'+params,{headers:{Authorization:'Token '+ESV_KEY},mode:'cors'});
       if(r.ok){const d=await r.json();const txt=d.passages?d.passages.join('\n\n').trim():'';if(txt)return{text:txt,textTranslation:'esv'};}
-      else{console.warn('ESV API HTTP error:',r.status,r.statusText);state._esvError='ESV API: HTTP '+r.status;}
-    }catch(e){console.warn('ESV API fetch error:',e.message);state._esvError='ESV API: '+e.message;}
-    return{text:'',textTranslation:'esv',esvError:state._esvError||'ESV fetch failed'};
+      else{console.warn('ESV API HTTP error:',r.status,r.statusText);}
+    }catch(e){console.warn('ESV API fetch error:',e.message);}
+    // Fallback to bible-api.com for ESV
+    try{
+      const r=await fetch('https://bible-api.com/'+encodeURIComponent(passageRef)+'?translation=esv');
+      const d=await r.json();
+      if(d.verses&&d.verses.length){const txt=d.verses.map(v=>'['+v.verse+'] '+v.text.trim()).join(' ');if(txt)return{text:txt,textTranslation:'esv'};}
+      if(d.text&&d.text.trim())return{text:d.text.trim(),textTranslation:'esv'};
+    }catch(e){console.warn('bible-api ESV fallback error:',e.message);}
+    return{text:'',textTranslation:'esv',esvError:'ESV fetch failed'};
   }
   // Free translations (KJV, ASV, WEB) — fetch directly
   const t=TRANSLATIONS.find(x=>x.id===tid);
@@ -815,6 +822,7 @@ function renderStudy(){
         <div style="display:flex;align-items:center;gap:6px;margin-top:1px;"><span class="ttag">${study.translation.toUpperCase()}</span><span style="color:var(--txt4);font-size:11px;">Arché · Scribe</span></div>
       </div>
       <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="openMemorizeFromStudy('${study.id}')">Memorize</button>
         <a class="btn btn-ghost btn-sm" href="${blbUrl(study.passage,study.translation)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">BLB ↗</a>
         <button class="btn btn-ghost btn-sm" onclick="window.print()">Print</button>
       </div>
@@ -877,8 +885,8 @@ function renderMemorize(){
     </div>${recallHTML}`:''}`;
   return`<div class="view on">
     <div class="topbar">
-      <button class="backbtn" onclick="state.view='dashboard';render()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="17" height="17"><path d="m15 18-6-6 6-6"/></svg>Studies
+      <button class="backbtn" onclick="state.view=state.memReturnTo||'dashboard';render()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="17" height="17"><path d="m15 18-6-6 6-6"/></svg>${state.memReturnTo==='study'?'Back to Study':'Studies'}
       </button>
       <div class="topbar-brand" style="margin-left:8px;">✦ Arché</div>
       <div style="width:1px;height:16px;background:var(--border);margin:0 4px;"></div>
@@ -897,8 +905,17 @@ function renderMemorize(){
 // ── Main render ──────────────────────────────────────────────────────────────
 // ── CHANGELOG ────────────────────────────────────────────────
 var CHANGELOG=[
+  {version:'1.5',date:'March 22, 2026',label:'Latest',
+    items:['ESV scripture now auto-populates on GitHub Pages — falls back to bible-api.com when Crossway API is unavailable','KJV, WEB, ASV also auto-populate; NASB, NIV, NLT, NKJV still prompt paste (licensed)']},
   {
-    version:'1.3',date:'March 22, 2026',label:'Latest',
+    version:'1.4',date:'March 22, 2026',label:'',
+    items:[
+      'Memorize accessible from study workspace — Memorize button in study topbar launches memorization pre-loaded with the current passage',
+      'Back button in Memorize returns to the study when launched from a study, or to the dashboard when launched from there'
+    ]
+  },
+  {
+    version:'1.3',date:'March 22, 2026',
     items:[
       'Library search bar — filter studies by passage reference or title',
       'Study duplication — Duplicate button on each dashboard card',
@@ -991,7 +1008,8 @@ function openStudy(id){
   }
   render();
 }
-function openMemorize(){state.memSid=state.studies[0]?state.studies[0].id:null;state.memMode='read';state.memTyped='';state.memChecked=false;state.view='memorize';render();}
+function openMemorize(){state.memSid=state.studies[0]?state.studies[0].id:null;state.memMode='read';state.memTyped='';state.memChecked=false;state.memReturnTo='dashboard';state.view='memorize';render();}
+function openMemorizeFromStudy(id){state.memSid=id;state.memMode='read';state.memTyped='';state.memChecked=false;state.memReturnTo='study';state.view='memorize';render();}
 function toggleExeg(stageId){const study=currentStudy();if(!study)return;updateExegField(stageId,'completed',!study.exegesis[stageId].completed);}
 function updateExegNotes(stageId,val){updateExegField(stageId,'notes',val);}
 function toggleMethodComplete(methodId){const study=currentStudy();if(!study)return;updateMethodField(methodId,'completed',!study.methods[methodId].completed);}
