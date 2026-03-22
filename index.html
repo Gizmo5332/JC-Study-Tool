@@ -227,7 +227,19 @@ select option{background:var(--bg2);color:var(--txt1)}
 .res-ocr.collapsed{max-height:60px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 40%,transparent)}
 .res-add-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .res-status{font-size:12px;color:var(--txt3);font-style:italic;text-align:center;padding:6px 0}
-/* ── Multi-ref pills ─────────────────────────────────────────── */
+/* ── Changelog ──────────────────────────────────────────────── */
+.cl-version{margin-bottom:18px}
+.cl-version-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.cl-version-num{font-family:'EB Garamond',serif;font-size:17px;color:var(--gold);font-weight:500}
+.cl-version-date{font-size:11px;color:var(--txt4)}
+.cl-version-badge{font-size:10px;font-weight:600;background:var(--golddim);color:var(--goldpale);padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.06em}
+.cl-chev{font-size:13px;color:var(--txt4);margin-left:auto;transition:transform .2s}
+.cl-chev.open{transform:rotate(180deg)}
+.cl-items{display:none;flex-direction:column;gap:5px;padding-left:2px}
+.cl-items.open{display:flex}
+.cl-item{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--txt2);line-height:1.55}
+.cl-item::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--golddim);margin-top:6px;flex-shrink:0}
+
 .ref-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
 .ref-pill{display:inline-flex;align-items:center;gap:4px;border-radius:50px;padding:5px 12px;font-size:12px;font-family:'Crimson Pro',serif;border:1px solid var(--border);background:var(--bg3);color:var(--txt3);cursor:pointer;transition:all .15s;min-height:32px;-webkit-user-select:none;user-select:none}
 .ref-pill.on{border-color:var(--gold);color:var(--gold);background:color-mix(in srgb,var(--bg3),var(--golddim) 15%)}
@@ -592,6 +604,12 @@ select option{background:var(--bg2);color:var(--txt1)}
       </div>
       <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" onchange="importDataFromFile(this)">
       <button class="btn btn-danger btn-full" onclick="clearAll()">Clear All Data</button>
+    </div>
+    <div class="divider"></div>
+    <div style="margin-bottom:22px">
+      <div class="sethead">What&#8217;s New</div>
+      <div class="setsub">A full history of changes to Arch&#275; &middot; Pilgrim, newest first.</div>
+      <div id="changelog-list"></div>
     </div>
     <div class="divider"></div>
     <div class="ornament">&#10022; &#10022; &#10022;</div>
@@ -1053,7 +1071,7 @@ function navTo(id){
   if(id==='deep'){syncFromInputs();_fnotesOpen=false;var fb=document.getElementById('fnotes-body');if(fb)fb.classList.remove('open');var fc=document.getElementById('fnotes-chev');if(fc)fc.style.transform='';populateDeep();}
   if(id==='field'&&cur)populateField();
   if(id==='stats')renderStats();
-  if(id==='settings'){renderTagManager();var dot=document.getElementById('gemini-status-dot'),txt=document.getElementById('gemini-status-text');if(dot&&txt){if(sett.geminiKey){dot.style.background='var(--sagebright)';txt.textContent='API key saved';}else{dot.style.background='var(--crimsonbright)';txt.textContent='No API key saved — tap below to add one';}}}
+  if(id==='settings'){renderTagManager();renderChangelog();var dot=document.getElementById('gemini-status-dot'),txt=document.getElementById('gemini-status-text');if(dot&&txt){if(sett.geminiKey){dot.style.background='var(--sagebright)';txt.textContent='API key saved';}else{dot.style.background='var(--crimsonbright)';txt.textContent='No API key saved — tap below to add one';}}}
 }
 function saveAndGoLib(){saveStudy();navTo('library');}
 function goField(){navTo('field');}
@@ -1774,6 +1792,138 @@ function clearAll(){document.getElementById('clearall-overlay').classList.add('o
 function confirmClearAll(){studies=[];cur=null;persist();renderLib();closeOverlay('clearall-overlay');toast('All data cleared');}
 function closeOverlay(id){document.getElementById(id).classList.remove('on');}
 var _tt;function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){el.classList.remove('show');},2400);}
+
+// ── CHANGELOG ────────────────────────────────────────────────────
+var CHANGELOG=[
+  {
+    version:'2.0',date:'March 2026',label:'New',
+    items:[
+      'Multiple scripture references — up to 4 passages per study',
+      'Reference pill selector in Field Mode to add, switch, and remove passages',
+      'Reference pill selector in Deep Study to switch active passage for analysis',
+      'Each passage stores its own scripture text, AI tool results, and scope setting',
+      'Library cards show primary reference with +N badge when multiple passages exist',
+      'Existing studies automatically migrated — no data lost',
+      'Confirm modal when removing a passage that has saved content'
+    ]
+  },
+  {
+    version:'1.7',date:'February 2026',
+    items:[
+      'Gemini API key setup — first-launch overlay guides new users through key entry',
+      'Key stored only on-device via localStorage — never in the source file',
+      'Settings screen shows live green/red key status indicator',
+      'AI tools redirect to Settings if no key is saved',
+      'Skip option routes to Paste mode for users without a key'
+    ]
+  },
+  {
+    version:'1.6',date:'January 2026',
+    items:[
+      'Desktop layout — full sidebar nav at 901px+, two-column Deep Study',
+      'Tablet layout — wider card grid, sticky bottom nav at 481–900px',
+      'Swipe gestures — horizontal swipe switches Field ↔ Deep Study on mobile',
+      'Field Notes collapsible panel in Deep Study — collapsed by default, shows word count',
+      'Auto-save every 30 seconds — silent, no toast',
+      'studyScope (passage/book) now persists per study',
+      'All native browser confirm/prompt dialogs replaced with custom modals',
+      'Suite branding — sidebar ornament and Part of Arché Study Tools footer'
+    ]
+  },
+  {
+    version:'1.5',date:'December 2025',
+    items:[
+      'Study templates — template picker on new study: Blank, Sermon Notes, Devotional, Small Group',
+      'Onboarding flow — 3-step card shown on first launch',
+      'Stats dashboard — streak, total studies, words written, AI tools run, top books chart, recent activity',
+      'Library grid — 2-col mobile, 3-col desktop card layout with + New Study card slot',
+      'Scripture font size toggle (A+ / A−) in Field Mode'
+    ]
+  },
+  {
+    version:'1.4',date:'November 2025',
+    items:[
+      'Study tags — 6 default colored tags (Sermon, Devotional, Small Group, Personal, Prayer, Study)',
+      'Unlimited custom tags with name and color picker',
+      'Custom tag manager in Settings — create, edit, delete; deletions propagate to all studies',
+      'Tag picker in Field Mode header',
+      'Colored dot tag chips on library cards',
+      'Tag filter bar in library — filter cards by any tag in use'
+    ]
+  },
+  {
+    version:'1.3',date:'October 2025',
+    items:[
+      'Camera and gallery capture buttons in Field Mode',
+      'Captured images compressed and stored with each study',
+      'OCR via Gemini — text extracted from photos automatically',
+      'Image tile grid — 2-col thumbnail grid in Field Mode and Deep Study',
+      'Tap any tile to open full image modal with extracted text',
+      'Insert OCR text into Field Notes button',
+      'Rename and re-extract actions on each resource',
+      'Deep Study shows read-only resource tiles captured in Field Mode'
+    ]
+  },
+  {
+    version:'1.2',date:'September 2025',
+    items:[
+      'AI panel tabs — all run tools persist as tabs, switchable without re-running',
+      'Passage / Whole Book scope toggle — analyze the passage or the entire book',
+      'Copy and Share buttons on AI results',
+      'Ready dot indicators on tool buttons when results are saved',
+      'Word count live display on Field Notes textarea',
+      'Study duplication — Duplicate button on library cards',
+      'Delete button on library cards with custom confirm modal'
+    ]
+  },
+  {
+    version:'1.1',date:'August 2025',
+    items:[
+      'Library search bar — searches title, reference, and teacher fields',
+      'Library sort — Latest, Reference, Teacher, Modified',
+      'Share Study Link — encodes study as URL hash for sharing (strips image data)',
+      'JSON backup and restore — export all studies; import merges without overwriting',
+      'Scripture paste fallback — manual paste modal for offline or blocked API use',
+      'Auto/Paste mode toggle for scripture input'
+    ]
+  },
+  {
+    version:'1.0',date:'July 2025',label:'Initial release',
+    items:[
+      'Field Mode — capture scripture reference, translation, date, teacher, and notes',
+      'Deep Study — 5 AI tools: Lexical Study, Grammar & Syntax, Historical Context, Cultural Context, Cross-References',
+      'My Conclusions — AI-free zone for personal theological conclusions',
+      'Scripture auto-fetch via ESV API and bible-api.com (KJV, ASV, WEB, YLT, Darby)',
+      'Library — browse, open, and manage all studies',
+      'PDF export — select sections and AI tools to include',
+      'Offline indicator and graceful offline fallbacks',
+      'PWA manifest — installable via Add to Home Screen'
+    ]
+  }
+];
+
+var _clOpen={};
+function renderChangelog(){
+  var el=document.getElementById('changelog-list');if(!el)return;
+  el.innerHTML=CHANGELOG.map(function(v,i){
+    var isOpen=_clOpen.hasOwnProperty(i)?_clOpen[i]:(i===0);
+    return '<div class="cl-version">'+
+      '<div class="cl-version-hdr" onclick="clToggle('+i+')">'+
+        '<span class="cl-version-num">v'+v.version+'</span>'+
+        '<span class="cl-version-date">'+v.date+'</span>'+
+        (v.label?'<span class="cl-version-badge">'+v.label+'</span>':'')+
+        '<span class="cl-chev'+(isOpen?' open':'')+'">&#8964;</span>'+
+      '</div>'+
+      '<div class="cl-items'+(isOpen?' open':'')+'">'+
+        v.items.map(function(item){return '<div class="cl-item">'+escHtml(item)+'</div>';}).join('')+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+function clToggle(i){
+  _clOpen[i]=!(_clOpen.hasOwnProperty(i)?_clOpen[i]:(i===0));
+  renderChangelog();
+}
 
 if('serviceWorker' in navigator){var sw="const CACHE='arche-v2';const SHELL=['./'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;var u=e.request.url;if(u.includes('googleapis.com')||u.includes('api.esv.org')||u.includes('bible-api.com')||u.includes('fonts.googleapis.com')||u.includes('cdnjs'))return;e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request)));});";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(function(){});}
 </script>
