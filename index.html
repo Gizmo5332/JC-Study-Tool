@@ -422,7 +422,7 @@ select option{background:var(--bg2);color:var(--txt1)}
       <div id="f-ref-pills" class="ref-pills"></div>
       <div class="frow" style="align-items:flex-end">
         <div class="ig" style="flex:0 0 auto;margin-bottom:0"><label style="visibility:hidden">Pick</label><button class="bp-open-btn" onclick="bpOpen()" title="Pick book &amp; chapter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button></div>
-        <div class="ig" style="flex:2;margin-bottom:0"><label>Scripture Reference</label><input type="text" id="f-ref" placeholder="e.g. John 3:16-17" onblur="fetchScr()"></div>
+        <div class="ig" style="flex:2;margin-bottom:0"><label>Scripture Reference</label><input type="text" id="f-ref" placeholder="e.g. John 3:16-17" oninput="var ar=activeRef();if(ar){ar.reference=this.value;}renderRefPills('f-ref-pills','field');updateBarRefLabel();" onblur="fetchScr()"></div>
         <div class="ig" style="flex:0 0 76px;margin-bottom:0"><label>Version</label>
           <select id="f-trans" onchange="fetchScr()">
             <option value="esv">ESV</option><option value="kjv">KJV</option>
@@ -1878,6 +1878,7 @@ function bpConfirm(){
   var ref=_bpBook+' '+_bpChapter+':'+v;
   var fref=document.getElementById('f-ref');
   if(fref){fref.value=ref;var ar=activeRef();if(ar)ar.reference=ref;}
+  renderRefPills('f-ref-pills','field');updateBarRefLabel();
   bpClose();
   fetchScr();
 }
