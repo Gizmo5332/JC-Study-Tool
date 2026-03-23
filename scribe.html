@@ -434,6 +434,12 @@ function loadMemVerses(){try{const v=localStorage.getItem(MEM_VERSES_KEY);if(v)s
 function saveMemVerses(){try{localStorage.setItem(MEM_VERSES_KEY,JSON.stringify(state.memVerses));}catch(e){}}
 function loadTags(){try{const v=localStorage.getItem(TAGS_KEY);if(v)state.tags=JSON.parse(v);}catch(e){}}
 function saveTags(){try{localStorage.setItem(TAGS_KEY,JSON.stringify(state.tags));}catch(e){}}
+function copyAIResponse(methodId){
+  const study=currentStudy();if(!study)return;
+  const txt=study.methods[methodId]&&study.methods[methodId].aiResponse;
+  if(!txt)return;
+  navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>toast('Copied')).catch(()=>toast('Copy failed'));
+}
 function geminiErrMsg(msg){
   if(!msg)return'Error fetching analysis. Please try again.';
   if(msg.toLowerCase().includes('quota')||msg.toLowerCase().includes('rate')||msg.toLowerCase().includes('exhausted'))
@@ -913,7 +919,7 @@ function renderStudy(){
         <button class="btn-ai" onclick="callAI('${state.activeMethod}')" ${loading?'disabled':''}>${loading?'Analyzing…':method.aiLabel}</button>
       </div>
       ${mData.aiResponse
-        ?`<div class="ai-response">${escHtml(mData.aiResponse)}</div><div class="aidisclaim">AI provides data only. All theological conclusions belong to the student.</div>`
+        ?`<div class="ai-response">${escHtml(mData.aiResponse)}</div><div class="aidisclaim" style="display:flex;justify-content:space-between;align-items:center;"><span>AI provides data only. All theological conclusions belong to the student.</span><button class="btn btn-ghost btn-sm" style="font-size:11px;padding:4px 10px;min-height:28px;" onclick="copyAIResponse('${state.activeMethod}')">Copy</button></div>`
         :`<div class="ai-placeholder">Tap "${method.aiLabel}" to receive scholarly analysis.</div>`}
     </div>`;
   }
