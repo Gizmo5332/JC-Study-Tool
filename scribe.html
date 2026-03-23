@@ -209,6 +209,20 @@ a{color:var(--gold);text-decoration:none;}
 .mem-mode-row{display:flex;gap:6px;margin-bottom:14px;}
 .mem-mode-btn{flex:1;padding:9px 6px;border:1px solid var(--border);border-radius:var(--r);background:transparent;color:var(--txt3);cursor:pointer;font-family:'Crimson Pro',Georgia,serif;font-size:13px;text-align:center;transition:all .2s;}
 .mem-mode-btn.active{border-color:var(--golddim);background:color-mix(in srgb,var(--bg2),var(--golddim) 8%);color:var(--gold);}
+.mem-tab-row{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.mem-tab{flex:1;padding:10px 6px;background:transparent;border:none;color:var(--txt3);cursor:pointer;font-family:'Crimson Pro',serif;font-size:13px;font-weight:600;transition:all .2s;letter-spacing:.03em;}
+.mem-tab.active{background:var(--bg3);color:var(--gold);}
+.gap-input{background:transparent;border:none;border-bottom:1.5px solid var(--borderlit);color:var(--txt1);font-family:'EB Garamond',Georgia,serif;font-size:17px;line-height:1;padding:0 3px 1px;outline:none;text-align:center;transition:color .15s,border-color .15s;}
+.gap-input.correct{color:var(--sagebright);border-bottom-color:var(--sagebright);}
+.gap-input.wrong{color:var(--crimsonbright);border-bottom-color:var(--crimsonbright);}
+.gap-input:read-only{cursor:default;}
+.mv-card{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px 12px 18px;display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.mv-card::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--golddim);border-radius:0 2px 2px 0;}
+.mv-status{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:50px;white-space:nowrap;flex-shrink:0;}
+.mv-status.learning{background:color-mix(in srgb,var(--bg3),var(--golddim) 25%);color:var(--gold);border:1px solid var(--golddim);}
+.mv-status.learned{background:color-mix(in srgb,var(--bg3),var(--sagebright) 20%);color:var(--sagebright);border:1px solid var(--sagebright);}
+.mv-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--txt4);margin:16px 0 8px;display:flex;align-items:center;gap:8px;}
+.mv-section-label::after{content:'';flex:1;height:1px;background:var(--border);}
 .score-text{font-family:'EB Garamond',Georgia,serif;font-size:1.3rem;font-weight:600;}
 
 /* ── Trans note ──────────────────────────────────────────────────── */
@@ -386,12 +400,16 @@ const TRANSLATIONS = [
   {id:'asv',name:'ASV',full:'American Standard Version',blb:'asv',free:'asv'},
 ];
 const STORAGE_KEY = 'bsapp-v2-studies';
+const MEM_VERSES_KEY = 'bsapp-v2-memverses';
+const MEM_STATUS_KEY = 'bsapp-v2-mem-status';
 
 // ── State ────────────────────────────────────────────────────────────────────
 let state = {
   view:'dashboard', studies:[], currentStudyId:null,
   activeMethod:'analytical', progressTab:'exegesis',
-  memMode:'read', memSid:null, memTyped:'', memChecked:false, memReturnTo:'dashboard',
+  memTab:'practice', memMode:'read', memSid:null, memTyped:'', memChecked:false, memReturnTo:'dashboard',
+  memGapInputs:{}, memGapChecked:false,
+  memVerses:[], showAddVerse:false, newVerseRef:'', newVerseTranslation:'esv', addingVerse:false,
   showNewStudy:false, confirmDeleteId:null,
   newPassage:'', newTitle:'', newTranslation:'asv', creating:false,
   searchQuery:'',
@@ -403,6 +421,40 @@ function loadStudies(){try{const v=localStorage.getItem(STORAGE_KEY);if(v){state
 function saveStudies(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state.studies));}catch(e){}}
 function getStudy(id){return state.studies.find(s=>s.id===(id||state.currentStudyId));}
 function currentStudy(){return getStudy(state.currentStudyId);}
+function loadMemVerses(){try{const v=localStorage.getItem(MEM_VERSES_KEY);if(v)state.memVerses=JSON.parse(v);}catch(e){}}
+function saveMemVerses(){try{localStorage.setItem(MEM_VERSES_KEY,JSON.stringify(state.memVerses));}catch(e){}}
+function getMemStatus(pid){try{const s=JSON.parse(localStorage.getItem(MEM_STATUS_KEY)||'{}');return s[pid]||'learning';}catch(e){return'learning';}}
+function setMemStatus(pid,status){try{const s=JSON.parse(localStorage.getItem(MEM_STATUS_KEY)||'{}');s[pid]=status;localStorage.setItem(MEM_STATUS_KEY,JSON.stringify(s));}catch(e){}}
+function getAllMemPassages(){
+  const fromStudies=state.studies.filter(s=>s.text&&s.text.trim()).map(s=>({id:'study-'+s.id,reference:s.passage,translation:s.translation,text:s.text,source:'study'}));
+  const fromVerses=state.memVerses.map(v=>({id:'mv-'+v.id,reference:v.reference,translation:v.translation,text:v.text,source:'verse',rawId:v.id}));
+  return[...fromStudies,...fromVerses];
+}
+function getMemPassage(){return getAllMemPassages().find(p=>p.id===state.memSid)||null;}
+function normalizeWord(w){return w.toLowerCase().replace(/[^a-z0-9]/g,'');}
+function memGapInput(idx,val){state.memGapInputs[idx]=val;}
+function checkGaps(){state.memGapChecked=true;render();}
+function resetGaps(){state.memGapInputs={};state.memGapChecked=false;render();}
+async function addMemVerse(){
+  if(!state.newVerseRef.trim()||state.addingVerse)return;
+  state.addingVerse=true;render();
+  try{
+    const result=await fetchPassageText(state.newVerseRef.trim(),state.newVerseTranslation);
+    const verse={id:Date.now().toString(),reference:state.newVerseRef.trim(),translation:state.newVerseTranslation,text:result.text||'',createdAt:new Date().toISOString()};
+    state.memVerses=[verse,...state.memVerses];saveMemVerses();
+    setMemStatus('mv-'+verse.id,'learning');
+    state.showAddVerse=false;state.newVerseRef='';state.addingVerse=false;
+    toast(result.text?'Verse added':'Verse added — use Paste to add scripture text');
+  }catch(e){state.addingVerse=false;toast('Something went wrong');}
+  render();
+}
+function deleteMemVerse(rawId){state.memVerses=state.memVerses.filter(v=>v.id!==rawId);saveMemVerses();if(state.memSid==='mv-'+rawId){state.memSid=getAllMemPassages()[0]?.id||null;state.memMode='read';}render();}
+function pasteMemVerse(rawId){
+  const v=state.memVerses.find(x=>x.id===rawId);if(!v)return;
+  document.getElementById('paste-overlay').classList.add('on');
+  setTimeout(()=>{const t=document.getElementById('paste-input');if(t)t.focus();},100);
+  state._pastingMemVerseId=rawId;
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function isExact(tid){return tid==='kjv'||tid==='web'||tid==='asv'||tid==='esv';}
@@ -856,40 +908,130 @@ function renderStudy(){
 
 // ── Memorize view ────────────────────────────────────────────────────────────
 function renderMemorize(){
-  const studies=state.studies;
-  const study=studies.find(s=>s.id===state.memSid);
-  const text=study?study.text:'';
-  const masked=text.split(/\s+/).map((w,i)=>i%3===1?Array(Math.min(w.length,6)+1).join('_'):w).join(' ');
-  const getScore=()=>{if(!state.memTyped||!text)return 0;const a=state.memTyped.toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/),b=text.toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/);return Math.round(a.filter(w=>b.includes(w)).length/b.length*100);};
+  const allPassages=getAllMemPassages();
+  const passage=getMemPassage();
+  const text=passage?passage.text:'';
+  const words=text.split(/\s+/).filter(Boolean);
+
+  // ── Gap indices (every 3rd word, index 1,4,7...)
+  const gapSet=new Set(words.map((_,i)=>i).filter(i=>i%3===1));
+
+  // ── Fill Gaps display
+  let fillGapsHTML='';
+  if(state.memMode==='partial'&&text){
+    const lineHTML=words.map((w,i)=>{
+      if(!gapSet.has(i))return`<span style="color:var(--txt1);">${escHtml(w)}</span>`;
+      const typed=state.memGapInputs[i]||'';
+      const sz=Math.max(Math.min(w.length,12),3);
+      let cls='gap-input';
+      if(state.memGapChecked){
+        cls+=normalizeWord(typed)===normalizeWord(w)?' correct':' wrong';
+      }
+      return`<input class="${cls}" type="text" size="${sz}" maxlength="${w.length+4}" value="${escHtml(typed)}" ${state.memGapChecked?'readonly':''} oninput="memGapInput(${i},this.value)">`;
+    }).join(' ');
+    const allFilled=Array.from(gapSet).every(i=>state.memGapInputs[i]&&state.memGapInputs[i].trim());
+    fillGapsHTML=`<div style="font-family:'EB Garamond',Georgia,serif;font-size:17px;line-height:2.1;color:var(--txt1);">${lineHTML}</div>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        ${!state.memGapChecked
+          ?`<button class="btn btn-primary" onclick="checkGaps()" ${allFilled?'':'disabled'}>Check Answers</button>`
+          :`<button class="btn btn-ghost" onclick="resetGaps()">Try Again</button>`}
+        ${state.memGapChecked?`<span style="font-size:13px;color:var(--txt3);font-style:italic;">Incorrect words are shown in red — find the right word in your Bible.</span>`:''}
+      </div>`;
+  }
+
+  // ── Recite score + auto-promote
+  const getScore=()=>{
+    if(!state.memTyped||!text)return 0;
+    const typed=state.memTyped.toLowerCase().replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(Boolean);
+    const orig=text.toLowerCase().replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(Boolean);
+    let matches=0;orig.forEach((w,i)=>{if(typed[i]&&typed[i]===w)matches++;});
+    return Math.round(matches/orig.length*100);
+  };
   const scoreVal=state.memChecked?getScore():null;
   const scoreColor=scoreVal>=85?C.sagebright:scoreVal>=60?C.gold:C.crimsonbright;
   const scoreMsg=scoreVal>=85?'Excellent!':scoreVal>=60?'Good effort':'Keep practicing';
-  const opts=studies.map(s=>`<option value="${s.id}"${s.id===state.memSid?' selected':''}>${escHtml(s.passage)} (${s.translation.toUpperCase()})</option>`).join('');
-  const modes=[{id:'read',label:'1. Read',desc:'Full text'},{id:'partial',label:'2. Fill Gaps',desc:'Words hidden'},{id:'recall',label:'3. Recite',desc:'From memory'}];
-  let displayText='';
-  if(state.memMode==='read')displayText=escHtml(text);
-  else if(state.memMode==='partial')displayText=escHtml(masked);
-  else displayText=`<em style="color:var(--txt4);">Passage hidden. Type from memory below.</em>`;
+
+  // ── Passage selector options (studies + standalone)
+  const opts=allPassages.map(p=>`<option value="${p.id}"${p.id===state.memSid?' selected':''}>${escHtml(p.reference)} (${p.translation.toUpperCase()})${p.source==='verse'?' ✦':''}</option>`).join('');
+
+  const modes=[{id:'read',label:'1. Read',desc:'Full text'},{id:'partial',label:'2. Fill Gaps',desc:'Type the blanks'},{id:'recall',label:'3. Recite',desc:'From memory'}];
+
+  // ── Read/partial display text
+  let displayBlock='';
+  if(state.memMode==='read'){
+    displayBlock=`<div style="font-family:'EB Garamond',Georgia,serif;font-size:17px;line-height:1.9;color:var(--txt1);">${escHtml(text)||'<em style="color:var(--txt4);">No scripture text — use Reload or Paste on the study.</em>'}</div>`;
+  } else if(state.memMode==='partial'){
+    displayBlock=fillGapsHTML;
+  }
+
+  // ── Recite block
   const recallHTML=state.memMode==='recall'?`<div class="card" style="margin-top:14px;">
     <div class="ig"><label>Type the passage from memory</label><textarea style="min-height:120px;background:var(--bg1);" placeholder="Begin typing…" oninput="state.memTyped=this.value;state.memChecked=false;">${escHtml(state.memTyped)}</textarea></div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-      <button class="btn btn-primary" onclick="state.memChecked=true;render()">Check My Answer</button>
+      <button class="btn btn-primary" onclick="doCheckRecite()">Check My Answer</button>
       <button class="btn btn-ghost" onclick="state.memTyped='';state.memChecked=false;render()">Clear</button>
-      ${state.memChecked?`<span class="score-text" style="color:${scoreColor};">${scoreVal}% ${scoreMsg}</span>`:''}
+      ${state.memChecked?`<span class="score-text" style="color:${scoreColor};">${scoreVal}% — ${scoreMsg}</span>`:''}
     </div>
-    ${state.memChecked?`<div style="margin-top:14px;background:var(--bg1);border-radius:var(--r);padding:14px;border:1px solid var(--border);"><div style="color:var(--txt3);font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;">Original text</div><div style="font-family:'EB Garamond',Georgia,serif;font-size:17px;color:var(--txt1);line-height:1.85;">${escHtml(text)}</div></div>`:''}
   </div>`:'';
-  const content=studies.length===0?`<div class="card"><div class="empty"><div class="empty-icon">✦</div><h3>No Studies Yet</h3><p>Create a study first to use the memorization tool.</p></div></div>`:`
-    <div class="card" style="margin-bottom:14px;">
-      <div class="ig"><label>Select Passage</label><select onchange="state.memSid=this.value;state.memMode='read';state.memTyped='';state.memChecked=false;render()">${opts}</select></div>
+
+  // ── Practice tab
+  const noPassages=allPassages.length===0;
+  const practiceContent=noPassages
+    ?`<div class="card"><div class="empty"><div class="empty-icon">✦</div><h3>No Passages Yet</h3><p>Create a study or add a verse in the Library tab to begin memorizing.</p></div></div>`
+    :`<div class="card" style="margin-bottom:14px;">
+      <div class="ig"><label>Passage</label><select onchange="state.memSid=this.value;state.memMode='read';state.memTyped='';state.memChecked=false;state.memGapInputs={};state.memGapChecked=false;render()">${opts}</select></div>
     </div>
-    ${study?`<div class="card" style="margin-bottom:14px;">
+    ${passage?`<div class="card" style="margin-bottom:14px;">
       <div class="mem-mode-row">${modes.map(m=>`<button class="mem-mode-btn${state.memMode===m.id?' active':''}" onclick="setMemMode('${m.id}')"><div style="font-weight:600;">${m.label}</div><div style="font-size:11px;opacity:.7;">${m.desc}</div></button>`).join('')}</div>
       <div style="background:var(--bg1);border-radius:var(--r);padding:16px;border:1px solid var(--border);">
-        <div style="font-family:'EB Garamond',Georgia,serif;font-size:17px;line-height:1.9;color:var(--txt1);">${displayText}</div>
-        <div style="margin-top:8px;color:var(--txt3);font-size:12px;">${escHtml(study.passage)} · ${study.translation.toUpperCase()}</div>
+        ${state.memMode==='recall'
+          ?`<em style="color:var(--txt4);font-family:'EB Garamond',serif;font-size:16px;">Passage hidden — type from memory below.</em>`
+          :displayBlock}
+        <div style="margin-top:8px;color:var(--txt3);font-size:12px;">${escHtml(passage.reference)} · ${passage.translation.toUpperCase()}</div>
       </div>
     </div>${recallHTML}`:''}`;
+
+  // ── Library tab
+  const allWithStatus=allPassages.map(p=>({...p,status:getMemStatus(p.id)}));
+  const learning=allWithStatus.filter(p=>p.status==='learning');
+  const learned=allWithStatus.filter(p=>p.status==='learned');
+
+  const mvCard=(p)=>`<div class="mv-card">
+    <div style="flex:1;min-width:0;">
+      <div style="font-family:'EB Garamond',serif;font-size:16px;color:var(--txt1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p.reference)}</div>
+      <div style="font-size:11px;color:var(--txt3);margin-top:2px;">${p.translation.toUpperCase()}${p.source==='verse'?' · Standalone':' · Study'}</div>
+    </div>
+    <span class="mv-status ${p.status}">${p.status==='learned'?'Learned ✓':'Learning'}</span>
+    <button class="btn btn-ghost btn-sm" onclick="state.memSid='${p.id}';state.memTab='practice';state.memMode='read';state.memGapInputs={};state.memGapChecked=false;state.memTyped='';state.memChecked=false;render()">Practice</button>
+    ${p.source==='verse'?`<button class="btn btn-ghost btn-sm" style="color:var(--crimsonbright);" onclick="deleteMemVerse('${p.rawId}')">✕</button>`:''}
+  </div>`;
+
+  const addVerseForm=state.showAddVerse?`<div class="card" style="margin-bottom:14px;">
+    <div style="font-size:13px;color:var(--txt2);font-weight:600;margin-bottom:12px;">Add Verse to Memorize</div>
+    <div class="ig"><label>Reference</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button type="button" onclick="bpOpen()" style="display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--borderlit);border-radius:var(--r);cursor:pointer;min-height:44px;min-width:44px;flex-shrink:0;color:var(--gold);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button>
+        <input id="add-verse-input" style="flex:1;" value="${escHtml(state.newVerseRef)}" placeholder="e.g. John 3:16" oninput="state.newVerseRef=this.value">
+      </div>
+    </div>
+    <div class="ig"><label>Translation</label>
+      <select onchange="state.newVerseTranslation=this.value;render()">
+        ${[{id:'esv',n:'ESV'},{id:'kjv',n:'KJV'},{id:'asv',n:'ASV'},{id:'web',n:'WEB'},{id:'nasb',n:'NASB'},{id:'niv',n:'NIV'},{id:'nlt',n:'NLT'},{id:'nkjv',n:'NKJV'}].map(t=>`<option value="${t.id}"${t.id===state.newVerseTranslation?' selected':''}>${t.n}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary" onclick="addMemVerse()" ${state.addingVerse||!state.newVerseRef.trim()?'disabled':''}>${state.addingVerse?'Loading…':'Add Verse'}</button>
+      <button class="btn btn-ghost" onclick="state.showAddVerse=false;render()">Cancel</button>
+    </div>
+  </div>`:'';
+
+  const libraryContent=`
+    ${addVerseForm}
+    ${!state.showAddVerse?`<button class="btn btn-sec" style="margin-bottom:16px;width:100%;" onclick="state.showAddVerse=true;render()">+ Add Verse to Memorize</button>`:''}
+    ${learning.length?`<div class="mv-section-label">Learning (${learning.length})</div>${learning.map(mvCard).join('')}`:''}
+    ${learned.length?`<div class="mv-section-label">Learned (${learned.length})</div>${learned.map(mvCard).join('')}`:''}
+    ${!learning.length&&!learned.length?`<div class="card"><div class="empty"><div class="empty-icon">✦</div><p style="color:var(--txt3);">No passages yet. Add a verse above or create a study.</p></div></div>`:''}`;
+
   return`<div class="view on">
     <div class="topbar">
       <button class="backbtn" onclick="state.view=state.memReturnTo||'dashboard';render()">
@@ -904,7 +1046,11 @@ function renderMemorize(){
         <div style="font-family:'EB Garamond',Georgia,serif;font-size:26px;color:var(--txt1);margin-bottom:4px;">Scripture Memorization</div>
         <div style="color:var(--txt3);font-size:14px;">Internalize the Word through progressive concealment and recall</div>
       </div>
-      ${content}
+      <div class="mem-tab-row">
+        <button class="mem-tab${state.memTab==='practice'?' active':''}" onclick="state.memTab='practice';render()">Practice</button>
+        <button class="mem-tab${state.memTab==='library'?' active':''}" onclick="state.memTab='library';render()">Library <span style="font-size:11px;opacity:.6;">(${allPassages.length})</span></button>
+      </div>
+      ${state.memTab==='practice'?practiceContent:libraryContent}
     </div>
   </div>`;
 }
@@ -912,7 +1058,14 @@ function renderMemorize(){
 // ── Main render ──────────────────────────────────────────────────────────────
 // ── CHANGELOG ────────────────────────────────────────────────
 var CHANGELOG=[
-  {version:'1.5',date:'March 22, 2026',label:'Latest',
+  {version:'1.6',date:'March 22, 2026',label:'Latest',
+    items:[
+      'Memorize — Fill Gaps now uses typeable inline inputs; Check Answers locks inputs and highlights correct (green) / incorrect (red) words; Try Again resets',
+      'Memorize — Recite auto-promotes passage to Learned on 100% accuracy',
+      'Memorize — Library tab: view all passages (studies + standalone) grouped by Learning / Learned',
+      'Memorize — Add standalone verse to memorize without creating a full study; book picker supported'
+    ]},
+  {version:'1.5',date:'March 22, 2026',label:'',
     items:['ESV scripture now auto-populates on GitHub Pages — falls back to bible-api.com when Crossway API is unavailable','KJV, WEB, ASV also auto-populate; NASB, NIV, NLT, NKJV still prompt paste (licensed)']},
   {
     version:'1.4',date:'March 22, 2026',label:'',
@@ -1015,13 +1168,24 @@ function openStudy(id){
   }
   render();
 }
-function openMemorize(){state.memSid=state.studies[0]?state.studies[0].id:null;state.memMode='read';state.memTyped='';state.memChecked=false;state.memReturnTo='dashboard';state.view='memorize';render();}
-function openMemorizeFromStudy(id){state.memSid=id;state.memMode='read';state.memTyped='';state.memChecked=false;state.memReturnTo='study';state.view='memorize';render();}
+function openMemorize(){const all=getAllMemPassages();state.memSid=all[0]?all[0].id:null;state.memTab='practice';state.memMode='read';state.memTyped='';state.memChecked=false;state.memGapInputs={};state.memGapChecked=false;state.memReturnTo='dashboard';state.view='memorize';render();}
+function openMemorizeFromStudy(id){state.memSid='study-'+id;state.memTab='practice';state.memMode='read';state.memTyped='';state.memChecked=false;state.memGapInputs={};state.memGapChecked=false;state.memReturnTo='study';state.view='memorize';render();}
 function toggleExeg(stageId){const study=currentStudy();if(!study)return;updateExegField(stageId,'completed',!study.exegesis[stageId].completed);}
 function updateExegNotes(stageId,val){updateExegField(stageId,'notes',val);}
 function toggleMethodComplete(methodId){const study=currentStudy();if(!study)return;updateMethodField(methodId,'completed',!study.methods[methodId].completed);}
 function updateMethodNotes(methodId,val){updateMethodField(methodId,'notes',val);}
-function setMemMode(mode){state.memMode=mode;state.memTyped='';state.memChecked=false;render();}
+function setMemMode(mode){state.memMode=mode;state.memTyped='';state.memChecked=false;state.memGapInputs={};state.memGapChecked=false;render();}
+function doCheckRecite(){
+  state.memChecked=true;
+  const passage=getMemPassage();const text=passage?passage.text:'';
+  if(state.memTyped&&text){
+    const typed=state.memTyped.toLowerCase().replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(Boolean);
+    const orig=text.toLowerCase().replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(Boolean);
+    let matches=0;orig.forEach((w,i)=>{if(typed[i]&&typed[i]===w)matches++;});
+    if(Math.round(matches/orig.length*100)>=100&&state.memSid){setMemStatus(state.memSid,'learned');toast('100% — Marked as Learned ✓');}
+  }
+  render();
+}
 
 // ── S1: JSON BACKUP / RESTORE ─────────────────────────────────
 async function exportData(){
@@ -1124,6 +1288,8 @@ function bpConfirm(){
   var ref=_bpBook+' '+_bpChapter+':'+v;
   var inp=document.getElementById('new-passage-input');
   if(inp){inp.value=ref;state.newPassage=ref;}
+  var av=document.getElementById('add-verse-input');
+  if(av){av.value=ref;state.newVerseRef=ref;}
   bpClose();
   render();
 }
@@ -1151,6 +1317,7 @@ function duplicateStudy(id){
 }
 // ── Boot ─────────────────────────────────────────────────────────────────────
 loadStudies();
+loadMemVerses();
 render();
 </script>
 <!-- Paste Scripture Modal -->
