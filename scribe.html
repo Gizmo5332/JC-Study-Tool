@@ -387,6 +387,7 @@ const METHODS = [
 ];
 
 const DISCIPLINES = ['Hear','Read','Study','Memorize','Meditate','Apply'];
+const BIBLE_ORDER = ['Genesis','Exodus','Leviticus','Numbers','Deuteronomy','Joshua','Judges','Ruth','1 Samuel','2 Samuel','1 Kings','2 Kings','1 Chronicles','2 Chronicles','Ezra','Nehemiah','Esther','Job','Psalms','Proverbs','Ecclesiastes','Song of Solomon','Isaiah','Jeremiah','Lamentations','Ezekiel','Daniel','Hosea','Joel','Amos','Obadiah','Jonah','Micah','Nahum','Habakkuk','Zephaniah','Haggai','Zechariah','Malachi','Matthew','Mark','Luke','John','Acts','Romans','1 Corinthians','2 Corinthians','Galatians','Ephesians','Philippians','Colossians','1 Thessalonians','2 Thessalonians','1 Timothy','2 Timothy','Titus','Philemon','Hebrews','James','1 Peter','2 Peter','1 John','2 John','3 John','Jude','Revelation'];
 const EXEG_STAGES = [
   {id:'introduction', label:'Intro', desc:'Cultural, historical and literary background'},
   {id:'observation', label:'Observe', desc:'Lexical work, translation, classification'},
@@ -418,7 +419,7 @@ let state = {
   memGapInputs:{}, memGapChecked:false,
   memVerses:[], showAddVerse:false, newVerseRef:'', newVerseTranslation:'esv', addingVerse:false,
   showNewStudy:false, confirmDeleteId:null,
-  newPassage:'', newTitle:'', newTranslation:'asv', creating:false,
+  newPassage:'', newTitle:'', newTranslation:'esv', creating:false,
   searchQuery:'', libSort:'date', activeTagFilter:null,
   showTagManager:false, tags:[], aiLoading:{},
 };
@@ -615,11 +616,15 @@ function closePasteModal(){document.getElementById('paste-overlay').classList.re
 function confirmPaste(){
   const t=document.getElementById('paste-input').value.trim();
   if(!t)return;
+  // mem verse paste context
+  if(state._pastingMemVerseId){
+    const rawId=state._pastingMemVerseId;state._pastingMemVerseId=null;
+    state.memVerses=state.memVerses.map(v=>v.id===rawId?{...v,text:t}:v);
+    saveMemVerses();closePasteModal();render();toast('Scripture text saved');return;
+  }
   const study=currentStudy();if(!study)return;
   updateStudy(study.id,s=>({...s,text:t,textTranslation:s.translation}));
-  closePasteModal();
-  render();
-  toast('Scripture text saved');
+  closePasteModal();render();toast('Scripture text saved');
 }
 function closeOverlay(id){document.getElementById(id).classList.remove('on');}
 
@@ -646,7 +651,6 @@ function renderDashboard(){
 
   const q=state.searchQuery.toLowerCase().trim();
   let filtered=q?allProgress.filter(s=>(s.passage||'').toLowerCase().includes(q)||(s.title||'').toLowerCase().includes(q)):allProgress.slice();
-  const BIBLE_ORDER=['Genesis','Exodus','Leviticus','Numbers','Deuteronomy','Joshua','Judges','Ruth','1 Samuel','2 Samuel','1 Kings','2 Kings','1 Chronicles','2 Chronicles','Ezra','Nehemiah','Esther','Job','Psalms','Proverbs','Ecclesiastes','Song of Solomon','Isaiah','Jeremiah','Lamentations','Ezekiel','Daniel','Hosea','Joel','Amos','Obadiah','Jonah','Micah','Nahum','Habakkuk','Zephaniah','Haggai','Zechariah','Malachi','Matthew','Mark','Luke','John','Acts','Romans','1 Corinthians','2 Corinthians','Galatians','Ephesians','Philippians','Colossians','1 Thessalonians','2 Thessalonians','1 Timothy','2 Timothy','Titus','Philemon','Hebrews','James','1 Peter','2 Peter','1 John','2 John','3 John','Jude','Revelation'];
   function bookIdx(passage){if(!passage)return 999;var p=passage.trim();for(var i=0;i<BIBLE_ORDER.length;i++){if(p.toLowerCase().startsWith(BIBLE_ORDER[i].toLowerCase()))return i;}return 999;}
   if(state.activeTagFilter)filtered=filtered.filter(s=>s.tags&&s.tags.includes(state.activeTagFilter));
   if(state.libSort==='date')filtered.sort((a,b)=>(b.createdAt||'')>(a.createdAt||'')?1:-1);
@@ -727,7 +731,7 @@ function renderDashboard(){
       </div>
       ${statsHTML}
       ${studiesHTML}
-      ${state.tags.length||true?`<div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${state.showTagManager?'12px':'0'};">
           <div style="font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;font-weight:600;">Tags</div>
           <button class="btn btn-ghost btn-sm" onclick="state.showTagManager=!state.showTagManager;render()">${state.showTagManager?'Hide':'Manage Tags'}</button>
@@ -744,7 +748,6 @@ function renderDashboard(){
             <button class="btn btn-primary btn-sm" onclick="saveNewTag()">Add</button>
           </div>
         </div>`:''}
-      </div>`:''}
       <div class="footer">
         <div style="border-top:1px solid var(--border);padding-top:20px;margin-bottom:20px;">
           <div class="cl-section-hdr" onclick="clSectionToggle()">
@@ -934,7 +937,6 @@ function renderStudy(){
   const notesHTML=`<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
       <div><div class="notes-label">My Notes <span class="conclbadge">${method&&method.isSynthetic?'Master Synthesis — AI-Free Zone':method&&!method.aiEnabled?'AI-Free Zone':'Scholarly Record'}</span></div><div class="notes-sub">${method&&method.isSynthetic?'Write your master synthesis, final conclusions, and personal application drawn from all methods':method&&method.aiEnabled?'Record observations and conclusions from the analysis':'Record your personal reflections and insights'}</div></div>
-      ${mData.notes.length>0?`<div class="char-count">${mData.notes.length} chars</div>`:''}
     </div>
     <textarea class="notes-textarea" style="min-height:220px;" placeholder="Enter your ${method?method.name.toLowerCase():''} method notes here…" oninput="updateMethodNotes('${state.activeMethod}',this.value)">${escHtml(mData.notes)}</textarea>
     <div style="text-align:right;margin-top:4px;"><span id="wc-method-${state.activeMethod}" style="font-size:11px;color:var(--txt4);"></span></div>
@@ -1078,7 +1080,7 @@ function renderMemorize(){
       <div style="font-family:'EB Garamond',serif;font-size:16px;color:var(--txt1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p.reference)}</div>
       <div style="font-size:11px;color:var(--txt3);margin-top:2px;">${p.translation.toUpperCase()}${p.source==='verse'?' · Standalone':' · Study'}</div>
     </div>
-    <span class="mv-status ${p.status}">${p.status==='learned'?'Learned ✓':'Learning'}</span>
+    <span class="mv-status ${p.status}" style="cursor:pointer;" onclick="setMemStatus('${p.id}',getMemStatus('${p.id}')==='learned'?'learning':'learned');render()" title="Click to toggle status">${p.status==='learned'?'Learned ✓':'Learning'}</span>
     <button class="btn btn-ghost btn-sm" onclick="state.memSid='${p.id}';state.memTab='practice';state.memMode='read';state.memGapInputs={};state.memGapChecked=false;state.memTyped='';state.memChecked=false;render()">Practice</button>
     ${p.source==='verse'?`<button class="btn btn-ghost btn-sm" style="color:var(--crimsonbright);" onclick="deleteMemVerse('${p.rawId}')">✕</button>`:''}
   </div>`;
@@ -1137,12 +1139,16 @@ function renderMemorize(){
 var CHANGELOG=[
   {version:'1.6',date:'March 22, 2026',label:'Latest',
     items:[
-      'Memorize — Fill Gaps now uses typeable inline inputs; Check Answers locks inputs and highlights correct (green) / incorrect (red); Try Again resets',
-      'Memorize — Recite auto-promotes passage to Learned at 100% accuracy',
+      'Memorize — Fill Gaps now uses typeable inline inputs; Check Answers locks and highlights correct (green) / incorrect (red); Try Again resets',
+      'Memorize — Recite auto-promotes passage to Learned at 100% accuracy; tap status pill to toggle Learned ↔ Learning',
       'Memorize — Library tab: all passages grouped by Learning / Learned; Add standalone verse without a full study',
       'Library sort — Latest, Reference, Modified dropdown on dashboard',
-      'Word count — live word count on all method notes and exegesis stage notes',
-      'Study tags — create color-coded tags, assign to studies from the study view, filter library by tag'
+      'Word count — live word count on all method and exegesis notes',
+      'Study tags — color-coded tags, assign from study view, filter library by tag',
+      'Bug fix — paste text now correctly saves to standalone mem verses',
+      'Bug fix — backup/restore now includes standalone verses and tags (backward-compatible)',
+      'Bug fix — tags section no longer renders unconditionally',
+      'Default translation changed to ESV'
     ]},
   {version:'1.5',date:'March 22, 2026',label:'',
     items:['ESV scripture now auto-populates on GitHub Pages — falls back to bible-api.com when Crossway API is unavailable','KJV, WEB, ASV also auto-populate; NASB, NIV, NLT, NKJV still prompt paste (licensed)']},
@@ -1269,7 +1275,8 @@ function doCheckRecite(){
 
 // ── S1: JSON BACKUP / RESTORE ─────────────────────────────────
 async function exportData(){
-  var json=JSON.stringify(state.studies,null,2);
+  var payload={studies:state.studies,memVerses:state.memVerses,tags:state.tags};
+  var json=JSON.stringify(payload,null,2);
   var blob=new Blob([json],{type:'application/json'});
   var fname='arche-scribe-backup.json';
   var file=new File([blob],fname,{type:'application/json'});
@@ -1286,17 +1293,28 @@ function importDataFromFile(input){
   var reader=new FileReader();
   reader.onload=function(e){
     try{
-      var imported=JSON.parse(e.target.result);
-      if(!Array.isArray(imported))throw new Error('Invalid format');
+      var data=JSON.parse(e.target.result);
+      // Support both old format (array) and new format ({studies,memVerses,tags})
+      var importedStudies=Array.isArray(data)?data:(data.studies||[]);
+      var importedVerses=Array.isArray(data)?[]:(data.memVerses||[]);
+      var importedTags=Array.isArray(data)?[]:(data.tags||[]);
       var added=0,skipped=0;
-      imported.forEach(function(s){
+      importedStudies.forEach(function(s){
         if(!s.id)return;
         if(s.title===undefined)s.title='';
         var exists=state.studies.findIndex(function(x){return x.id===s.id;});
         if(exists===-1){state.studies.push(s);added++;}else{skipped++;}
       });
-      saveStudies();render();
-      toast(added+' imported'+(skipped?' ('+skipped+' already existed)':''));
+      importedVerses.forEach(function(v){
+        if(!v.id)return;
+        if(!state.memVerses.find(function(x){return x.id===v.id;}))state.memVerses.push(v);
+      });
+      importedTags.forEach(function(t){
+        if(!t.id)return;
+        if(!state.tags.find(function(x){return x.id===t.id;}))state.tags.push(t);
+      });
+      saveStudies();saveMemVerses();saveTags();render();
+      toast(added+' studies imported'+(skipped?' ('+skipped+' skipped)':''));
     }catch(err){toast('Restore failed: invalid file');}
     input.value='';
   };
