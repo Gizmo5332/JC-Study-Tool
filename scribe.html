@@ -409,6 +409,7 @@ const TRANSLATIONS = [
 const STORAGE_KEY = 'bsapp-v2-studies';
 const MEM_VERSES_KEY = 'bsapp-v2-memverses';
 const TAGS_KEY = 'bsapp-v2-tags';
+const SETT_KEY = 'bsapp-v2-settings';
 const MEM_STATUS_KEY = 'bsapp-v2-mem-status';
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -418,7 +419,7 @@ let state = {
   memTab:'practice', memMode:'read', memSid:null, memTyped:'', memChecked:false, memReturnTo:'dashboard',
   memGapInputs:{}, memGapChecked:false,
   memVerses:[], showAddVerse:false, newVerseRef:'', newVerseTranslation:'esv', addingVerse:false,
-  showNewStudy:false, confirmDeleteId:null,
+  showNewStudy:false, confirmDeleteId:null, anthropicKey:'',
   newPassage:'', newTitle:'', newTranslation:'esv', creating:false,
   searchQuery:'', libSort:'date', activeTagFilter:null,
   showTagManager:false, tags:[], aiLoading:{},
@@ -433,6 +434,13 @@ function loadMemVerses(){try{const v=localStorage.getItem(MEM_VERSES_KEY);if(v)s
 function saveMemVerses(){try{localStorage.setItem(MEM_VERSES_KEY,JSON.stringify(state.memVerses));}catch(e){}}
 function loadTags(){try{const v=localStorage.getItem(TAGS_KEY);if(v)state.tags=JSON.parse(v);}catch(e){}}
 function saveTags(){try{localStorage.setItem(TAGS_KEY,JSON.stringify(state.tags));}catch(e){}}
+function loadSettings(){try{const v=localStorage.getItem(SETT_KEY);if(v){const s=JSON.parse(v);state.anthropicKey=s.anthropicKey||'';}}catch(e){}}
+function saveSettings(){try{localStorage.setItem(SETT_KEY,JSON.stringify({anthropicKey:state.anthropicKey}));}catch(e){}}
+function saveAnthropicKey(){const inp=document.getElementById('anthropic-key-input');if(!inp)return;state.anthropicKey=inp.value.trim();saveSettings();document.getElementById('api-setup-overlay').classList.remove('on');if(state.anthropicKey)toast('API key saved — AI tools ready');}
+function skipApiSetup(){document.getElementById('api-setup-overlay').classList.remove('on');}
+function openApiSetup(){const ov=document.getElementById('api-setup-overlay');ov.classList.add('on');const inp=document.getElementById('anthropic-key-input');if(inp)inp.value=state.anthropicKey||'';setTimeout(()=>{if(inp)inp.focus();},200);}
+function checkApiSetup(){if(!state.anthropicKey)setTimeout(()=>document.getElementById('api-setup-overlay').classList.add('on'),600);}
+function saveApiKeyFromSettings(){const inp=document.getElementById('settings-key-input');if(!inp)return;state.anthropicKey=inp.value.trim();saveSettings();toast(state.anthropicKey?'API key saved':'API key cleared');render();}
 function tagById(id){return state.tags.find(t=>t.id===id)||null;}
 const TAG_PALETTE=['#c9a84c','#5a9b70','#6a8fc8','#b06ab3','#c05050','#e89840','#7a9e7e','#8a7ab0'];
 function hexToRgba(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return'rgba('+r+','+g+','+b+','+a+')';}
@@ -547,10 +555,12 @@ async function fetchPassageText(passageRef,tid){
 async function callAI(methodId){
   const study=currentStudy();if(!study)return;
   const method=METHODS.find(m=>m.id===methodId);if(!method||!method.aiEnabled)return;
+  if(!state.anthropicKey){openApiSetup();return;}
   state.aiLoading[methodId]=true;render();
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:method.aiPrompt(study.passage,study.text)}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:method.aiPrompt(study.passage,study.text)}]})});
     const d=await r.json();
+    if(!r.ok){updateMethodField(methodId,'aiResponse','Error: '+(d.error&&d.error.message?d.error.message:'Request failed'));return;}
     const txt=d.content?d.content.filter(b=>b.type==='text').map(b=>b.text).join(''):'No response.';
     updateMethodField(methodId,'aiResponse',txt);
   }catch(e){updateMethodField(methodId,'aiResponse','Error fetching analysis. Please try again.');}
@@ -720,6 +730,7 @@ function renderDashboard(){
         <button class="btn btn-sec btn-sm" onclick="importDataPrompt()" title="Restore from JSON backup">Restore</button>
         <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" onchange="importDataFromFile(this)">
         <button class="btn btn-sec btn-sm" onclick="openMemorize()">Memorize</button>
+        <button class="btn btn-ghost btn-sm" onclick="openApiSetup()" title="${state.anthropicKey?'AI key set ✓':'AI key not set — click to add'}" style="${state.anthropicKey?'color:var(--sagebright);border-color:var(--sagebright)40;':'color:var(--crimsonbright);border-color:var(--crimsonbright)40;'}">${state.anthropicKey?'AI ✓':'AI Key'}</button>
         <button class="btn btn-primary btn-sm" onclick="state.showNewStudy=true;render()">+ Study</button>
       </div>
     </div>
@@ -1148,7 +1159,8 @@ var CHANGELOG=[
       'Bug fix — paste text now correctly saves to standalone mem verses',
       'Bug fix — backup/restore now includes standalone verses and tags (backward-compatible)',
       'Bug fix — tags section no longer renders unconditionally',
-      'Default translation changed to ESV'
+      'Default translation changed to ESV',
+      'AI fix — Anthropic API key setup (like Pilgrim/Gemini); AI tools now work on GitHub Pages'
     ]},
   {version:'1.5',date:'March 22, 2026',label:'',
     items:['ESV scripture now auto-populates on GitHub Pages — falls back to bible-api.com when Crossway API is unavailable','KJV, WEB, ASV also auto-populate; NASB, NIV, NLT, NKJV still prompt paste (licensed)']},
@@ -1417,9 +1429,28 @@ function duplicateStudy(id){
 loadStudies();
 loadMemVerses();
 loadTags();
+loadSettings();
 render();
+checkApiSetup();
 </script>
-<!-- Paste Scripture Modal -->
+<!-- API Key Setup Overlay -->
+<div class="overlay" id="api-setup-overlay">
+  <div class="modal">
+    <div class="modal-title">AI Setup Required</div>
+    <p style="font-size:14px;color:var(--txt2);margin-bottom:16px;line-height:1.6;">Arché · Scribe uses Claude AI for scholarly analysis. To enable AI tools, enter your Anthropic API key below.</p>
+    <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--txt3);line-height:1.6;">
+      Get a free API key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--gold);">console.anthropic.com</a> → API Keys → Create Key. Each user has their own independent key.
+    </div>
+    <div class="ig">
+      <label>Anthropic API Key</label>
+      <input id="anthropic-key-input" type="password" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-primary" style="flex:1" onclick="saveAnthropicKey()">Save Key</button>
+      <button class="btn btn-ghost" onclick="skipApiSetup()">Skip for now</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="paste-overlay">
   <div class="modal">
     <div class="modal-title">Paste Scripture Text</div>
