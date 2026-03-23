@@ -422,7 +422,7 @@ select option{background:var(--bg2);color:var(--txt1)}
       <div id="f-ref-pills" class="ref-pills"></div>
       <div class="frow" style="align-items:flex-end">
         <div class="ig" style="flex:0 0 auto;margin-bottom:0"><label style="visibility:hidden">Pick</label><button class="bp-open-btn" onclick="bpOpen()" title="Pick book &amp; chapter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button></div>
-        <div class="ig" style="flex:2;margin-bottom:0"><label>Scripture Reference</label><input type="text" id="f-ref" placeholder="e.g. John 3:16-17" oninput="liveUpdateRefPill()" onblur="fetchScr()"></div>
+        <div class="ig" style="flex:2;margin-bottom:0"><label>Scripture Reference</label><input type="text" id="f-ref" placeholder="e.g. John 3:16-17" onblur="fetchScr()"></div>
         <div class="ig" style="flex:0 0 76px;margin-bottom:0"><label>Version</label>
           <select id="f-trans" onchange="fetchScr()">
             <option value="esv">ESV</option><option value="kjv">KJV</option>
@@ -1291,7 +1291,6 @@ function toggleScripture(){
   if(scrCollapsed){panel.classList.add('collapsed');if(chev)chev.textContent='v';if(lbl)lbl.textContent='SHOW';}
   else{panel.classList.remove('collapsed');if(chev)chev.textContent='^';if(lbl)lbl.textContent='HIDE';}
 }
-function liveUpdateRefPill(){var val=document.getElementById('f-ref').value;var ar=activeRef();if(ar)ar.reference=val;renderRefPills('f-ref-pills','field');updateBarRefLabel();}
 function updateBarRefLabel(){var ref=document.getElementById('f-ref')?document.getElementById('f-ref').value:'';var el=document.getElementById('bar-ref-label');if(el)el.textContent=ref?ref:'Scripture';}
 
 async function fetchScr(){
@@ -1434,6 +1433,14 @@ function buildPrompt(tool,ref,trans,scope){
   return prompts[tool]||'';
 }
 
+function geminiErrMsg(msg){
+  if(!msg)return'Error fetching analysis. Please try again.';
+  if(msg.toLowerCase().includes('quota')||msg.toLowerCase().includes('rate')||msg.toLowerCase().includes('exhausted'))
+    return'Rate limit reached — the free tier allows 20 requests/min. Please wait 1–2 minutes and try again.';
+  if(msg.toLowerCase().includes('api key')||msg.toLowerCase().includes('invalid')||msg.includes('403'))
+    return'Invalid API key. Please check your Gemini key in Settings.';
+  return'Error: '+msg;
+}
 async function runTool(tool){
   if(!cur){toast('Open a study first');return;}
   var ar=activeRef();
@@ -1459,7 +1466,7 @@ async function runTool(tool){
     btn.classList.remove('busy');btn.classList.add('ready');
     if(!btn.querySelector('.rdot')){var d=document.createElement('div');d.className='rdot';btn.appendChild(d);}
   }catch(e){
-    document.getElementById('aipanel-content').innerHTML='<p style="color:var(--crimsonbright);font-size:14px;margin-bottom:8px">Error: '+escHtml(e.message)+'</p><p style="color:var(--txt3);font-size:13px">Check your Gemini API key in Settings.</p>';
+    document.getElementById('aipanel-content').innerHTML='<p style="color:var(--crimsonbright);font-size:14px;margin-bottom:8px">'+escHtml(geminiErrMsg(e.message))+'</p>';
     btn.classList.remove('busy');
   }
 }
@@ -1872,7 +1879,6 @@ function bpConfirm(){
   var fref=document.getElementById('f-ref');
   if(fref){fref.value=ref;var ar=activeRef();if(ar)ar.reference=ref;}
   bpClose();
-  renderRefPills('f-ref-pills','field');updateBarRefLabel();
   fetchScr();
 }
 function bpBack(){
@@ -1967,8 +1973,11 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 // ── CHANGELOG ────────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'2.4',date:'March 22, 2026',label:'Latest',
-    items:['Reference pills now update live as you type — no need to blur the field first','Book picker now updates the active pill immediately on confirm']},
+    version:'2.5',date:'March 22, 2026',label:'Latest',
+    items:['Friendly rate-limit error message — explains free tier 20 req/min cap and prompts retry instead of showing raw API error']},
+  {
+    version:'2.4',date:'March 22, 2026',label:'',
+    items:['Reference pills update live as you type','Book picker updates active pill immediately on confirm']},
   {
     version:'2.3',date:'March 22, 2026',label:'',
     items:[
