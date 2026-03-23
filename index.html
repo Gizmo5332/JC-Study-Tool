@@ -1436,9 +1436,9 @@ function buildPrompt(tool,ref,trans,scope){
 function geminiErrMsg(msg){
   if(!msg)return'Error fetching analysis. Please try again.';
   if(msg.toLowerCase().includes('quota')||msg.toLowerCase().includes('rate')||msg.toLowerCase().includes('exhausted'))
-    return'Rate limit reached — the free tier allows 20 requests/min. Please wait 1–2 minutes and try again.';
-  if(msg.toLowerCase().includes('api key')||msg.toLowerCase().includes('invalid')||msg.includes('403'))
-    return'Invalid API key. Please check your Gemini key in Settings.';
+    return'Rate limit reached — the free tier allows ~15 requests/min. Please wait 1–2 minutes and try again.';
+  if(msg.toLowerCase().includes('expired')||msg.toLowerCase().includes('api key')||msg.toLowerCase().includes('invalid')||msg.includes('403'))
+    return'API key invalid or expired. <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--gold);">Generate a new key at aistudio.google.com ↗</a> then update it in <button onclick="navTo(\'settings\')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-family:\'Crimson Pro\',serif;font-size:14px;padding:0;text-decoration:underline;">Settings</button>.';
   return'Error: '+msg;
 }
 async function runTool(tool){
