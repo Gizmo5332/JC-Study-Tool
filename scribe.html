@@ -451,9 +451,9 @@ function copyAIResponse(methodId){
 function geminiErrMsg(msg){
   if(!msg)return'Error fetching analysis. Please try again.';
   if(msg.toLowerCase().includes('quota')||msg.toLowerCase().includes('rate')||msg.toLowerCase().includes('exhausted'))
-    return'Rate limit reached — the free tier allows 20 requests/min. Please wait 1–2 minutes and try again.';
-  if(msg.toLowerCase().includes('api key')||msg.toLowerCase().includes('invalid')||msg.includes('403'))
-    return'Invalid API key. Please check your Gemini key in AI Setup.';
+    return'Rate limit reached — the free tier allows ~15 requests/min. Please wait 1–2 minutes and try again.';
+  if(msg.toLowerCase().includes('expired')||msg.toLowerCase().includes('api key')||msg.toLowerCase().includes('invalid')||msg.includes('403'))
+    return'API key invalid or expired — generate a new key at aistudio.google.com then tap "AI Setup" (top of page) to update it.';
   return'Error: '+msg;
 }
 function loadSettings(){try{const v=localStorage.getItem(SETT_KEY);if(v){const s=JSON.parse(v);state.geminiKey=s.geminiKey||'';state.scrFontSize=s.scrFontSize||18;}}catch(e){}}
