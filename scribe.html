@@ -187,7 +187,15 @@ a{color:var(--gold);text-decoration:none;}
 .ai-section{border-top:2px solid var(--golddim);border-top-left-radius:0;border-top-right-radius:0;}
 .ai-label{color:var(--gold);font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:600;}
 .ai-sub{color:var(--txt3);font-size:12px;margin-top:2px;}
-.ai-response{font-size:14px;line-height:1.75;color:var(--txt1);white-space:pre-wrap;}
+.ai-response{font-size:14px;line-height:1.75;color:var(--txt1);}
+.ai-response h3{font-family:'EB Garamond',Georgia,serif;font-size:18px;color:var(--gold);margin:18px 0 8px;font-weight:600;}
+.ai-response h4{font-family:'EB Garamond',Georgia,serif;font-size:16px;color:var(--goldpale);margin:14px 0 6px;font-weight:600;}
+.ai-response p{margin:0 0 8px;line-height:1.75;}
+.ai-response ul,.ai-response ol{margin:6px 0 10px 20px;padding:0;}
+.ai-response li{margin-bottom:4px;}
+.ai-response hr{border:none;border-top:1px solid var(--border);margin:14px 0;}
+.ai-response strong{color:var(--goldpale);}
+.ai-response code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-family:monospace;font-size:13px;}
 .ai-placeholder{font-size:14px;color:var(--txt4);font-style:italic;}
 .aidisclaim{font-size:11px;color:var(--txt4);font-style:italic;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
 
@@ -267,7 +275,7 @@ a{color:var(--gold);text-decoration:none;}
 .synthetic-section{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;margin-bottom:12px;overflow:hidden;}
 .synthetic-section-header{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
 .synthetic-section-header::after{content:'';flex:1;height:1px;background:var(--border);}
-.synthetic-section-body{font-size:14px;color:var(--txt2);line-height:1.7;white-space:pre-wrap;}
+.synthetic-section-body{font-size:14px;color:var(--txt2);line-height:1.7;}
 .synthetic-section-empty{font-size:13px;color:var(--txt4);font-style:italic;}
 .synthetic-capstone-badge{display:inline-block;background:color-mix(in srgb,var(--bg3),var(--golddim) 20%);color:var(--gold);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:3px 9px;border-radius:3px;border:1px solid var(--golddim);margin-left:10px;vertical-align:middle;}
 
@@ -422,7 +430,7 @@ let state = {
   showNewStudy:false, confirmDeleteId:null, geminiKey:'',
   newPassage:'', newTitle:'', newTranslation:'esv', creating:false,
   searchQuery:'', libSort:'date', activeTagFilter:null,
-  showTagManager:false, tags:[], aiLoading:{},
+  showTagManager:false, tags:[], aiLoading:{}, scrFontSize:18,
 };
 
 // ── Storage ──────────────────────────────────────────────────────────────────
@@ -448,8 +456,8 @@ function geminiErrMsg(msg){
     return'Invalid API key. Please check your Gemini key in AI Setup.';
   return'Error: '+msg;
 }
-function loadSettings(){try{const v=localStorage.getItem(SETT_KEY);if(v){const s=JSON.parse(v);state.geminiKey=s.geminiKey||'';}}catch(e){}}
-function saveSettings(){try{localStorage.setItem(SETT_KEY,JSON.stringify({geminiKey:state.geminiKey}));}catch(e){}}
+function loadSettings(){try{const v=localStorage.getItem(SETT_KEY);if(v){const s=JSON.parse(v);state.geminiKey=s.geminiKey||'';state.scrFontSize=s.scrFontSize||18;}}catch(e){}}
+function saveSettings(){try{localStorage.setItem(SETT_KEY,JSON.stringify({geminiKey:state.geminiKey,scrFontSize:state.scrFontSize}));}catch(e){}}
 function saveGeminiKey(){const inp=document.getElementById('gemini-key-input');if(!inp)return;const k=inp.value.trim();if(!k){toast('Please enter your API key');return;}state.geminiKey=k;saveSettings();document.getElementById('api-setup-overlay').classList.remove('on');toast('API key saved — AI tools ready');}
 function skipApiSetup(){document.getElementById('api-setup-overlay').classList.remove('on');}
 function openApiSetup(){const ov=document.getElementById('api-setup-overlay');ov.classList.add('on');const inp=document.getElementById('gemini-key-input');if(inp){inp.value=state.geminiKey||'';setTimeout(()=>inp.focus(),200);}}
@@ -535,6 +543,31 @@ function makeSVGRing(pct,size,stroke,color){
   return `<svg width="${sz}" height="${sz}" style="transform:rotate(-90deg);display:block;"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="${C.border}" stroke-width="${st}"/><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="${cl}" stroke-width="${st}" stroke-dasharray="${filled} ${circ}" stroke-linecap="round" style="transition:stroke-dasharray 0.6s ease;"/></svg>`;
 }
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function mdToHtml(md){
+  if(!md)return'';
+  function inlineM(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .replace(/`(.+?)`/g,'<code>$1</code>');
+  }
+  var lines=md.split('\n'),html='',inUl=false,inOl=false;
+  function closeLists(){if(inUl){html+='</ul>';inUl=false;}if(inOl){html+='</ol>';inOl=false;}}
+  for(var i=0;i<lines.length;i++){
+    var l=lines[i];
+    if(/^###\s/.test(l)){closeLists();html+='<h4>'+inlineM(l.slice(4))+'</h4>';continue;}
+    if(/^##\s/.test(l)){closeLists();html+='<h3>'+inlineM(l.slice(3))+'</h3>';continue;}
+    if(/^#\s/.test(l)){closeLists();html+='<h3>'+inlineM(l.slice(2))+'</h3>';continue;}
+    if(/^---+$/.test(l.trim())){closeLists();html+='<hr>';continue;}
+    if(/^[-*]\s/.test(l)){if(!inUl){if(inOl){html+='</ol>';inOl=false;}html+='<ul>';inUl=true;}html+='<li>'+inlineM(l.slice(2))+'</li>';continue;}
+    if(/^\d+\.\s/.test(l)){if(!inOl){if(inUl){html+='</ul>';inUl=false;}html+='<ol>';inOl=true;}html+='<li>'+inlineM(l.replace(/^\d+\.\s/,''))+'</li>';continue;}
+    closeLists();
+    if(!l.trim()){html+='<div style="height:8px;"></div>';continue;}
+    html+='<p>'+inlineM(l)+'</p>';
+  }
+  closeLists();
+  return html;
+}
 
 // ── Toast ────────────────────────────────────────────────────────────────────
 let _tt;
@@ -572,7 +605,7 @@ async function callAI(methodId){
   if(!state.geminiKey){openApiSetup();return;}
   state.aiLoading[methodId]=true;render();
   try{
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+state.geminiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:method.aiPrompt(study.passage,study.text)}]}],generationConfig:{maxOutputTokens:4096,temperature:0.2}})});
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+state.geminiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:method.aiPrompt(study.passage,study.text)}]}],generationConfig:{maxOutputTokens:4096,temperature:0.2}})});
     const d=await r.json();
     if(!r.ok){updateMethodField(methodId,'aiResponse',geminiErrMsg(d.error&&d.error.message?d.error.message:'HTTP '+r.status));state.aiLoading[methodId]=false;render();return;}
     const txt=d.candidates?.[0]?.content?.parts?.[0]?.text||'No response.';
@@ -895,9 +928,13 @@ function renderStudy(){
         <select style="padding:6px 28px 6px 10px;font-size:13px;background:var(--bg3);border-color:var(--borderlit);" onchange="changeTranslation(this.value)">${tranOpts}</select>
       </div>
       ${showSubNote?`<span style="font-size:11px;color:var(--golddim);font-style:italic;">${study.translation.toUpperCase()} unavailable — displaying ${study.textTranslation.toUpperCase()}</span>`:''}
+      <div style="margin-left:auto;display:flex;gap:4px;align-items:center;">
+        <button onclick="if(state.scrFontSize>14){state.scrFontSize-=2;saveSettings();render();}" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',Georgia,serif;font-size:13px;padding:3px 9px;min-height:32px;min-width:32px;" title="Decrease font size">A−</button>
+        <button onclick="if(state.scrFontSize<24){state.scrFontSize+=2;saveSettings();render();}" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',Georgia,serif;font-size:15px;padding:3px 9px;min-height:32px;min-width:32px;" title="Increase font size">A+</button>
+      </div>
     </div>
     ${textAvailable
-      ? `<div class="passage-text">${escHtml(study.text)}</div>`
+      ? `<div class="passage-text" style="font-size:${state.scrFontSize}px;">${escHtml(study.text)}</div>`
       : `<div style="padding:4px 0;">
            <div style="color:var(--txt3);font-size:13px;font-style:italic;margin-bottom:12px;">Scripture text not loaded.</div>
            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -919,7 +956,7 @@ function renderStudy(){
         <button class="btn-ai" onclick="callAI('${state.activeMethod}')" ${loading?'disabled':''}>${loading?'Analyzing…':method.aiLabel}</button>
       </div>
       ${mData.aiResponse
-        ?`<div class="ai-response">${escHtml(mData.aiResponse)}</div><div class="aidisclaim" style="display:flex;justify-content:space-between;align-items:center;"><span>AI provides data only. All theological conclusions belong to the student.</span><button class="btn btn-ghost btn-sm" style="font-size:11px;padding:4px 10px;min-height:28px;" onclick="copyAIResponse('${state.activeMethod}')">Copy</button></div>`
+        ?`<div class="ai-response">${mdToHtml(mData.aiResponse)}</div><div class="aidisclaim" style="display:flex;justify-content:space-between;align-items:center;"><span>AI provides data only. All theological conclusions belong to the student.</span><button class="btn btn-ghost btn-sm" style="font-size:11px;padding:4px 10px;min-height:28px;" onclick="copyAIResponse('${state.activeMethod}')">Copy</button></div>`
         :`<div class="ai-placeholder">Tap "${method.aiLabel}" to receive scholarly analysis.</div>`}
     </div>`;
   }
@@ -946,7 +983,7 @@ function renderStudy(){
       return`<div class="synthetic-section">
         <div class="synthetic-section-header">${m.num}. ${m.name}${mdata&&mdata.completed?' ✓':''}</div>
         ${combined
-          ?`<div class="synthetic-section-body">${escHtml(combined)}</div>`
+          ?`<div class="synthetic-section-body">${mdToHtml(combined)}</div>`
           :`<div class="synthetic-section-empty">No content yet — complete the ${m.name} method to populate this section.</div>`}
       </div>`;
     }).join('');
