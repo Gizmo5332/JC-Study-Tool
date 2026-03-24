@@ -2052,7 +2052,41 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 // ── CHANGELOG ────────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'2.5',date:'March 22, 2026',label:'Latest',
+    version:'2.9',date:'March 24, 2026',label:'Latest',
+    items:[
+      'Resources modal added to Deep Study header — tap "Resources" for reference material',
+      'How to Study the Bible — foundational scriptures, 4 method insights, Historical-Grammatical approach overview, 8 study methods',
+      'How We Got the Bible — OT/NT source documents, manuscript reliability data (5,600+ NT manuscripts, 99.5% accuracy), translation philosophy spectrum'
+    ]},
+  {
+    version:'2.8',date:'March 24, 2026',label:'',
+    items:[
+      'Passage/Book Outline section added to Deep Study right column — collapsible, saves with study',
+      'Outline toolbar — tap I./II./III., A./B./C., 1./2./3., or • to insert prefix at cursor on current line',
+      'Deep Study right column now scrolls independently on desktop — AI panel, Outline, and Conclusions all visible by scrolling',
+      'Outline exports to PDF between Field Notes and AI tool results',
+      'Outline included as toggle option in Export modal'
+    ]},
+  {
+    version:'2.7',date:'March 24, 2026',label:'',
+    items:[
+      'AI study tools switched from Gemini to Groq (llama-3.3-70b-versatile) — free tier: 30 req/min, 14,400 req/day',
+      'OCR (image text extraction) stays on Gemini Flash — better vision quality for photos',
+      'Settings split into two sections: Groq key (required for AI tools) + Gemini key (optional, OCR only)',
+      'First-launch setup overlay updated for Groq key',
+      'Fixed: reference field pill label corruption — f-ref now writes to activeRef immediately on input',
+      'Fixed: book picker now re-renders pills instantly on confirm'
+    ]},
+  {
+    version:'2.6',date:'March 24, 2026',label:'',
+    items:[
+      'AI model switched from gemini-2.5-flash (preview, tight limits) to gemini-1.5-flash (15 req/min free tier)',
+      'Improved error messages for expired, invalid, and rate-limited API keys — actionable links to Settings and aistudio.google.com',
+      'AI tool max response tokens reduced from 8,192 to 2,048 — no quality impact, significant reduction in daily quota usage',
+      'Import (JSON restore) now overwrites existing studies by ID — backup is always source of truth'
+    ]},
+  {
+    version:'2.5',date:'March 22, 2026',label:'',
     items:['Friendly rate-limit error message — explains free tier 20 req/min cap and prompts retry instead of showing raw API error']},
   {
     version:'2.4',date:'March 22, 2026',label:'',
