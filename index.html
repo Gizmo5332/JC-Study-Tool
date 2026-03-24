@@ -608,11 +608,17 @@ select option{background:var(--bg2);color:var(--txt1)}
   <div class="topbar"><div class="topbar-title">Settings</div></div>
   <div class="scroll">
     <div style="margin-bottom:22px">
-      <div class="sethead">AI Study Tools</div>
-      <div class="setsub">Enter your Google Gemini API key to enable AI tools. Your key is stored only on this device and never uploaded anywhere. Get a free key at aistudio.google.com.</div>
-      <div class="conntag" id="gemini-status-tag" style="margin-bottom:10px"><div class="conndot" id="gemini-status-dot"></div><span id="gemini-status-text">No API key saved</span></div>
+      <div class="sethead">AI Study Tools — Groq</div>
+      <div class="setsub">Powers all AI study tools (Lexical, Grammar, Historical, Cultural, Cross-Refs). Free tier: 30 req/min, 14,400/day. Get a free key at <a href="https://console.groq.com" target="_blank" style="color:var(--gold);">console.groq.com ↗</a></div>
+      <div class="conntag" id="gemini-status-tag" style="margin-bottom:10px"><div class="conndot" id="gemini-status-dot"></div><span id="gemini-status-text">No Groq key saved</span></div>
+      <div class="ig"><label>Groq API Key</label><input type="password" id="set-groq" placeholder="gsk_..." autocomplete="off" spellcheck="false"></div>
+    </div>
+    <div style="margin-bottom:22px">
+      <div class="sethead">Text Extraction (OCR) — Gemini</div>
+      <div class="setsub">Powers photo text extraction only. Optional — only needed if you use the camera/gallery capture feature. Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--gold);">aistudio.google.com ↗</a></div>
+      <div class="conntag" style="margin-bottom:10px"><div class="conndot" id="gemini-ocr-dot" style="background:var(--golddim)"></div><span id="gemini-ocr-text">No Gemini key saved</span></div>
       <div class="ig"><label>Google Gemini API Key</label><input type="password" id="set-gemini" placeholder="AIza..." autocomplete="off" spellcheck="false"></div>
-      <button class="btn btn-primary btn-full" onclick="saveSettings()">Save API Key</button>
+      <button class="btn btn-primary btn-full" onclick="saveSettings()">Save API Keys</button>
     </div>
     <div class="divider"></div>
     <div style="margin-bottom:22px">
@@ -868,15 +874,15 @@ select option{background:var(--bg2);color:var(--txt1)}
   </div>
 </div>
 
-<!-- GEMINI SETUP OVERLAY -->
+<!-- GROQ SETUP OVERLAY -->
 <div class="gemini-setup-overlay" id="gemini-setup-overlay">
   <div class="gemini-setup-card">
     <div class="ornament" style="margin-bottom:16px">&#10022;</div>
     <div style="font-family:'EB Garamond',serif;font-size:22px;color:var(--gold);text-align:center;margin-bottom:8px">AI Study Tools Setup</div>
-    <p style="font-size:14px;color:var(--txt2);text-align:center;line-height:1.65;margin-bottom:20px">Arché uses Google Gemini for lexical, historical, and cultural analysis. Enter your free API key to enable AI tools.<br><br><a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--gold);font-size:13px">Get a free key at aistudio.google.com ↗</a></p>
+    <p style="font-size:14px;color:var(--txt2);text-align:center;line-height:1.65;margin-bottom:20px">Arché · Pilgrim uses Groq for AI study tools — free tier with 14,400 requests/day.<br><br><a href="https://console.groq.com" target="_blank" style="color:var(--gold);font-size:13px">Get a free key at console.groq.com ↗</a></p>
     <div class="ig" style="margin-bottom:16px">
-      <label>Google Gemini API Key</label>
-      <input type="password" id="gemini-setup-input" placeholder="AIza..." autocomplete="off" spellcheck="false">
+      <label>Groq API Key</label>
+      <input type="password" id="gemini-setup-input" placeholder="gsk_..." autocomplete="off" spellcheck="false">
     </div>
     <button class="btn btn-primary btn-full" onclick="saveGeminiSetup()" style="margin-bottom:10px">Save &amp; Continue</button>
     <button class="btn btn-ghost btn-full" onclick="skipGeminiSetup()" style="font-size:13px">Skip for now — I'll use Paste mode</button>
@@ -932,7 +938,7 @@ select option{background:var(--bg2);color:var(--txt1)}
 <script>
 var ESV_KEY='6788a84f19616a65bf00f0edda9f45ea83486ccf';
 var SK='bsn_studies_v2', SK_SETT='bsn_settings_v1', SK_TAGS='bsn_tags_v1';
-var studies=[], cur=null, online=navigator.onLine, sett={geminiKey:'', scrMode:'auto'};
+var studies=[], cur=null, online=navigator.onLine, sett={groqKey:'', geminiKey:'', scrMode:'auto'};
 var hdrCollapsed=false, scrCollapsed=false, studyScope='passage';
 var activeRefIdx=0;
 var _editingTagId=null;
@@ -1136,7 +1142,7 @@ function renderRefPills(containerId,mode){
   if(mode==='field'&&cur.refs.length<12){html+='<button class="ref-pill ref-pill-add" onclick="addRef()">+ Add Passage</button>';}
   el.innerHTML=html;
 }
-function loadSett(){try{var s=JSON.parse(localStorage.getItem(SK_SETT));if(s)sett=Object.assign({},sett,s);if(!sett.scrMode)sett.scrMode='auto';document.getElementById('set-gemini').value=sett.geminiKey||'';updateScrModeUI();}catch(e){}}
+function loadSett(){try{var s=JSON.parse(localStorage.getItem(SK_SETT));if(s)sett=Object.assign({},sett,s);if(!sett.scrMode)sett.scrMode='auto';document.getElementById('set-groq').value=sett.groqKey||'';document.getElementById('set-gemini').value=sett.geminiKey||'';updateScrModeUI();}catch(e){}}
 function setScrMode(mode){sett.scrMode=mode;localStorage.setItem(SK_SETT,JSON.stringify(sett));updateScrModeUI();if(mode==='paste'&&cur&&cur.reference){openPasteModal();}else if(mode==='auto'&&cur&&cur.reference){fetchScr();}}
 function updateScrModeUI(){
   var isAuto=sett.scrMode!=='paste';
@@ -1150,9 +1156,9 @@ function updateScrModeUI(){
     btnAuto.style.background='none';btnAuto.style.color='var(--txt3)';btnAuto.style.fontWeight='400';
   }
 }
-function saveSettings(){var k=document.getElementById('set-gemini').value.trim();sett.geminiKey=k;localStorage.setItem(SK_SETT,JSON.stringify(sett));toast('Settings saved');if(k){var ov=document.getElementById('gemini-setup-overlay');if(ov)ov.classList.remove('on');}}
-function checkGeminiSetup(){if(!sett.geminiKey){setTimeout(function(){document.getElementById('gemini-setup-overlay').classList.add('on');},600);}}
-function saveGeminiSetup(){var k=document.getElementById('gemini-setup-input').value.trim();if(!k){toast('Please enter your API key');return;}sett.geminiKey=k;localStorage.setItem(SK_SETT,JSON.stringify(sett));document.getElementById('set-gemini').value=k;document.getElementById('gemini-setup-overlay').classList.remove('on');toast('API key saved — AI tools ready');}
+function saveSettings(){var gq=document.getElementById('set-groq').value.trim();var gm=document.getElementById('set-gemini').value.trim();sett.groqKey=gq;sett.geminiKey=gm;localStorage.setItem(SK_SETT,JSON.stringify(sett));toast('Settings saved');if(gq){var ov=document.getElementById('gemini-setup-overlay');if(ov)ov.classList.remove('on');}}
+function checkGeminiSetup(){if(!sett.groqKey){setTimeout(function(){document.getElementById('gemini-setup-overlay').classList.add('on');},600);}}
+function saveGeminiSetup(){var k=document.getElementById('gemini-setup-input').value.trim();if(!k){toast('Please enter your API key');return;}sett.groqKey=k;localStorage.setItem(SK_SETT,JSON.stringify(sett));document.getElementById('set-groq').value=k;document.getElementById('gemini-setup-overlay').classList.remove('on');toast('API key saved — AI tools ready');}
 function skipGeminiSetup(){document.getElementById('gemini-setup-overlay').classList.remove('on');}
 
 function navTo(id){
@@ -1165,7 +1171,7 @@ function navTo(id){
   if(id==='deep'){syncFromInputs();_fnotesOpen=false;var fb=document.getElementById('fnotes-body');if(fb)fb.classList.remove('open');var fc=document.getElementById('fnotes-chev');if(fc)fc.style.transform='';populateDeep();}
   if(id==='field'&&cur)populateField();
   if(id==='stats')renderStats();
-  if(id==='settings'){renderTagManager();renderChangelog();var dot=document.getElementById('gemini-status-dot'),txt=document.getElementById('gemini-status-text');if(dot&&txt){if(sett.geminiKey){dot.style.background='var(--sagebright)';txt.textContent='API key saved';}else{dot.style.background='var(--crimsonbright)';txt.textContent='No API key saved — tap below to add one';}}}
+  if(id==='settings'){renderTagManager();renderChangelog();var dot=document.getElementById('gemini-status-dot'),txt=document.getElementById('gemini-status-text');if(dot&&txt){if(sett.groqKey){dot.style.background='var(--sagebright)';txt.textContent='Groq key saved';}else{dot.style.background='var(--crimsonbright)';txt.textContent='No Groq key saved — tap below to add one';}}var gdot=document.getElementById('gemini-ocr-dot'),gtxt=document.getElementById('gemini-ocr-text');if(gdot&&gtxt){if(sett.geminiKey){gdot.style.background='var(--sagebright)';gtxt.textContent='Gemini key saved (OCR enabled)';}else{gdot.style.background='var(--golddim)';gtxt.textContent='No Gemini key — OCR unavailable (optional)';}}}
 }
 function saveAndGoLib(){saveStudy();navTo('library');}
 function goField(){navTo('field');}
@@ -1461,9 +1467,17 @@ function buildPrompt(tool,ref,trans,scope){
 function geminiErrMsg(msg){
   if(!msg)return'Error fetching analysis. Please try again.';
   if(msg.toLowerCase().includes('quota')||msg.toLowerCase().includes('rate')||msg.toLowerCase().includes('exhausted'))
-    return'Rate limit reached — the free tier allows ~15 requests/min. Please wait 1–2 minutes and try again.';
+    return'Rate limit reached — please wait 1–2 minutes and try again.';
   if(msg.toLowerCase().includes('expired')||msg.toLowerCase().includes('api key')||msg.toLowerCase().includes('invalid')||msg.includes('403'))
-    return'API key invalid or expired. <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--gold);">Generate a new key at aistudio.google.com ↗</a> then update it in <button onclick="navTo(\'settings\')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-family:\'Crimson Pro\',serif;font-size:14px;padding:0;text-decoration:underline;">Settings</button>.';
+    return'Gemini API key invalid or expired — generate a new key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--gold);">aistudio.google.com ↗</a> then update it in Settings.';
+  return'OCR Error: '+msg;
+}
+function groqErrMsg(msg){
+  if(!msg)return'Error fetching analysis. Please try again.';
+  if(msg.toLowerCase().includes('rate')||msg.toLowerCase().includes('quota')||msg.toLowerCase().includes('429'))
+    return'Rate limit reached — the free tier allows 30 requests/min. Please wait 1–2 minutes and try again.';
+  if(msg.toLowerCase().includes('expired')||msg.toLowerCase().includes('invalid')||msg.toLowerCase().includes('api key')||msg.includes('401'))
+    return'Groq API key invalid or expired — update it in <button onclick="navTo(\'settings\')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-family:\'Crimson Pro\',serif;font-size:14px;padding:0;text-decoration:underline;">Settings</button> or get a new key at <a href="https://console.groq.com" target="_blank" style="color:var(--gold);">console.groq.com ↗</a>.';
   return'Error: '+msg;
 }
 async function runTool(tool){
@@ -1473,7 +1487,7 @@ async function runTool(tool){
   var ck=studyScope==='book'?tool+'_book':tool;
   if(ar.deep&&ar.deep[ck]){showAIPanel(tool,ar.deep[ck]);return;}
   if(!online){toast('AI tools require internet');return;}
-  if(!sett.geminiKey){toast('API key needed - see Settings');setTimeout(function(){navTo('settings');},800);return;}
+  if(!sett.groqKey){toast('API key needed - see Settings');setTimeout(function(){navTo('settings');},800);return;}
   var btn=document.getElementById('btn-'+tool);btn.classList.add('busy');
   document.getElementById('aipanel-title').innerHTML=TOOL_LABELS[tool];
   document.getElementById('aipanel-content').innerHTML='<div style="display:flex;align-items:center;gap:11px;color:var(--txt3);padding:6px 0"><div class="spin"></div>Analyzing '+ar.reference+'...</div>';
@@ -1482,16 +1496,16 @@ async function runTool(tool){
   try{
     var trans=ar.pastedTranslation||ar.translation||'ESV';
     var prompt=buildPrompt(tool,ar.reference,trans,studyScope);
-    var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+sett.geminiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:2048,temperature:0.2}})});
+    var res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sett.groqKey},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],max_tokens:2048,temperature:0.2})});
     if(!res.ok){var err=await res.json().catch(function(){return{};});throw new Error(err.error?err.error.message:'HTTP '+res.status);}
     var data=await res.json();
-    var content=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||'No response received.';
+    var content=data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content||'No response received.';
     if(!ar.deep)ar.deep={};
     ar.deep[ck]=content;saveStudy();showAIPanel(tool,content);
     btn.classList.remove('busy');btn.classList.add('ready');
     if(!btn.querySelector('.rdot')){var d=document.createElement('div');d.className='rdot';btn.appendChild(d);}
   }catch(e){
-    document.getElementById('aipanel-content').innerHTML='<p style="color:var(--crimsonbright);font-size:14px;margin-bottom:8px">'+escHtml(geminiErrMsg(e.message))+'</p>';
+    document.getElementById('aipanel-content').innerHTML='<p style="color:var(--crimsonbright);font-size:14px;margin-bottom:8px">'+groqErrMsg(e.message)+'</p>';
     btn.classList.remove('busy');
   }
 }
@@ -1571,7 +1585,7 @@ function resAddResource(dataUrl){if(!cur.resources)cur.resources=[];var res={id:
 async function resRunOCR(id){
   if(!cur||!cur.resources)return;
   var res=cur.resources.find(function(r){return r.id===id;});if(!res)return;
-  if(!sett.geminiKey){res.ocrStatus='error';res.ocrText='No Gemini API key in Settings.';renderResources();return;}
+  if(!sett.geminiKey){res.ocrStatus='error';res.ocrText='No Gemini API key in Settings — required for text extraction.';renderResources();return;}
   if(!online){res.ocrStatus='error';res.ocrText='Offline - reconnect to extract text.';renderResources();return;}
   res.ocrStatus='running';renderResources();
   try{
