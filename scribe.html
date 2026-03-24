@@ -375,24 +375,140 @@ const ESV_KEY = '6788a84f19616a65bf00f0edda9f45ea83486ccf';
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 const METHODS = [
-  { id:'analytical', name:'Analytical', num:1, desc:'Grammar, syntax & logical structure', aiEnabled:true, aiLabel:'Analyze Grammar & Structure',
-    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar assisting with the Analytical Method of Bible study.\n\nPassage: ${p}\nText: "${t}"\n\nProvide a scholarly, objective analytical breakdown covering:\n1. **Grammatical Structure & Syntax** — sentence structure, verb tenses, key grammatical features\n2. **Key Term Definitions** — original language (Hebrew/Greek) word origins and meanings for significant terms\n3. **Logical Flow & Argument** — how the passage develops its point\n4. **Structural Outline** — a clear outline of the passage sections\n5. **Notable Features** — any unusual grammar, emphases, or constructions\n\nBe objective and scholarly. Do not provide personal interpretations or devotional applications.\n\nCRITICAL: Provide only scholarly data. All theological conclusions belong to the student.` },
-  { id:'critical', name:'Critical', num:2, desc:'Textual, source & form criticism', aiEnabled:true, aiLabel:'Run Critical Analysis',
-    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar assisting with the Critical Method of Bible study.\n\nPassage: ${p}\nText: "${t}"\n\nProvide objective scholarly critical analysis covering:\n1. **Textual Criticism** — significant manuscript variants, textual traditions, reliability\n2. **Source Criticism** — possible sources or traditions behind this text\n3. **Form Criticism** — literary genre, form, and Sitz im Leben\n4. **Redaction Criticism** — editorial shaping, theological emphasis\n5. **Summary Assessment** — overall reliability and transmission\n\nCRITICAL: Provide only scholarly data. All theological conclusions belong to the student.` },
-  { id:'historical', name:'Historical', num:3, desc:'Culture, geography & background', aiEnabled:true, aiLabel:'Research Historical Context',
-    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar assisting with the Historical Method of Bible study.\n\nPassage: ${p}\nText: "${t}"\n\nProvide objective historical-contextual analysis covering:\n1. **Author, Audience & Date** — who wrote it, to whom, and when\n2. **Historical Setting** — political, social, and religious situation\n3. **Cultural Practices** — customs, traditions, social norms referenced\n4. **Geographical Context** — places and their significance\n5. **Background Events** — historical events that illuminate the passage\n\nCRITICAL: Provide only historical data. All theological conclusions belong to the student.` },
-  { id:'topical', name:'Topical', num:4, desc:'Themes traced across Scripture', aiEnabled:true, aiLabel:'Trace Themes & Cross-References',
-    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar assisting with the Topical Method of Bible study.\n\nPassage: ${p}\nText: "${t}"\n\nProvide a comprehensive topical analysis covering:\n1. **Major Themes** — primary and secondary themes present\n2. **Old Testament Cross-References** — related OT passages\n3. **New Testament Cross-References** — related NT passages\n4. **Theme Development** — how themes develop across the biblical canon\n5. **Key Word Study Connections** — significant terms and parallel occurrences\n\nCRITICAL: Provide only scholarly data. All theological conclusions belong to the student.` },
-  { id:'theological', name:'Theological', num:5, desc:"Doctrine & God's character", aiEnabled:false,
-    guidedPrompts:["What does this passage teach about the nature and character of God?","What does this passage reveal about humanity, our condition, need, or dignity?","How does this passage relate to the theme of salvation or redemption?","What doctrinal truths are explicitly or implicitly present?","How does this passage fit within the broader theological narrative of Scripture?","What creeds, confessions, or theological traditions speak to this text?"] },
-  { id:'comparative', name:'Comparative', num:6, desc:'Translations, parallels & ancient texts', aiEnabled:true, aiLabel:'Compare Translations & Parallels',
-    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar assisting with the Comparative Method of Bible study.\n\nPassage: ${p}\nText: "${t}"\n\nProvide objective comparative analysis covering:\n1. **Translation Comparison** — notable differences between KJV, NASB, ESV, NIV, NLT\n2. **Parallel Passages** — direct parallels within Scripture\n3. **Hapax Legomena** — words used rarely or only once, and their significance\n4. **Ancient Near Eastern / Greco-Roman Parallels** — relevant cultural parallels\n5. **Interpretive Impact** — how translation choices affect meaning\n\nCRITICAL: Provide only scholarly data. All theological conclusions belong to the student.` },
-  { id:'rhetorical', name:'Rhetorical', num:7, desc:'Literary devices & narrative art', aiEnabled:true, aiLabel:'Analyze Literary Devices',
-    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar assisting with the Rhetorical Method of Bible study.\n\nPassage: ${p}\nText: "${t}"\n\nProvide objective rhetorical-literary analysis covering:\n1. **Literary Devices** — chiasm, parallelism, inclusio, metaphor, irony, hyperbole, etc.\n2. **Narrative/Argument Structure** — architectural organization\n3. **Rhetorical Techniques** — persuasive strategies of the author\n4. **Author's Communicative Intent** — what the author aims to achieve\n5. **Audience & Effect** — how the original audience would have received this\n\nCRITICAL: Provide only scholarly data. All theological conclusions belong to the student.` },
-  { id:'devotional', name:'Devotional', num:8, desc:'Personal reflection & prayer', aiEnabled:false,
-    guidedPrompts:["What is God revealing about Himself to me personally through this passage?","What does this passage call me to believe differently?","What does this passage call me to do or change in my life?","How does this connect to what God is currently doing in my life?","What would full obedience or trust look like in response to this text?","Write a personal prayer response to this passage."] },
-  { id:'synthetic', name:'Synthetic', num:9, desc:'Capstone overview drawn from all methods', aiEnabled:false, isSynthetic:true },
+  { id:'analytical', name:'Analytical', num:1, desc:'Grammar, syntax & structural observation', aiEnabled:true, aiLabel:'Analyze Grammar & Structure',
+    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar providing objective data for the Analytical Method of Bible study. Your role is to provide raw scholarly data only — never draw theological conclusions, never state what the text means, never apply it. The student draws all conclusions.
+
+Passage: ${p}
+Text: "${t}"
+
+Provide the following data:
+
+1. **Grammatical Features** — list verb tenses, moods, voices, and key grammatical constructions present. State what they are, not what they mean.
+2. **Key Term Lexical Data** — for significant words list: the original Hebrew or Greek term, its transliteration, its lexical definition, and its range of meaning. Do not interpret which meaning applies.
+3. **Sentence & Clause Structure** — diagram or describe how clauses relate (main clause, subordinate clauses, participial phrases, etc.)
+4. **Structural Observations** — identify structural markers: conjunctions, repeated words, contrasts, lists, questions, commands. List them without interpretation.
+5. **Syntactical Observations** — note any unusual word order, emphatic constructions, or grammatical features that stand out.
+
+CRITICAL RULES: Do not state what the text means. Do not apply the text. Do not draw theological conclusions. List data only. All interpretation belongs to the student.` },
+
+  { id:'critical', name:'Critical', num:2, desc:'Interpretive problems, manuscripts & textual issues', aiEnabled:true, aiLabel:'Identify Critical Issues',
+    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar providing objective data for the Critical Method of Bible study. Your role is to surface the interpretive and textual problems this passage poses — not to resolve them. The student draws all conclusions.
+
+Passage: ${p}
+Text: "${t}"
+
+Provide the following data:
+
+1. **Key Interpretive Problems** — list the main challenges scholars face when interpreting this passage. State the problem and the range of scholarly positions. Do not state which position is correct.
+2. **Textual Variants** — list any significant manuscript variants for this passage. State what the variant is and which manuscript traditions support each reading. Do not state which reading is superior.
+3. **Manuscript Reliability Data** — note the manuscript evidence base for this book (number of manuscripts, age of earliest copies, textual consistency percentage if known).
+4. **Genre & Literary Form** — identify the literary genre and form of this passage (epistle, narrative, prophecy, poetry, apocalyptic, etc.) and note how scholars classify it.
+5. **Authorship & Dating Debates** — list any scholarly debates about authorship, date, or audience. Present the range of positions without endorsing one.
+
+CRITICAL RULES: Present all positions neutrally. Do not resolve interpretive problems. Do not state which manuscript tradition is superior. Do not draw theological conclusions. All conclusions belong to the student.` },
+
+  { id:'historical', name:'Historical', num:3, desc:'Background, culture & historical setting', aiEnabled:true, aiLabel:'Research Historical Context',
+    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar providing objective data for the Historical Method of Bible study. Your role is to provide historical and cultural background data only — never state what that background means for interpretation. The student draws all conclusions.
+
+Passage: ${p}
+Text: "${t}"
+
+Provide the following data:
+
+1. **Author & Audience** — who wrote this, to whom, and approximately when. State known facts and note what is debated.
+2. **Historical Setting** — describe the political, social, and religious situation at the time of writing. List conditions and events; do not state how they affect the meaning.
+3. **Cultural Practices & Customs** — identify any customs, social norms, religious practices, or cultural references in the passage. Define them; do not interpret their significance.
+4. **Geographical Data** — identify any places mentioned. Provide factual data about those locations (region, significance in the ancient world, distance, etc.)
+5. **Historical Events Referenced** — identify any historical events or persons referenced. Provide factual data about them.
+
+CRITICAL RULES: Provide factual historical data only. Do not state what the historical background means for the passage. Do not draw theological conclusions. All application of historical data belongs to the student.` },
+
+  { id:'topical', name:'Topical', num:4, desc:'Word studies & themes traced across Scripture', aiEnabled:true, aiLabel:'Trace Topics & Cross-References',
+    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar providing objective data for the Topical Method of Bible study. Your role is to trace words, topics, and themes across Scripture — providing reference data only, never summarizing what the pattern means. The student draws all conclusions.
+
+Passage: ${p}
+Text: "${t}"
+
+Provide the following data:
+
+1. **Key Topics & Words Identified** — list the primary topics, themes, and significant words in this passage that are worth tracing.
+2. **Concordance Data — OT Occurrences** — for the 2–3 most significant terms or topics, list the key Old Testament passages where they appear. Reference only — do not summarize or interpret.
+3. **Concordance Data — NT Occurrences** — list the key New Testament passages where the same terms or topics appear. Reference only.
+4. **Usage Summary** — for each key term, list the various ways it is used across the passages identified (e.g., used as noun/verb, literal/figurative, in different contexts). List usages without interpretation.
+5. **Related Topics** — identify related topics or words that connect to the primary theme. List them with key references.
+
+CRITICAL RULES: Provide reference lists and usage data only. Do not summarize what the pattern means. Do not state what the concordance data reveals theologically. All synthesis and conclusions belong to the student.` },
+
+  { id:'theological', name:'Theological', num:5, desc:'Doctrinal categories — AI-Free Zone', aiEnabled:false,
+    guidedPrompts:[
+      "BIBLIOLOGY — What does this passage reveal about the nature, authority, or reliability of Scripture itself?",
+      "THEOLOGY PROPER — What does this passage reveal about God the Father — His attributes, character, actions, or will?",
+      "CHRISTOLOGY — What does this passage reveal about Jesus Christ — His person, nature, work, or offices?",
+      "PNEUMATOLOGY — What does this passage reveal about the Holy Spirit — His person, presence, or work?",
+      "ANTHROPOLOGY — What does this passage reveal about humanity — our nature, dignity, condition, or purpose?",
+      "HAMARTIOLOGY — What does this passage reveal about sin — its nature, consequences, or scope?",
+      "SOTERIOLOGY — What does this passage reveal about salvation — its basis, nature, or application?",
+      "ECCLESIOLOGY — What does this passage reveal about the Church — its nature, function, or responsibilities?",
+      "ESCHATOLOGY — What does this passage reveal about last things — future events, judgment, or eternal life?",
+      "ANGELOLOGY / DEMONOLOGY — What does this passage reveal about angels, spiritual beings, or spiritual warfare?",
+      "EPISTEMOLOGY — What does this passage reveal about knowledge, truth, or how we come to know God?",
+      "COSMOLOGY — What does this passage reveal about creation, the physical world, or God's relationship to it?",
+      "CROSS-REFERENCE CHECK — Using a concordance, what other passages address the same theological topic? List the references.",
+      "SUMMARY — In one sentence, what is the primary theological assumption underlying this passage?"
+    ] },
+
+  { id:'comparative', name:'Comparative', num:6, desc:'Translation comparisons & textual parallels', aiEnabled:true, aiLabel:'Compare Translations & Parallels',
+    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar providing objective data for the Comparative Method of Bible study. Your role is to list translation differences and parallels as data — never state which translation is best or what differences mean for interpretation. The student draws all conclusions.
+
+Passage: ${p}
+Text: "${t}"
+
+Provide the following data:
+
+1. **Translation Comparison** — show how this passage is rendered in: NASB (word-for-word), ESV (word-for-word), KJV (word-for-word), NIV (middle), NLT (thought-for-thought). For each significant difference, list exactly what each translation says. Do not state which rendering is more accurate.
+2. **Underlying Original Language Terms** — for words where translations differ significantly, list the Hebrew or Greek term and its lexical range. Do not state which translation best captures it.
+3. **Parallel Passages** — list direct scriptural parallels to this passage (same event, same teaching, same quote). Reference only — do not interpret the relationship.
+4. **Hapax Legomena** — identify any words used only once or rarely in Scripture. State the word, where else it appears (if anywhere), and what lexicons say about its meaning range.
+5. **Ancient Near Eastern or Greco-Roman Parallels** — note any relevant parallels in ancient literature or culture. State what the parallel is; do not state what it proves.
+
+CRITICAL RULES: List translation differences and parallels as raw data only. Do not state which translation is superior. Do not state what differences mean for doctrine or interpretation. All conclusions belong to the student.` },
+
+  { id:'rhetorical', name:'Rhetorical', num:7, desc:'Literary devices & figures of speech', aiEnabled:true, aiLabel:'Identify Literary Devices',
+    aiPrompt:(p,t)=>`You are a seminary-level biblical scholar providing objective data for the Rhetorical Method of Bible study. Your role is to identify and define literary devices present in the passage — never state what they communicate or what the author intended. The student draws all conclusions.
+
+Passage: ${p}
+Text: "${t}"
+
+Scan this passage for the following devices and report only those present:
+
+**Figures of Speech:** Metaphor, Simile, Hyperbole, Allusion, Irony, Personification, Oxymoron, Euphemism, Apostrophe, Allegory, Metonymy, Synecdoche, Analogy, Idiom, Litotes, Type
+
+**Structural & Repetitive Devices:** Anaphora, Parallelism, Antithesis, Chiasmus, Epistrophe, Asyndeton, Polysyndeton, Inclusio
+
+**Appeals:** Ethos (credibility appeal), Pathos (emotional appeal), Logos (logical appeal)
+
+**Other:** Rhetorical Question, Juxtaposition
+
+For each device found, provide:
+- **Device name**
+- **The exact text where it occurs** (quote the relevant words)
+- **Definition of the device** (one sentence)
+
+Do not identify devices that are not clearly present. Do not state what the device communicates or what it reveals about the author's intent. Do not draw conclusions from the pattern of devices found. All interpretation belongs to the student.` },
+
+  { id:'devotional', name:'Devotional', num:8, desc:'Personal reflection & prayer — AI-Free Zone', aiEnabled:false,
+    guidedPrompts:[
+      "THEOLOGICAL — What does this passage teach me about God that I can affirm as true right now?",
+      "PERSONAL DEVOTION — What is God personally revealing to me through this passage in my current season of life?",
+      "EXPOSITION — If I were to teach or preach this passage, what is the one central truth I would want others to understand?",
+      "ILLUSTRATION — What life experience, story, or image does this passage bring to mind that helps make its truth concrete?",
+      "RESPONSE — What specific change in belief, attitude, or action is this passage calling me to make?",
+      "PRAYER — Write a personal prayer responding to what God has shown you through this passage."
+    ] },
+
+  { id:'synthetic', name:'Synthetic', num:9, desc:'Capstone — synthesize all methods into a whole', aiEnabled:false, isSynthetic:true },
 ];
+
 
 const DISCIPLINES = ['Hear','Read','Study','Memorize','Meditate','Apply'];
 const BIBLE_ORDER = ['Genesis','Exodus','Leviticus','Numbers','Deuteronomy','Joshua','Judges','Ruth','1 Samuel','2 Samuel','1 Kings','2 Kings','1 Chronicles','2 Chronicles','Ezra','Nehemiah','Esther','Job','Psalms','Proverbs','Ecclesiastes','Song of Solomon','Isaiah','Jeremiah','Lamentations','Ezekiel','Daniel','Hosea','Joel','Amos','Obadiah','Jonah','Micah','Nahum','Habakkuk','Zephaniah','Haggai','Zechariah','Malachi','Matthew','Mark','Luke','John','Acts','Romans','1 Corinthians','2 Corinthians','Galatians','Ephesians','Philippians','Colossians','1 Thessalonians','2 Thessalonians','1 Timothy','2 Timothy','Titus','Philemon','Hebrews','James','1 Peter','2 Peter','1 John','2 John','3 John','Jude','Revelation'];
@@ -434,7 +550,7 @@ let state = {
 };
 
 // ── Storage ──────────────────────────────────────────────────────────────────
-function loadStudies(){try{const v=localStorage.getItem(STORAGE_KEY);if(v){state.studies=JSON.parse(v);state.studies.forEach(s=>{if(s.title===undefined)s.title='';});}}catch(e){}}
+function loadStudies(){try{const v=localStorage.getItem(STORAGE_KEY);if(v){state.studies=JSON.parse(v);state.studies.forEach(s=>{if(s.title===undefined)s.title='';if(!s.theologicalChart)s.theologicalChart={};});}}catch(e){}}
 function saveStudies(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state.studies));}catch(e){}}
 function getStudy(id){return state.studies.find(s=>s.id===(id||state.currentStudyId));}
 function currentStudy(){return getStudy(state.currentStudyId);}
@@ -536,7 +652,8 @@ function newStudyObj(passage,translation,text,textTranslation,title){
   return{id:Date.now().toString(),passage:passage.trim(),title:title||'',translation,text,textTranslation:textTranslation||translation,
     createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),
     methods:Object.fromEntries(METHODS.map(m=>[m.id,{notes:'',aiResponse:'',completed:false}])),
-    exegesis:Object.fromEntries(EXEG_STAGES.map(s=>[s.id,{notes:'',completed:false}]))};
+    exegesis:Object.fromEntries(EXEG_STAGES.map(s=>[s.id,{notes:'',completed:false}])),
+    theologicalChart:{}};
 }
 function makeSVGRing(pct,size,stroke,color){
   const sz=size||72,st=stroke||5,cl=color||C.gold,r=(sz-st*2)/2,circ=2*Math.PI*r,filled=(pct/100)*circ;
@@ -618,6 +735,9 @@ async function callAI(methodId){
 function updateStudy(id,updater){state.studies=state.studies.map(s=>{if(s.id!==id)return s;return{...updater(s),updatedAt:new Date().toISOString()};});saveStudies();}
 function updateMethodField(methodId,field,value){const id=state.currentStudyId;updateStudy(id,s=>({...s,methods:{...s.methods,[methodId]:{...s.methods[methodId],[field]:value}}}));render();}
 function updateExegField(stageId,field,value){const id=state.currentStudyId;updateStudy(id,s=>({...s,exegesis:{...s.exegesis,[stageId]:{...s.exegesis[stageId],[field]:value}}}));render();}
+function updateTheologicalChart(rowId,colId,value){const id=state.currentStudyId;updateStudy(id,s=>{const chart={...s.theologicalChart};if(!chart[rowId])chart[rowId]={};chart[rowId][colId]=value;return{...s,theologicalChart:chart};});}
+function addTheologicalRow(){const id=state.currentStudyId;const study=currentStudy();if(!study)return;const rowId='row_'+Date.now();updateStudy(id,s=>({...s,theologicalChart:{...s.theologicalChart,[rowId]:{_ref:''}}}));render();}
+function removeTheologicalRow(rowId){const id=state.currentStudyId;updateStudy(id,s=>{const chart={...s.theologicalChart};delete chart[rowId];return{...s,theologicalChart:chart};});render();}
 
 // ── Actions ──────────────────────────────────────────────────────────────────
 async function handleCreate(){
@@ -963,12 +1083,42 @@ function renderStudy(){
 
   // Guided prompts
   let guidedHTML='';
+  let theolChartHTML='';
   if(method&&!method.aiEnabled&&method.guidedPrompts){
     const isDev=state.activeMethod==='devotional';
     guidedHTML=`<div class="card" style="margin-bottom:16px;border-top:2px solid ${isDev?'#7c6aaa':'var(--golddim)'};">
       <div class="guided-header ${isDev?'devotional':'theological'}">${isDev?'Guided Reflection Prompts — AI-Free Zone':'Guided Study Prompts — AI-Free Zone'}</div>
       ${method.guidedPrompts.map((p,i)=>`<div class="prompt-item"><span class="prompt-num">${i+1}.</span><span class="prompt-text">${p}</span></div>`).join('')}
     </div>`;
+    if(state.activeMethod==='theological'){
+      const study=currentStudy();
+      const chart=study&&study.theologicalChart||{};
+      const TCOLS=['God','Bible','Christ','Salvation','Angels','Humanity','Sin','Spirit','Church','Eschatology'];
+      const rows=Object.keys(chart);
+      const colW=80;
+      const tableRows=rows.map(rowId=>{
+        const row=chart[rowId]||{};
+        const refVal=escHtml(row._ref||'');
+        const cells=TCOLS.map(col=>{
+          const val=escHtml(row[col]||'');
+          return`<td style="padding:3px 4px;border:1px solid var(--border);min-width:${colW}px;"><input type="text" value="${val}" oninput="updateTheologicalChart('${rowId}','${col}',this.value)" style="background:transparent;border:none;color:var(--txt1);font-family:'Crimson Pro',serif;font-size:12px;padding:2px 4px;width:100%;min-width:${colW-8}px;outline:none;"></td>`;
+        }).join('');
+        return`<tr><td style="padding:3px 4px;border:1px solid var(--border);white-space:nowrap;"><input type="text" value="${refVal}" placeholder="Verse…" oninput="updateTheologicalChart('${rowId}','_ref',this.value)" style="background:transparent;border:none;color:var(--gold);font-family:'EB Garamond',serif;font-size:13px;padding:2px 4px;width:110px;outline:none;"><button onclick="removeTheologicalRow('${rowId}')" style="background:none;border:none;color:var(--txt4);cursor:pointer;font-size:11px;padding:0 4px;" title="Remove row">✕</button></td>${cells}</tr>`;
+      }).join('');
+      theolChartHTML=`<div class="card" style="margin-bottom:16px;overflow-x:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div><div class="notes-label">Biblical Theology Chart <span class="conclbadge">AI-Free Zone</span></div><div class="notes-sub">Track theological categories verse by verse</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="addTheologicalRow()">+ Add Verse</button>
+        </div>
+        ${rows.length===0?`<div style="text-align:center;padding:20px 0;color:var(--txt4);font-style:italic;font-size:13px;">Tap "+ Add Verse" to begin tracking theological categories</div>`:`<div style="overflow-x:auto;"><table style="border-collapse:collapse;font-size:12px;width:100%;">
+          <thead><tr style="background:var(--bg3);">
+            <th style="padding:6px 8px;border:1px solid var(--border);text-align:left;color:var(--txt3);font-size:10px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;min-width:120px;">Text / Verse</th>
+            ${TCOLS.map(c=>`<th style="padding:6px 8px;border:1px solid var(--border);text-align:left;color:var(--txt3);font-size:10px;text-transform:uppercase;letter-spacing:.08em;min-width:${colW}px;">${c}</th>`).join('')}
+          </tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table></div>`}
+      </div>`;
+    }
   }
 
   // Synthetic assembled view
@@ -1040,7 +1190,7 @@ function renderStudy(){
             </div>
             ${completeBtn}
           </div>
-          ${passageCard}${aiHTML}${guidedHTML}${syntheticHTML}${notesHTML}
+          ${passageCard}${aiHTML}${guidedHTML}${theolChartHTML}${syntheticHTML}${notesHTML}
         </div>
       </div>
     </div>
@@ -1199,7 +1349,35 @@ function renderMemorize(){
 // ── Main render ──────────────────────────────────────────────────────────────
 // ── CHANGELOG ────────────────────────────────────────────────
 var CHANGELOG=[
-  {version:'1.6',date:'March 22, 2026',label:'Latest',
+  {version:'2.0',date:'March 24, 2026',label:'Latest',
+    items:[
+      'All 6 AI method prompts rewritten from seminary curriculum source material — data-only discipline strictly enforced, no conclusions drawn by AI',
+      'Rhetorical method now scans for all 25+ named literary devices (Metaphor, Chiasmus, Anaphora, Ethos, Pathos, Logos, etc.)',
+      'Critical method reframed: surfaces interpretive problems and range of scholarly positions rather than resolving them',
+      'Comparative method lists exact translation renderings side-by-side (NASB/ESV/KJV/NIV/NLT) without stating which is superior',
+      'Theological guided prompts rewritten around 14 doctrinal categories (Bibliology, Christology, Pneumatology, Hamartiology, Soteriology, etc.)',
+      'Devotional guided prompts rewritten around Homiletics framework (Theological, Personal Devotion, Exposition, Illustration, Response, Prayer)',
+      'Biblical Theology Chart added to Theological method — fillable grid with verse rows and 10 theological category columns; saves with study',
+      'Method descriptions updated to match source curriculum language'
+    ]},
+  {version:'1.9',date:'March 24, 2026',label:'',
+    items:[
+      'AI study tools switched from Gemini to Groq (llama-3.3-70b-versatile) — free tier: 30 req/min, 14,400 req/day',
+      'Setup overlay and AI Key button updated for Groq — get a free key at console.groq.com',
+      'Import (JSON restore) now overwrites existing studies by ID — backup is always source of truth; toast shows "X added, Y updated"'
+    ]},
+  {version:'1.8',date:'March 24, 2026',label:'',
+    items:[
+      'Scripture font size A+/A− toggle added to passage card — steps 14–24px, persisted to settings',
+      'Markdown rendering in AI responses — headers, bold, italic, lists, dividers all render properly',
+      'Improved error messages for expired/invalid/rate-limited API keys — actionable instructions shown'
+    ]},
+  {version:'1.7',date:'March 24, 2026',label:'',
+    items:[
+      'AI model switched from gemini-2.5-flash (preview, tight limits) to gemini-1.5-flash (15 req/min free tier)',
+      'AI response max tokens reduced from 4,096 to 2,048 — no quality impact, significant daily quota savings'
+    ]},
+  {version:'1.6',date:'March 22, 2026',label:'',
     items:[
       'Memorize — Fill Gaps now uses typeable inline inputs; Check Answers locks and highlights correct (green) / incorrect (red); Try Again resets',
       'Memorize — Recite auto-promotes passage to Learned at 100% accuracy; tap status pill to toggle Learned ↔ Learning',
