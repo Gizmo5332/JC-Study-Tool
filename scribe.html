@@ -1361,23 +1361,25 @@ function importDataFromFile(input){
       var importedStudies=Array.isArray(data)?data:(data.studies||[]);
       var importedVerses=Array.isArray(data)?[]:(data.memVerses||[]);
       var importedTags=Array.isArray(data)?[]:(data.tags||[]);
-      var added=0,skipped=0;
+      var added=0,updated=0;
       importedStudies.forEach(function(s){
         if(!s.id)return;
         if(s.title===undefined)s.title='';
         var exists=state.studies.findIndex(function(x){return x.id===s.id;});
-        if(exists===-1){state.studies.push(s);added++;}else{skipped++;}
+        if(exists===-1){state.studies.push(s);added++;}else{state.studies[exists]=s;updated++;}
       });
       importedVerses.forEach(function(v){
         if(!v.id)return;
-        if(!state.memVerses.find(function(x){return x.id===v.id;}))state.memVerses.push(v);
+        var exists=state.memVerses.findIndex(function(x){return x.id===v.id;});
+        if(exists===-1)state.memVerses.push(v);else state.memVerses[exists]=v;
       });
       importedTags.forEach(function(t){
         if(!t.id)return;
-        if(!state.tags.find(function(x){return x.id===t.id;}))state.tags.push(t);
+        var exists=state.tags.findIndex(function(x){return x.id===t.id;});
+        if(exists===-1)state.tags.push(t);else state.tags[exists]=t;
       });
       saveStudies();saveMemVerses();saveTags();render();
-      toast(added+' studies imported'+(skipped?' ('+skipped+' skipped)':''));
+      toast(added+' added, '+updated+' updated');
     }catch(err){toast('Restore failed: invalid file');}
     input.value='';
   };
