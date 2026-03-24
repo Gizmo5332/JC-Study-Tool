@@ -1815,6 +1815,7 @@ loadTags();
 loadSettings();
 render();
 checkApiSetup();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(function(){});}
 </script>
 <!-- API Key Setup Overlay -->
 <div class="overlay" id="api-setup-overlay">
