@@ -1278,7 +1278,7 @@ function duplicateStudy(id){
   copy.updatedAt=new Date().toISOString();
   studies.unshift(copy);persist();renderLib();toast('Study duplicated');
 }
-function syncFromInputs(){if(!cur)return;cur.date=document.getElementById('f-date').value;cur.teacher=document.getElementById('f-teacher').value;cur.title=document.getElementById('f-title').value;cur.fieldNotes=document.getElementById('f-notes').value;if(cur.deep){cur.deep.conclusions=document.getElementById('d-conclusions').value;cur.deep.outline=document.getElementById('d-outline')?document.getElementById('d-outline').value:'';}var ar=activeRef();if(ar){ar.reference=document.getElementById('f-ref').value;ar.translation=document.getElementById('f-trans').value;if(ar.deep)ar.deep.studyScope=studyScope;}}
+function syncFromInputs(){if(!cur)return;cur.date=document.getElementById('f-date').value;cur.teacher=document.getElementById('f-teacher').value;cur.title=document.getElementById('f-title').value;cur.fieldNotes=document.getElementById('f-notes').value;if(cur.deep){cur.deep.conclusions=document.getElementById('d-conclusions').value;cur.deep.outline=document.getElementById('d-outline')?document.getElementById('d-outline').value:'';}var ar=activeRef();if(!ar)return;var fieldOn=document.getElementById('scr-field')&&document.getElementById('scr-field').classList.contains('on');if(fieldOn){ar.reference=document.getElementById('f-ref').value;ar.translation=document.getElementById('f-trans').value;}if(ar.deep)ar.deep.studyScope=studyScope;}
 
 function populateField(){
   if(!cur)return;
