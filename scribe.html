@@ -427,10 +427,10 @@ let state = {
   memTab:'practice', memMode:'read', memSid:null, memTyped:'', memChecked:false, memReturnTo:'dashboard',
   memGapInputs:{}, memGapChecked:false,
   memVerses:[], showAddVerse:false, newVerseRef:'', newVerseTranslation:'esv', addingVerse:false,
-  showNewStudy:false, confirmDeleteId:null, geminiKey:'',
+  showNewStudy:false, confirmDeleteId:null,
   newPassage:'', newTitle:'', newTranslation:'esv', creating:false,
   searchQuery:'', libSort:'date', activeTagFilter:null,
-  showTagManager:false, tags:[], aiLoading:{}, scrFontSize:18,
+  showTagManager:false, tags:[], aiLoading:{}, scrFontSize:18, groqKey:'',
 };
 
 // ── Storage ──────────────────────────────────────────────────────────────────
@@ -448,20 +448,20 @@ function copyAIResponse(methodId){
   if(!txt)return;
   navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>toast('Copied')).catch(()=>toast('Copy failed'));
 }
-function geminiErrMsg(msg){
+function groqErrMsg(msg){
   if(!msg)return'Error fetching analysis. Please try again.';
-  if(msg.toLowerCase().includes('quota')||msg.toLowerCase().includes('rate')||msg.toLowerCase().includes('exhausted'))
-    return'Rate limit reached — the free tier allows ~15 requests/min. Please wait 1–2 minutes and try again.';
-  if(msg.toLowerCase().includes('expired')||msg.toLowerCase().includes('api key')||msg.toLowerCase().includes('invalid')||msg.includes('403'))
-    return'API key invalid or expired — generate a new key at aistudio.google.com then tap "AI Setup" (top of page) to update it.';
+  if(msg.toLowerCase().includes('rate')||msg.toLowerCase().includes('quota')||msg.toLowerCase().includes('429'))
+    return'Rate limit reached — the free tier allows 30 requests/min. Please wait 1–2 minutes and try again.';
+  if(msg.toLowerCase().includes('expired')||msg.toLowerCase().includes('invalid')||msg.toLowerCase().includes('api key')||msg.includes('401'))
+    return'Groq API key invalid or expired — tap "AI Key" above to update it, or get a new key at console.groq.com.';
   return'Error: '+msg;
 }
-function loadSettings(){try{const v=localStorage.getItem(SETT_KEY);if(v){const s=JSON.parse(v);state.geminiKey=s.geminiKey||'';state.scrFontSize=s.scrFontSize||18;}}catch(e){}}
-function saveSettings(){try{localStorage.setItem(SETT_KEY,JSON.stringify({geminiKey:state.geminiKey,scrFontSize:state.scrFontSize}));}catch(e){}}
-function saveGeminiKey(){const inp=document.getElementById('gemini-key-input');if(!inp)return;const k=inp.value.trim();if(!k){toast('Please enter your API key');return;}state.geminiKey=k;saveSettings();document.getElementById('api-setup-overlay').classList.remove('on');toast('API key saved — AI tools ready');}
+function loadSettings(){try{const v=localStorage.getItem(SETT_KEY);if(v){const s=JSON.parse(v);state.groqKey=s.groqKey||s.geminiKey||'';state.scrFontSize=s.scrFontSize||18;}}catch(e){}}
+function saveSettings(){try{localStorage.setItem(SETT_KEY,JSON.stringify({groqKey:state.groqKey,scrFontSize:state.scrFontSize}));}catch(e){}}
+function saveGeminiKey(){const inp=document.getElementById('gemini-key-input');if(!inp)return;const k=inp.value.trim();if(!k){toast('Please enter your API key');return;}state.groqKey=k;saveSettings();document.getElementById('api-setup-overlay').classList.remove('on');toast('API key saved — AI tools ready');}
 function skipApiSetup(){document.getElementById('api-setup-overlay').classList.remove('on');}
-function openApiSetup(){const ov=document.getElementById('api-setup-overlay');ov.classList.add('on');const inp=document.getElementById('gemini-key-input');if(inp){inp.value=state.geminiKey||'';setTimeout(()=>inp.focus(),200);}}
-function checkApiSetup(){if(!state.geminiKey)setTimeout(()=>document.getElementById('api-setup-overlay').classList.add('on'),600);}
+function openApiSetup(){const ov=document.getElementById('api-setup-overlay');ov.classList.add('on');const inp=document.getElementById('gemini-key-input');if(inp){inp.value=state.groqKey||'';setTimeout(()=>inp.focus(),200);}}
+function checkApiSetup(){if(!state.groqKey)setTimeout(()=>document.getElementById('api-setup-overlay').classList.add('on'),600);}
 // saveApiKeyFromSettings removed
 function tagById(id){return state.tags.find(t=>t.id===id)||null;}
 const TAG_PALETTE=['#c9a84c','#5a9b70','#6a8fc8','#b06ab3','#c05050','#e89840','#7a9e7e','#8a7ab0'];
@@ -602,15 +602,15 @@ async function fetchPassageText(passageRef,tid){
 async function callAI(methodId){
   const study=currentStudy();if(!study)return;
   const method=METHODS.find(m=>m.id===methodId);if(!method||!method.aiEnabled)return;
-  if(!state.geminiKey){openApiSetup();return;}
+  if(!state.groqKey){openApiSetup();return;}
   state.aiLoading[methodId]=true;render();
   try{
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+state.geminiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:method.aiPrompt(study.passage,study.text)}]}],generationConfig:{maxOutputTokens:4096,temperature:0.2}})});
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+state.groqKey},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:method.aiPrompt(study.passage,study.text)}],max_tokens:2048,temperature:0.2})});
     const d=await r.json();
-    if(!r.ok){updateMethodField(methodId,'aiResponse',geminiErrMsg(d.error&&d.error.message?d.error.message:'HTTP '+r.status));state.aiLoading[methodId]=false;render();return;}
-    const txt=d.candidates?.[0]?.content?.parts?.[0]?.text||'No response.';
+    if(!r.ok){updateMethodField(methodId,'aiResponse',groqErrMsg(d.error&&d.error.message?d.error.message:'HTTP '+r.status));state.aiLoading[methodId]=false;render();return;}
+    const txt=d.choices?.[0]?.message?.content||'No response.';
     updateMethodField(methodId,'aiResponse',txt);
-  }catch(e){updateMethodField(methodId,'aiResponse',geminiErrMsg(e.message));}
+  }catch(e){updateMethodField(methodId,'aiResponse',groqErrMsg(e.message));}
   state.aiLoading[methodId]=false;render();
 }
 
@@ -777,7 +777,7 @@ function renderDashboard(){
         <button class="btn btn-sec btn-sm" onclick="importDataPrompt()" title="Restore from JSON backup">Restore</button>
         <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" onchange="importDataFromFile(this)">
         <button class="btn btn-sec btn-sm" onclick="openMemorize()">Memorize</button>
-        <button class="btn btn-ghost btn-sm" onclick="openApiSetup()" title="${state.geminiKey?'AI key set ✓':'AI key not set — click to add'}" style="${state.geminiKey?'color:var(--sagebright);border-color:var(--sagebright)40;':'color:var(--crimsonbright);border-color:var(--crimsonbright)40;'}">${state.geminiKey?'AI ✓':'AI Key'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="openApiSetup()" title="${state.groqKey?'AI key set ✓':'AI key not set — click to add'}" style="${state.groqKey?'color:var(--sagebright);border-color:var(--sagebright)40;':'color:var(--crimsonbright);border-color:var(--crimsonbright)40;'}">${state.groqKey?'AI ✓':'AI Key'}</button>
         <button class="btn btn-primary btn-sm" onclick="state.showNewStudy=true;render()">+ Study</button>
       </div>
     </div>
@@ -1488,13 +1488,13 @@ checkApiSetup();
 <div class="overlay" id="api-setup-overlay">
   <div class="modal">
     <div class="modal-title">AI Setup Required</div>
-    <p style="font-size:14px;color:var(--txt2);margin-bottom:16px;line-height:1.6;">Arché · Scribe uses Google Gemini for AI-powered scholarly analysis. To enable AI tools, enter your free Gemini API key below.</p>
+    <p style="font-size:14px;color:var(--txt2);margin-bottom:16px;line-height:1.6;">Arché · Scribe uses Groq (Llama 3.3 70B) for AI-powered scholarly analysis — free tier with 14,400 requests/day. Enter your free Groq API key below.</p>
     <div style="background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--txt3);line-height:1.6;">
-      Get a free API key at <a href="https://aistudio.google.com" target="_blank" style="color:var(--gold);">aistudio.google.com</a> → Get API key → Create API key. Each user has their own independent key.
+      Get a free API key at <a href="https://console.groq.com" target="_blank" style="color:var(--gold);">console.groq.com</a> → API Keys → Create API Key. Each user has their own independent key.
     </div>
     <div class="ig">
-      <label>Google Gemini API Key</label>
-      <input id="gemini-key-input" type="password" placeholder="AIza..." autocomplete="off" spellcheck="false">
+      <label>Groq API Key</label>
+      <input id="gemini-key-input" type="password" placeholder="gsk_..." autocomplete="off" spellcheck="false">
     </div>
     <div style="display:flex;gap:10px;margin-top:4px;">
       <button class="btn btn-primary" style="flex:1" onclick="saveGeminiKey()">Save Key</button>
