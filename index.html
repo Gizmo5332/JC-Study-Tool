@@ -489,6 +489,7 @@ select option{background:var(--bg2);color:var(--txt1)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="19" height="19"><path d="m15 18-6-6 6-6"/></svg>Field
     </button>
     <div class="topbar-sub">Deep Study</div>
+    <button class="btn btn-sm btn-ghost" onclick="openResourcesModal()" style="margin-right:6px;">Resources</button>
     <button class="btn btn-sm btn-sec" onclick="saveStudy()">Save</button>
   </div>
   <div class="scroll" id="deep-scroll">
@@ -1440,6 +1441,17 @@ function toggleOutline(){
   if(body)body.classList.toggle('open',_outlineOpen);
   if(chev)chev.style.transform=_outlineOpen?'rotate(180deg)':'';
 }
+function openResourcesModal(){
+  document.getElementById('resources-overlay').classList.add('on');
+}
+function toggleResSection(sectionId,chevId){
+  var s=document.getElementById(sectionId);
+  var c=document.getElementById(chevId);
+  if(!s)return;
+  var isOpen=s.style.display!=='none';
+  s.style.display=isOpen?'none':'block';
+  if(c)c.style.transform=isOpen?'':'rotate(180deg)';
+}
 function insertOutlinePrefix(prefix){
   var ta=document.getElementById('d-outline');if(!ta)return;
   var start=ta.selectionStart,end=ta.selectionEnd,val=ta.value;
@@ -2215,5 +2227,70 @@ function clToggle(i){
 
 if('serviceWorker' in navigator){var sw="const CACHE='arche-v2';const SHELL=['./'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;var u=e.request.url;if(u.includes('googleapis.com')||u.includes('api.esv.org')||u.includes('bible-api.com')||u.includes('fonts.googleapis.com')||u.includes('cdnjs'))return;e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request)));});";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(function(){});}
 </script>
+<!-- RESOURCES MODAL -->
+<div class="overlay" id="resources-overlay" onclick="if(event.target===this)closeOverlay('resources-overlay')">
+  <div class="modal" style="max-width:600px;max-height:82vh;overflow-y:auto;" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div style="font-family:'EB Garamond',serif;font-size:22px;color:var(--gold);">Study Resources</div>
+      <button onclick="closeOverlay('resources-overlay')" style="background:none;border:none;color:var(--txt3);font-size:20px;cursor:pointer;padding:4px 8px;">&#10005;</button>
+    </div>
+
+    <!-- Section 1: How to Study the Bible -->
+    <div style="margin-bottom:6px;">
+      <button onclick="toggleResSection('res-s1','res-c1')" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;cursor:pointer;font-family:'Crimson Pro',serif;">
+        <span style="font-family:'EB Garamond',serif;font-size:17px;color:var(--txt1);">How to Study the Bible</span>
+        <svg id="res-c1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14" style="color:var(--txt3);transition:transform .2s;flex-shrink:0;"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div id="res-s1" style="display:none;background:var(--bg1);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);padding:16px 18px;">
+        <div class="seclabel" style="margin-bottom:10px;">Foundational Scriptures</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+          ${['Joshua 1:8','Ezra 7:10','Psalm 119:9','Acts 17:11','2 Timothy 3:16-17','James 3:1'].map(function(r){return'<div style="font-family:\'EB Garamond\',serif;font-size:15px;color:var(--gold);">'+r+'</div>';}).join('')}
+        </div>
+        <div class="seclabel" style="margin-bottom:10px;">What Method Is — and Isn't</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+          <div style="font-size:14px;color:var(--txt2);line-height:1.65;padding-left:12px;border-left:2px solid var(--golddim);">Method is not a course but a lifetime of study — you must practice it, not just read about it.</div>
+          <div style="font-size:14px;color:var(--txt2);line-height:1.65;padding-left:12px;border-left:2px solid var(--golddim);">Method is not a formula but a process — steps used over time become standard practice.</div>
+          <div style="font-size:14px;color:var(--txt2);line-height:1.65;padding-left:12px;border-left:2px solid var(--golddim);">Method is not a shortcut but an aid to discovery — genuine understanding takes work.</div>
+          <div style="font-size:14px;color:var(--txt2);line-height:1.65;padding-left:12px;border-left:2px solid var(--golddim);">Method is not one-size-fits-all — every tool must be made to fit you, not someone else.</div>
+        </div>
+        <div class="seclabel" style="margin-bottom:10px;">The Historical-Grammatical Approach</div>
+        <div style="font-size:14px;color:var(--txt2);line-height:1.7;margin-bottom:16px;">This method seeks to determine the meaning of the biblical text as originally understood by its writers — taking into account the historical context, grammatical meaning of the language, and cultural and literary setting in which it was written. The goal is to find the intended meaning of the text as it was originally communicated.</div>
+        <div class="seclabel" style="margin-bottom:10px;">The 8 Study Methods</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          ${['Analytical','Critical','Historical','Topical','Theological','Comparative','Rhetorical','Devotional'].map(function(m){return'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;font-size:13px;color:var(--txt2);">'+m+'</div>';}).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: How We Got the Bible -->
+    <div style="margin-bottom:6px;">
+      <button onclick="toggleResSection('res-s2','res-c2')" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;cursor:pointer;font-family:'Crimson Pro',serif;">
+        <span style="font-family:'EB Garamond',serif;font-size:17px;color:var(--txt1);">How We Got the Bible</span>
+        <svg id="res-c2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14" style="color:var(--txt3);transition:transform .2s;flex-shrink:0;"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div id="res-s2" style="display:none;background:var(--bg1);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);padding:16px 18px;">
+        <div class="seclabel" style="margin-bottom:10px;">Old Testament Sources</div>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px;">
+          ${[['Proto-Hebrew Text','The ancient and developing Hebrew text — the foundation'],['Septuagint (LXX)','Greek translation of the OT, 3rd–2nd centuries BC'],['Samaritan Pentateuch','Second Temple period (516 BC–70 AD)'],['Dead Sea Scrolls','Discovered 1947 — oldest known OT manuscripts'],['Masoretic Hebrew Text','Developed 7th–10th centuries AD — basis for most modern OT translations']].map(function(r){return'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;"><div style="font-size:13px;color:var(--gold);font-weight:600;">'+r[0]+'</div><div style="font-size:12px;color:var(--txt3);margin-top:2px;">'+r[1]+'</div></div>';}).join('')}
+        </div>
+        <div class="seclabel" style="margin-bottom:10px;">New Testament Sources</div>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px;">
+          ${[['The Originals','Lost — we do not possess any of these'],['Copies','Nearly 6,000 copies of NT documents'],['Lectionaries','Devotional guides on the four Gospels'],['Translations/Versions','Early translations into other languages'],['Patristic Quotes','Writings of Apostolic and Early Church Fathers']].map(function(r){return'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;"><div style="font-size:13px;color:var(--gold);font-weight:600;">'+r[0]+'</div><div style="font-size:12px;color:var(--txt3);margin-top:2px;">'+r[1]+'</div></div>';}).join('')}
+        </div>
+        <div class="seclabel" style="margin-bottom:10px;">Manuscript Reliability</div>
+        <div style="background:var(--bg3);border:1px solid var(--golddim);border-radius:var(--r);padding:12px 14px;margin-bottom:16px;">
+          <div style="font-size:14px;color:var(--txt1);line-height:1.7;">The New Testament has <strong style="color:var(--gold);">5,600+ Greek manuscripts</strong> — more than any ancient writing. The earliest copy dates to within <strong style="color:var(--gold);">100 years</strong> of the originals, with <strong style="color:var(--gold);">99.5% textual accuracy</strong>. By comparison, Homer's Iliad has 643 copies with a 500-year gap. The NT also has 19,000+ copies in Syriac, Latin, Coptic, and Aramaic — total manuscript base exceeds 24,000.</div>
+        </div>
+        <div class="seclabel" style="margin-bottom:10px;">Translation Philosophy</div>
+        <div style="font-size:13px;color:var(--txt3);margin-bottom:8px;font-style:italic;">Word-for-Word ←————————————→ Thought-for-Thought</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;">
+          ${[['NASB/LSB','Word-for-Word'],['AMP','Word-for-Word'],['ESV','Word-for-Word'],['NKJV','Word-for-Word'],['RSV','Word-for-Word'],['KJV','Word-for-Word'],['NRSV','Middle'],['CSB','Middle'],['NET','Middle'],['NAB','Middle'],['NIV','Middle'],['NLT','Thought-for-Thought'],['MSG','Thought-for-Thought']].map(function(t){var col=t[1]==='Word-for-Word'?'var(--sagebright)':t[1]==='Thought-for-Thought'?'var(--crimsonbright)':'var(--gold)';return'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:12px;color:'+col+';">'+t[0]+'</div>';}).join('')}
+        </div>
+        <div style="font-size:12px;color:var(--txt4);line-height:1.6;">Word-for-word translations prioritize the original language structure. Thought-for-thought translations prioritize readability and modern communication. Neither is superior — both serve different study purposes.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
 </body>
 </html>
