@@ -580,6 +580,21 @@ select option{background:var(--bg2);color:var(--txt1)}
       </button>
       <div class="fnotes-body" id="outline-body">
         <div class="fnotes-body-inner">
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;">
+            <button type="button" onclick="insertOutlinePrefix('I. ')"  style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',serif;font-size:12px;padding:3px 8px;min-height:28px;">I.</button>
+            <button type="button" onclick="insertOutlinePrefix('II. ')" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',serif;font-size:12px;padding:3px 8px;min-height:28px;">II.</button>
+            <button type="button" onclick="insertOutlinePrefix('III. ')"style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',serif;font-size:12px;padding:3px 8px;min-height:28px;">III.</button>
+            <div style="width:1px;background:var(--border);margin:0 2px;"></div>
+            <button type="button" onclick="insertOutlinePrefix('A. ')" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',serif;font-size:12px;padding:3px 8px;min-height:28px;">A.</button>
+            <button type="button" onclick="insertOutlinePrefix('B. ')" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',serif;font-size:12px;padding:3px 8px;min-height:28px;">B.</button>
+            <button type="button" onclick="insertOutlinePrefix('C. ')" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',serif;font-size:12px;padding:3px 8px;min-height:28px;">C.</button>
+            <div style="width:1px;background:var(--border);margin:0 2px;"></div>
+            <button type="button" onclick="insertOutlinePrefix('1. ')" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',serif;font-size:12px;padding:3px 8px;min-height:28px;">1.</button>
+            <button type="button" onclick="insertOutlinePrefix('2. ')" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',serif;font-size:12px;padding:3px 8px;min-height:28px;">2.</button>
+            <button type="button" onclick="insertOutlinePrefix('3. ')" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',serif;font-size:12px;padding:3px 8px;min-height:28px;">3.</button>
+            <div style="width:1px;background:var(--border);margin:0 2px;"></div>
+            <button type="button" onclick="insertOutlinePrefix('• ')" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--txt2);cursor:pointer;font-family:'Crimson Pro',serif;font-size:12px;padding:3px 8px;min-height:28px;">•</button>
+          </div>
           <textarea id="d-outline" rows="8" placeholder="Write out the structural outline of this passage or book.&#10;&#10;e.g.&#10;I. Main Point (v.1-4)&#10;   A. Sub-point&#10;   B. Sub-point&#10;II. Main Point (v.5-8)" style="background:var(--bg1);border-color:var(--border);font-size:14px;line-height:1.7;"></textarea>
         </div>
       </div>
@@ -1424,6 +1439,16 @@ function toggleOutline(){
   var chev=document.getElementById('outline-chev');
   if(body)body.classList.toggle('open',_outlineOpen);
   if(chev)chev.style.transform=_outlineOpen?'rotate(180deg)':'';
+}
+function insertOutlinePrefix(prefix){
+  var ta=document.getElementById('d-outline');if(!ta)return;
+  var start=ta.selectionStart,end=ta.selectionEnd,val=ta.value;
+  var lineStart=val.lastIndexOf('\n',start-1)+1;
+  ta.value=val.slice(0,lineStart)+prefix+val.slice(lineStart);
+  var newPos=lineStart+prefix.length+(start-lineStart);
+  ta.selectionStart=ta.selectionEnd=newPos;
+  ta.focus();
+  if(cur&&cur.deep)cur.deep.outline=ta.value;
 }
 function setScope(s){
   studyScope=s;
