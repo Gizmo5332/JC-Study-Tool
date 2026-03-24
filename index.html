@@ -327,7 +327,8 @@ select option{background:var(--bg2);color:var(--txt1)}
   .overlay{align-items:center}
   /* Deep Study TWO-COLUMN */
   .deep-cols{display:grid !important;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
-  .deep-col-right{position:sticky;top:0}
+  .deep-col-right{position:sticky;top:0;max-height:100dvh;overflow-y:auto;padding-bottom:32px;}
+  .deep-col-right::-webkit-scrollbar{display:none;}
   .aitools{grid-template-columns:repeat(2,1fr)}
   .aitoolbtn[style*="grid-column:span 2"]{grid-column:span 2}
   /* Field Mode */
@@ -570,6 +571,19 @@ select option{background:var(--bg2);color:var(--txt1)}
       <div class="aicontent" id="aipanel-content"></div>
       <div class="aidisclaim">AI provides linguistic, historical, and cultural data only. All theological conclusions are yours to draw.</div>
     </div>
+    <div class="seclabel" style="margin-top:4px;">Passage / Book Outline <span class="conclbadge">AI-Free Zone</span></div>
+    <div class="fnotes-collapsible" style="margin-bottom:16px;" id="outline-collapsible">
+      <button class="fnotes-toggle" onclick="toggleOutline()" id="outline-toggle-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>Outline</span>
+        <svg id="outline-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13" style="margin-left:auto;transition:transform .2s"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="fnotes-body" id="outline-body">
+        <div class="fnotes-body-inner">
+          <textarea id="d-outline" rows="8" placeholder="Write out the structural outline of this passage or book.&#10;&#10;e.g.&#10;I. Main Point (v.1-4)&#10;   A. Sub-point&#10;   B. Sub-point&#10;II. Main Point (v.5-8)" style="background:var(--bg1);border-color:var(--border);font-size:14px;line-height:1.7;"></textarea>
+        </div>
+      </div>
+    </div>
     <div class="seclabel">My Conclusions <span class="conclbadge">AI-Free Zone</span></div>
     <div class="concl" style="margin-bottom:16px">
       <textarea id="d-conclusions" rows="7" placeholder="This space belongs entirely to you.&#10;&#10;Record your own theological conclusions, personal insights, and application."></textarea>
@@ -708,6 +722,7 @@ select option{background:var(--bg2);color:var(--txt1)}
       <div class="exp-section-title">Core Content</div>
       <div class="exp-row on" id="exp-scripture" onclick="expToggle(this)"><div class="exp-check"><svg class="exp-check-mark" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2 7 5 10 11 3"/></svg></div><div class="exp-row-text"><div class="exp-row-label">Scripture Text</div><div class="exp-row-sub">The passage from your translation</div></div></div>
       <div class="exp-row on" id="exp-fieldnotes" onclick="expToggle(this)"><div class="exp-check"><svg class="exp-check-mark" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2 7 5 10 11 3"/></svg></div><div class="exp-row-text"><div class="exp-row-label">Field Notes</div><div class="exp-row-sub">Your capture notes</div></div></div>
+      <div class="exp-row on" id="exp-outline" onclick="expToggle(this)"><div class="exp-check"><svg class="exp-check-mark" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2 7 5 10 11 3"/></svg></div><div class="exp-row-text"><div class="exp-row-label">Passage / Book Outline</div><div class="exp-row-sub">Your structural outline</div></div></div>
       <div class="exp-row on" id="exp-resources" onclick="expToggle(this)"><div class="exp-check"><svg class="exp-check-mark" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2 7 5 10 11 3"/></svg></div><div class="exp-row-text"><div class="exp-row-label">Resources &amp; Documents</div><div class="exp-row-sub">Extracted text from photos</div></div></div>
       <div class="exp-row on" id="exp-conclusions" onclick="expToggle(this)"><div class="exp-check"><svg class="exp-check-mark" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2 7 5 10 11 3"/></svg></div><div class="exp-row-text"><div class="exp-row-label">My Conclusions</div><div class="exp-row-sub">Your personal theological conclusions</div></div></div>
     </div>
@@ -1159,7 +1174,7 @@ function newStudy(){document.getElementById('tpl-overlay').classList.add('on');}
 function createFromTemplate(tplKey){
   closeOverlay('tpl-overlay');
   var tpl=TEMPLATES[tplKey]||TEMPLATES.blank;
-  cur={id:'bsn_'+Date.now(),date:todayStr(),title:tpl.title||'',teacher:'',fieldNotes:tpl.fieldNotes||'',tags:(tpl.tags||[]).slice(),resources:[],refs:[makeRef()],deep:{conclusions:''}};
+  cur={id:'bsn_'+Date.now(),date:todayStr(),title:tpl.title||'',teacher:'',fieldNotes:tpl.fieldNotes||'',tags:(tpl.tags||[]).slice(),resources:[],refs:[makeRef()],deep:{conclusions:'',outline:''}};
   activeRefIdx=0;studyScope='passage';
   trackOpen(cur);
   populateField();navTo('field');
@@ -1223,7 +1238,7 @@ function bookOrder(ref){if(!ref)return 999;var r=ref.trim();for(var i=0;i<BIBLE_
 function fmtDate(d){if(!d)return '';return new Date(d+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-function openStudy(id){cur=studies.find(function(s){return s.id===id;});if(!cur)return;migrateStudy(cur);if(!cur.deep)cur.deep={conclusions:''};if(!cur.deep.hasOwnProperty('conclusions'))cur.deep.conclusions='';if(!cur.resources)cur.resources=[];if(!cur.tags)cur.tags=[];activeRefIdx=0;studyScope=(activeRef()&&activeRef().deep&&activeRef().deep.studyScope)||'passage';trackOpen(cur);populateField();navTo('field');}
+function openStudy(id){cur=studies.find(function(s){return s.id===id;});if(!cur)return;migrateStudy(cur);if(!cur.deep)cur.deep={conclusions:'',outline:''};if(!cur.deep.hasOwnProperty('conclusions'))cur.deep.conclusions='';if(!cur.deep.hasOwnProperty('outline'))cur.deep.outline='';if(!cur.resources)cur.resources=[];if(!cur.tags)cur.tags=[];activeRefIdx=0;studyScope=(activeRef()&&activeRef().deep&&activeRef().deep.studyScope)||'passage';trackOpen(cur);populateField();navTo('field');}
 function saveStudy(silent){if(!cur)return;syncFromInputs();cur.updatedAt=new Date().toISOString();var i=studies.findIndex(function(s){return s.id===cur.id;});if(i>=0)studies[i]=cur;else studies.unshift(cur);persist();if(!silent)toast('Saved');}
 function autoSave(){if(cur){syncFromInputs();saveStudy(true);}}
 function deleteStudy(){var id=_pendingDeleteId||(cur&&cur.id);if(!id)return;studies=studies.filter(function(s){return s.id!==id;});persist();if(cur&&cur.id===id)cur=null;_pendingDeleteId=null;closeOverlay('del-overlay');navTo('library');toast('Study deleted');}
@@ -1237,7 +1252,7 @@ function duplicateStudy(id){
   copy.updatedAt=new Date().toISOString();
   studies.unshift(copy);persist();renderLib();toast('Study duplicated');
 }
-function syncFromInputs(){if(!cur)return;cur.date=document.getElementById('f-date').value;cur.teacher=document.getElementById('f-teacher').value;cur.title=document.getElementById('f-title').value;cur.fieldNotes=document.getElementById('f-notes').value;if(cur.deep)cur.deep.conclusions=document.getElementById('d-conclusions').value;var ar=activeRef();if(ar){ar.reference=document.getElementById('f-ref').value;ar.translation=document.getElementById('f-trans').value;if(ar.deep)ar.deep.studyScope=studyScope;}}
+function syncFromInputs(){if(!cur)return;cur.date=document.getElementById('f-date').value;cur.teacher=document.getElementById('f-teacher').value;cur.title=document.getElementById('f-title').value;cur.fieldNotes=document.getElementById('f-notes').value;if(cur.deep){cur.deep.conclusions=document.getElementById('d-conclusions').value;cur.deep.outline=document.getElementById('d-outline')?document.getElementById('d-outline').value:'';}var ar=activeRef();if(ar){ar.reference=document.getElementById('f-ref').value;ar.translation=document.getElementById('f-trans').value;if(ar.deep)ar.deep.studyScope=studyScope;}}
 
 function populateField(){
   if(!cur)return;
@@ -1382,17 +1397,27 @@ function populateDeep(){
   var badge=document.getElementById('fnotes-wc-badge');
   if(badge)badge.textContent=wc?'('+wc+' words)':'';
   document.getElementById('d-conclusions').value=cur.deep?(cur.deep.conclusions||''):'';
+  document.getElementById('d-outline').value=cur.deep?(cur.deep.outline||''):'';
+  _outlineOpen=false;var ob=document.getElementById('outline-body');var oc=document.getElementById('outline-chev');if(ob)ob.classList.remove('open');if(oc)oc.style.transform='';
   studyScope=(ar&&ar.deep&&ar.deep.studyScope)||'passage';
   renderRefPills('d-ref-pills','deep');
   closeAIPanel();updateToolDots();renderResources();setScope(studyScope);
 }
 var _fnotesOpen=false;
+var _outlineOpen=false;
 function toggleFnotes(){
   _fnotesOpen=!_fnotesOpen;
   var body=document.getElementById('fnotes-body');
   var chev=document.getElementById('fnotes-chev');
   if(body)body.classList.toggle('open',_fnotesOpen);
   if(chev)chev.style.transform=_fnotesOpen?'rotate(180deg)':'';
+}
+function toggleOutline(){
+  _outlineOpen=!_outlineOpen;
+  var body=document.getElementById('outline-body');
+  var chev=document.getElementById('outline-chev');
+  if(body)body.classList.toggle('open',_outlineOpen);
+  if(chev)chev.style.transform=_outlineOpen?'rotate(180deg)':'';
 }
 function setScope(s){
   studyScope=s;
@@ -1639,7 +1664,7 @@ function expSelectAll(val){document.querySelectorAll('#export-overlay .exp-row, 
 function expIsOn(id){var el=document.getElementById(id);return el&&el.classList.contains('on');}
 function runExport(){
   closeOverlay('export-overlay');
-  var opts={scripture:expIsOn('exp-scripture'),fieldNotes:expIsOn('exp-fieldnotes'),resources:expIsOn('exp-resources'),conclusions:expIsOn('exp-conclusions'),tools:{}};
+  var opts={scripture:expIsOn('exp-scripture'),fieldNotes:expIsOn('exp-fieldnotes'),outline:expIsOn('exp-outline'),resources:expIsOn('exp-resources'),conclusions:expIsOn('exp-conclusions'),tools:{}};
   ['lexical','grammar','historical','cultural','crossrefs'].forEach(function(k){opts.tools[k]={passage:expIsOn('exp-'+k+'-passage'),book:expIsOn('exp-'+k+'-book')};});
   exportPDF(opts);
 }
@@ -1683,6 +1708,8 @@ async function exportPDF(opts){
       section('Scripture Text');txt(pdfSafe(ar.scriptureText.replace(/<[^>]+>/g,'').replace(/\n\n/g,'\n')),10,'italic',[45,35,20]);
     }
     if(opts.fieldNotes&&cur.fieldNotes){section('Field Notes & Observations');txt(pdfSafe(cur.fieldNotes),10,'normal',[30,25,15]);}
+    var outln=document.getElementById('d-outline').value||(cur.deep&&cur.deep.outline)||'';
+    if(opts.outline&&outln){section('Passage / Book Outline');txt(pdfSafe(outln),10,'normal',[30,25,15]);}
     if(opts.resources&&cur.resources&&cur.resources.length){var hasOcr=cur.resources.some(function(r){return r.ocrStatus==='done'&&r.ocrText;});if(hasOcr){section('Resources & Documents');cur.resources.forEach(function(r){if(r.ocrStatus!=='done'||!r.ocrText)return;np(14);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(r.title+' - '+r.date),mgL,y);y+=6;txt(pdfSafe(r.ocrText),9,'normal',[35,28,18]);y+=2;});}}
     // AI tools — from activeRef
     ['lexical','grammar','historical','cultural','crossrefs'].forEach(function(k){var c=ar&&ar.deep&&ar.deep[k];if(!c||!(opts.tools[k]&&opts.tools[k].passage))return;section(TOOL_LABELS[k]+' - Passage');txt(pdfSafe(c.replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/^#+\s/gm,'')),9,'normal',[35,28,18]);});
