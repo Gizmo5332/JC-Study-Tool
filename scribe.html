@@ -569,6 +569,24 @@ function copyAIResponse(methodId){
   if(!txt)return;
   navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>toast('Copied')).catch(()=>toast('Copy failed'));
 }
+function openLexiconModal(){var ov=document.getElementById('lexicon-overlay');ov.classList.add('on');setTimeout(function(){var inp=document.getElementById('lexicon-input');if(inp)inp.focus();},200);}
+function closeLexiconModal(){document.getElementById('lexicon-overlay').classList.remove('on');}
+async function runLexiconLookup(){
+  var inp=document.getElementById('lexicon-input');var res=document.getElementById('lexicon-result');var btn=document.getElementById('lexicon-btn');
+  var query=(inp?inp.value.trim():'');if(!query)return;
+  if(!state.groqKey){res.innerHTML='<p style="color:var(--crimsonbright);">No Groq API key — add it via the AI Key button.</p>';return;}
+  btn.disabled=true;btn.textContent='Looking up\u2026';
+  res.innerHTML='<div style="display:flex;align-items:center;gap:10px;color:var(--txt3);padding:8px 0;"><div class="spin"></div>Searching lexicon\u2026</div>';
+  var prompt='You are a seminary-level biblical lexicographer. The user has looked up: "'+query+'". Provide a focused lexical entry with the following sections:\n\n1. **Term** \u2014 the Hebrew or Greek word, transliteration, and Strong\'s number\n2. **Part of Speech** \u2014 noun, verb, adjective, etc.\n3. **Definition** \u2014 concise lexical definition\n4. **Range of Meaning** \u2014 the full semantic range; list variant meanings\n5. **Key Occurrences** \u2014 3\u20135 significant passages where this word appears; reference only, no interpretation\n6. **Usage Notes** \u2014 any notable grammatical, syntactical, or lexical patterns\n\nProvide data only. Do not state what the word means theologically. Do not draw conclusions. All interpretation belongs to the student.';
+  try{
+    var r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+state.groqKey},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:700,messages:[{role:'user',content:prompt}]})});
+    var d=await r.json();
+    if(!r.ok){res.innerHTML='<p style="color:var(--crimsonbright);font-size:13px;">'+groqErrMsg(d.error&&d.error.message?d.error.message:'HTTP '+r.status)+'</p>';return;}
+    res.innerHTML=mdToHtml(d.choices[0].message.content);
+  }catch(e){res.innerHTML='<p style="color:var(--crimsonbright);font-size:13px;">'+groqErrMsg(e.message)+'</p>';}
+  finally{btn.disabled=false;btn.textContent='Look up';}
+}
+
 function groqErrMsg(msg){
   if(!msg)return'Error fetching analysis. Please try again.';
   if(msg.toLowerCase().includes('rate')||msg.toLowerCase().includes('quota')||msg.toLowerCase().includes('429'))
@@ -1325,6 +1343,7 @@ function renderStudy(){
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-ghost btn-sm" onclick="openMemorizeFromStudy('${study.id}')">Memorize</button>
+        <button class="btn btn-ghost btn-sm" onclick="openLexiconModal()">Lexicon</button>
         <a class="btn btn-ghost btn-sm" href="${blbUrl(study.passage,study.translation)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">BLB ↗</a>
         <button class="btn btn-ghost btn-sm" onclick="window.print()">Print</button>
       </div>
@@ -1881,6 +1900,22 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').cat
         </div>
       </div>
     </div>
+</div>
+</div>
+
+<!-- Lexicon Modal -->
+<div class="overlay" id="lexicon-overlay" onclick="if(event.target===this)closeLexiconModal()">
+  <div class="modal" style="max-width:540px;max-height:80vh;display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-shrink:0;">
+      <div style="font-family:'EB Garamond',serif;font-size:20px;color:var(--gold);">✦ Lexicon Lookup</div>
+      <button onclick="closeLexiconModal()" style="background:none;border:none;color:var(--txt3);font-size:20px;cursor:pointer;padding:4px 8px;min-height:36px;">&#10005;</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-shrink:0;">
+      <input id="lexicon-input" type="text" placeholder="Word or Strong&#39;s number (e.g. logos, G3056, H1254)" style="flex:1;background:var(--bg1);border:1px solid var(--borderlit);border-radius:var(--r);color:var(--txt1);font-family:'Crimson Pro',serif;font-size:15px;padding:10px 14px;outline:none;" onkeydown="if(event.key==='Enter')runLexiconLookup()">
+      <button class="btn btn-primary" onclick="runLexiconLookup()" id="lexicon-btn" style="min-width:72px;">Look up</button>
+    </div>
+    <div id="lexicon-result" style="flex:1;overflow-y:auto;font-size:14px;line-height:1.7;color:var(--txt2);"></div>
+    <div style="font-size:11px;color:var(--txt4);margin-top:10px;flex-shrink:0;">AI provides lexical data only — all theological conclusions are yours to draw.</div>
   </div>
 </div>
 </body>
