@@ -2112,7 +2112,7 @@ function shareStudyLinkById(id){
   var AI_KEYS=['lexical','grammar','historical','cultural','crossrefs','lexical_book','grammar_book','historical_book','cultural_book','crossrefs_book'];
   var copy=JSON.parse(JSON.stringify(s));
   if(copy.resources)copy.resources=copy.resources.map(function(r){return Object.assign({},r,{dataUrl:'',ocrStatus:r.ocrStatus==='done'?'done':'pending'});});
-  if(copy.refs)copy.refs=copy.refs.map(function(ref){var r=Object.assign({},ref);if(r.deep){r.deep=Object.assign({},r.deep);AI_KEYS.forEach(function(k){if(r.deep[k])r.deep[k]='__shared__';});}return r;});
+  if(copy.refs)copy.refs=copy.refs.map(function(ref){var r=Object.assign({},ref);r.scriptureText='';if(r.deep){r.deep=Object.assign({},r.deep);AI_KEYS.forEach(function(k){if(r.deep[k])r.deep[k]='__shared__';});}return r;});
   try{
     var json=JSON.stringify(copy);
     var encoded=btoa(unescape(encodeURIComponent(json)));
