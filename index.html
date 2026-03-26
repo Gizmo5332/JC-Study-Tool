@@ -84,7 +84,7 @@ select option{background:var(--bg2);color:var(--txt1)}
 .color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
 .color-swatch.on{border-color:var(--txt1);box-shadow:0 0 0 2px var(--bg2)}
 .ttag{display:inline-block;background:var(--bg3);color:var(--gold);border:1px solid var(--border);border-radius:3px;font-size:10px;font-weight:600;padding:1px 5px}
-.fab{position:fixed;bottom:calc(68px + var(--safe-b));right:max(16px,calc((100vw - 480px)/2 + 16px));width:56px;height:56px;border-radius:50%;background:var(--gold);color:var(--bg0);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(201,168,76,.35);font-size:26px;z-index:10;}
+.fab{position:fixed;bottom:calc(68px + var(--safe-b));right:max(16px,calc((100vw - 480px)/2 + 16px));width:56px;height:56px;border-radius:50%;background:var(--gold);color:var(--bg0);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(201,168,76,.35);font-size:26px;z-index:60;}
 .fab:active{transform:scale(.9)}
 .hdrfields{background:var(--bg1);border-bottom:1px solid var(--border);flex-shrink:0}
 .hdrfields-body{padding:12px 16px}
@@ -137,7 +137,7 @@ select option{background:var(--bg2);color:var(--txt1)}
 .setsub{font-size:12px;color:var(--txt3);margin-bottom:13px;line-height:1.5}
 .conntag{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:13px;color:var(--txt2)}
 .conndot{width:8px;height:8px;border-radius:50%;background:var(--sagebright);flex-shrink:0}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;justify-content:center;z-index:500;padding-bottom:var(--safe-b)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;justify-content:center;z-index:500;padding-bottom:var(--safe-b);cursor:pointer}
 .res-popout{display:none;position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-top:2px solid var(--golddim);border-radius:var(--rl) var(--rl) 0 0;padding:16px 18px 24px;max-height:60%;overflow-y:auto;z-index:10;box-shadow:0 -8px 32px rgba(0,0,0,.6);}
 .res-popout.on{display:block;}
 .res-popout::-webkit-scrollbar{display:none;}
@@ -1301,7 +1301,7 @@ function duplicateStudy(id){
   copy.updatedAt=new Date().toISOString();
   studies.unshift(copy);persist();renderLib();toast('Study duplicated');
 }
-function syncFromInputs(){if(!cur)return;cur.date=document.getElementById('f-date').value;cur.teacher=document.getElementById('f-teacher').value;cur.title=document.getElementById('f-title').value;cur.fieldNotes=document.getElementById('f-notes').value;if(cur.deep){cur.deep.conclusions=document.getElementById('d-conclusions').value;cur.deep.outline=document.getElementById('d-outline')?document.getElementById('d-outline').value:'';}var ar=activeRef();if(!ar)return;var fieldOn=document.getElementById('scr-field')&&document.getElementById('scr-field').classList.contains('on');if(fieldOn){ar.reference=document.getElementById('f-ref').value;ar.translation=document.getElementById('f-trans').value;}if(ar.deep)ar.deep.studyScope=studyScope;}
+function syncFromInputs(){if(!cur)return;cur.date=document.getElementById('f-date').value;cur.teacher=document.getElementById('f-teacher').value;cur.title=document.getElementById('f-title').value;cur.fieldNotes=document.getElementById('f-notes').value;if(cur.deep){cur.deep.conclusions=document.getElementById('d-conclusions')?document.getElementById('d-conclusions').value:cur.deep.conclusions;var outlineEl=document.getElementById('d-outline');var deepOn=document.getElementById('scr-deep')&&document.getElementById('scr-deep').classList.contains('on');if(outlineEl&&deepOn)cur.deep.outline=outlineEl.value;}var ar=activeRef();if(!ar)return;var fieldOn=document.getElementById('scr-field')&&document.getElementById('scr-field').classList.contains('on');if(fieldOn){ar.reference=document.getElementById('f-ref').value;ar.translation=document.getElementById('f-trans').value;}if(ar.deep)ar.deep.studyScope=studyScope;}
 
 function populateField(){
   if(!cur)return;
@@ -2157,7 +2157,10 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 // ── CHANGELOG ────────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'3.0',date:'March 25, 2026',label:'Latest',
+    version:'3.1',date:'March 26, 2026',label:'Latest',
+    items:['Fixed: Orphan duplicate Study Resources modal removed — was permanently visible on iPad/Safari, blocking the FAB and swallowing taps','Fixed: Overlay backdrop now dismisses on iOS Safari tap (cursor:pointer added — required by WebKit click event model)','Fixed: FAB z-index raised from 10 to 60, safely above bottom nav bar']
+  },{
+    version:'3.0',date:'March 25, 2026',label:'',
     items:[
       'Share Study Link strips AI results — dots show which tools were run; recipient re-runs tools fresh; URLs now short enough for SMS',
       'Share App button in Settings — native share sheet on mobile with app link and setup instructions'
@@ -2491,69 +2494,6 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').cat
     </div>
     <div id="lexicon-result" style="flex:1;overflow-y:auto;font-size:14px;line-height:1.7;color:var(--txt2);"></div>
     <div style="font-size:11px;color:var(--txt4);margin-top:10px;flex-shrink:0;">AI provides lexical data only — all theological conclusions are yours to draw.</div>
-  </div>
-</div>
-  <div class="modal" style="max-width:600px;max-height:82vh;overflow-y:auto;" onclick="event.stopPropagation()">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-      <div style="font-family:'EB Garamond',serif;font-size:22px;color:var(--gold);">Study Resources</div>
-      <button onclick="closeOverlay('resources-overlay')" style="background:none;border:none;color:var(--txt3);font-size:20px;cursor:pointer;padding:4px 8px;">&#10005;</button>
-    </div>
-
-    <!-- Section 1: How to Study the Bible -->
-    <div style="margin-bottom:6px;">
-      <button onclick="toggleResSection('res-s1','res-c1')" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;cursor:pointer;font-family:'Crimson Pro',serif;">
-        <span style="font-family:'EB Garamond',serif;font-size:17px;color:var(--txt1);">How to Study the Bible</span>
-        <svg id="res-c1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14" style="color:var(--txt3);transition:transform .2s;flex-shrink:0;"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-      <div id="res-s1" style="display:none;background:var(--bg1);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);padding:16px 18px;">
-        <div class="seclabel" style="margin-bottom:10px;">Foundational Scriptures</div>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
-          ${['Joshua 1:8','Ezra 7:10','Psalm 119:9','Acts 17:11','2 Timothy 3:16-17','James 3:1'].map(function(r){return'<div style="font-family:\'EB Garamond\',serif;font-size:15px;color:var(--gold);">'+r+'</div>';}).join('')}
-        </div>
-        <div class="seclabel" style="margin-bottom:10px;">What Method Is — and Isn't</div>
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-          <div style="font-size:14px;color:var(--txt2);line-height:1.65;padding-left:12px;border-left:2px solid var(--golddim);">Method is not a course but a lifetime of study — you must practice it, not just read about it.</div>
-          <div style="font-size:14px;color:var(--txt2);line-height:1.65;padding-left:12px;border-left:2px solid var(--golddim);">Method is not a formula but a process — steps used over time become standard practice.</div>
-          <div style="font-size:14px;color:var(--txt2);line-height:1.65;padding-left:12px;border-left:2px solid var(--golddim);">Method is not a shortcut but an aid to discovery — genuine understanding takes work.</div>
-          <div style="font-size:14px;color:var(--txt2);line-height:1.65;padding-left:12px;border-left:2px solid var(--golddim);">Method is not one-size-fits-all — every tool must be made to fit you, not someone else.</div>
-        </div>
-        <div class="seclabel" style="margin-bottom:10px;">The Historical-Grammatical Approach</div>
-        <div style="font-size:14px;color:var(--txt2);line-height:1.7;margin-bottom:16px;">This method seeks to determine the meaning of the biblical text as originally understood by its writers — taking into account the historical context, grammatical meaning of the language, and cultural and literary setting in which it was written. The goal is to find the intended meaning of the text as it was originally communicated.</div>
-        <div class="seclabel" style="margin-bottom:10px;">The 8 Study Methods</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-          ${['Analytical','Critical','Historical','Topical','Theological','Comparative','Rhetorical','Devotional'].map(function(m){return'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;font-size:13px;color:var(--txt2);">'+m+'</div>';}).join('')}
-        </div>
-      </div>
-    </div>
-
-    <!-- Section 2: How We Got the Bible -->
-    <div style="margin-bottom:6px;">
-      <button onclick="toggleResSection('res-s2','res-c2')" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;cursor:pointer;font-family:'Crimson Pro',serif;">
-        <span style="font-family:'EB Garamond',serif;font-size:17px;color:var(--txt1);">How We Got the Bible</span>
-        <svg id="res-c2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14" style="color:var(--txt3);transition:transform .2s;flex-shrink:0;"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-      <div id="res-s2" style="display:none;background:var(--bg1);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);padding:16px 18px;">
-        <div class="seclabel" style="margin-bottom:10px;">Old Testament Sources</div>
-        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px;">
-          ${[['Proto-Hebrew Text','The ancient and developing Hebrew text — the foundation'],['Septuagint (LXX)','Greek translation of the OT, 3rd–2nd centuries BC'],['Samaritan Pentateuch','Second Temple period (516 BC–70 AD)'],['Dead Sea Scrolls','Discovered 1947 — oldest known OT manuscripts'],['Masoretic Hebrew Text','Developed 7th–10th centuries AD — basis for most modern OT translations']].map(function(r){return'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;"><div style="font-size:13px;color:var(--gold);font-weight:600;">'+r[0]+'</div><div style="font-size:12px;color:var(--txt3);margin-top:2px;">'+r[1]+'</div></div>';}).join('')}
-        </div>
-        <div class="seclabel" style="margin-bottom:10px;">New Testament Sources</div>
-        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px;">
-          ${[['The Originals','Lost — we do not possess any of these'],['Copies','Nearly 6,000 copies of NT documents'],['Lectionaries','Devotional guides on the four Gospels'],['Translations/Versions','Early translations into other languages'],['Patristic Quotes','Writings of Apostolic and Early Church Fathers']].map(function(r){return'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;"><div style="font-size:13px;color:var(--gold);font-weight:600;">'+r[0]+'</div><div style="font-size:12px;color:var(--txt3);margin-top:2px;">'+r[1]+'</div></div>';}).join('')}
-        </div>
-        <div class="seclabel" style="margin-bottom:10px;">Manuscript Reliability</div>
-        <div style="background:var(--bg3);border:1px solid var(--golddim);border-radius:var(--r);padding:12px 14px;margin-bottom:16px;">
-          <div style="font-size:14px;color:var(--txt1);line-height:1.7;">The New Testament has <strong style="color:var(--gold);">5,600+ Greek manuscripts</strong> — more than any ancient writing. The earliest copy dates to within <strong style="color:var(--gold);">100 years</strong> of the originals, with <strong style="color:var(--gold);">99.5% textual accuracy</strong>. By comparison, Homer's Iliad has 643 copies with a 500-year gap. The NT also has 19,000+ copies in Syriac, Latin, Coptic, and Aramaic — total manuscript base exceeds 24,000.</div>
-        </div>
-        <div class="seclabel" style="margin-bottom:10px;">Translation Philosophy</div>
-        <div style="font-size:13px;color:var(--txt3);margin-bottom:8px;font-style:italic;">Word-for-Word ←————————————→ Thought-for-Thought</div>
-        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;">
-          ${[['NASB/LSB','Word-for-Word'],['AMP','Word-for-Word'],['ESV','Word-for-Word'],['NKJV','Word-for-Word'],['RSV','Word-for-Word'],['KJV','Word-for-Word'],['NRSV','Middle'],['CSB','Middle'],['NET','Middle'],['NAB','Middle'],['NIV','Middle'],['NLT','Thought-for-Thought'],['MSG','Thought-for-Thought']].map(function(t){var col=t[1]==='Word-for-Word'?'var(--sagebright)':t[1]==='Thought-for-Thought'?'var(--crimsonbright)':'var(--gold)';return'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:12px;color:'+col+';">'+t[0]+'</div>';}).join('')}
-        </div>
-        <div style="font-size:12px;color:var(--txt4);line-height:1.6;">Word-for-word translations prioritize the original language structure. Thought-for-thought translations prioritize readability and modern communication. Neither is superior — both serve different study purposes.</div>
-      </div>
-    </div>
-
   </div>
 </div>
 </body>
