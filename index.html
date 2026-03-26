@@ -137,7 +137,7 @@ select option{background:var(--bg2);color:var(--txt1)}
 .setsub{font-size:12px;color:var(--txt3);margin-bottom:13px;line-height:1.5}
 .conntag{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:13px;color:var(--txt2)}
 .conndot{width:8px;height:8px;border-radius:50%;background:var(--sagebright);flex-shrink:0}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;justify-content:center;z-index:100;padding-bottom:var(--safe-b)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;justify-content:center;z-index:500;padding-bottom:var(--safe-b)}
 .res-popout{display:none;position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-top:2px solid var(--golddim);border-radius:var(--rl) var(--rl) 0 0;padding:16px 18px 24px;max-height:60%;overflow-y:auto;z-index:10;box-shadow:0 -8px 32px rgba(0,0,0,.6);}
 .res-popout.on{display:block;}
 .res-popout::-webkit-scrollbar{display:none;}
@@ -674,6 +674,12 @@ select option{background:var(--bg2);color:var(--txt1)}
     </div>
     <div class="divider"></div>
     <div style="margin-bottom:22px">
+      <div class="sethead">Share Arché · Pilgrim</div>
+      <div class="setsub">Invite a friend to use Arché · Pilgrim. They'll need to set up their own free API key at <a href="https://console.groq.com" target="_blank" style="color:var(--gold);">console.groq.com ↗</a> to use AI tools.</div>
+      <button class="btn btn-sec btn-full" onclick="shareApp()" style="margin-bottom:10px">✦ Share This App</button>
+    </div>
+    <div class="divider"></div>
+    <div style="margin-bottom:22px">
       <div class="sethead">Data &amp; Storage</div>
       <div class="setsub">All notes stored locally on this device. Export to save a backup to iCloud Drive, Google Drive, or any file app.</div>
       <div style="display:flex;gap:10px;margin-bottom:10px">
@@ -1181,7 +1187,7 @@ function updateScrModeUI(){
   }
 }
 function saveSettings(){var gq=document.getElementById('set-groq').value.trim();var gm=document.getElementById('set-gemini').value.trim();sett.groqKey=gq;sett.geminiKey=gm;localStorage.setItem(SK_SETT,JSON.stringify(sett));toast('Settings saved');if(gq){var ov=document.getElementById('gemini-setup-overlay');if(ov)ov.classList.remove('on');}}
-function checkGeminiSetup(){if(!sett.groqKey){setTimeout(function(){document.getElementById('gemini-setup-overlay').classList.add('on');},600);}}
+function checkGeminiSetup(){if(!sett.groqKey&&!window.location.hash.startsWith('#study=')){setTimeout(function(){document.getElementById('gemini-setup-overlay').classList.add('on');},600);}}
 function saveGeminiSetup(){var k=document.getElementById('gemini-setup-input').value.trim();if(!k){toast('Please enter your API key');return;}sett.groqKey=k;localStorage.setItem(SK_SETT,JSON.stringify(sett));document.getElementById('set-groq').value=k;document.getElementById('gemini-setup-overlay').classList.remove('on');toast('API key saved — AI tools ready');}
 function skipGeminiSetup(){document.getElementById('gemini-setup-overlay').classList.remove('on');}
 
@@ -1884,7 +1890,7 @@ function initSwipe(){
 // ── ONBOARDING ───────────────────────────────────────────────────
 var SK_OB='bsn_ob_done';
 function checkOnboarding(){
-  if(!localStorage.getItem(SK_OB)&&studies.length===0){
+  if(!localStorage.getItem(SK_OB)&&studies.length===0&&!window.location.hash.startsWith('#study=')){
     obStep=0;renderObStep();
     document.getElementById('ob-overlay').classList.add('on');
   }
@@ -2092,6 +2098,13 @@ function importDataFromFile(input){
   input.value='';
 }
 var _importPending=null;
+function shareApp(){
+  var url='https://gizmo5332.github.io/JC-Study-Tool/';
+  var text='I\'ve been using Arché · Pilgrim for Bible study and thought you\'d love it. It\'s free and works right in your browser — no install needed.\n\nYou\'ll need a free Groq API key (takes 2 min) to use the AI tools: https://console.groq.com\n\nOpen the app here: '+url;
+  if(navigator.share){navigator.share({title:'Arché · Pilgrim',text:text,url:url}).catch(function(){});
+  }else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('Invite copied to clipboard!');}).catch(function(){promptCopyFallback(text);});
+  }else{promptCopyFallback(text);}
+}
 function shareStudyLink(){if(!cur){toast('No study open');return;}syncFromInputs();shareStudyLinkById(cur.id);}
 function shareStudyLinkById(id){
   var s=studies.find(function(x){return x.id===id;});if(!s){toast('Study not found');return;}
@@ -2134,6 +2147,7 @@ function confirmImportLink(){
   persist();renderLib();closeOverlay('import-overlay');window.location.hash='';
   var ref0=(s.refs&&s.refs[0]&&s.refs[0].reference)||s.reference||'';
   toast('Study imported: '+(s.title||ref0||'Untitled'));
+  if(!sett.groqKey){setTimeout(function(){document.getElementById('gemini-setup-overlay').classList.add('on');},800);}
 }
 function clearAll(){document.getElementById('clearall-overlay').classList.add('on');}
 function confirmClearAll(){studies=[];cur=null;persist();renderLib();closeOverlay('clearall-overlay');toast('All data cleared');}
@@ -2145,7 +2159,8 @@ var CHANGELOG=[
   {
     version:'3.0',date:'March 25, 2026',label:'Latest',
     items:[
-      'Share Study Link strips AI results — dots show which tools were run; recipient re-runs tools fresh; URLs now short enough for SMS'
+      'Share Study Link strips AI results — dots show which tools were run; recipient re-runs tools fresh; URLs now short enough for SMS',
+      'Share App button in Settings — native share sheet on mobile with app link and setup instructions'
     ]},
   {
     version:'2.9',date:'March 24, 2026',
