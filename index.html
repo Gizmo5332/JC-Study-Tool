@@ -1611,7 +1611,7 @@ async function runTool(tool){
   var ar=activeRef();
   if(!ar||!ar.reference){toast('Add a scripture reference first');return;}
   var ck=studyScope==='book'?tool+'_book':tool;
-  if(ar.deep&&ar.deep[ck]){showAIPanel(tool,ar.deep[ck]);return;}
+  if(ar.deep&&ar.deep[ck]&&ar.deep[ck]!=='__shared__'){showAIPanel(tool,ar.deep[ck]);return;}
   if(!online){toast('AI tools require internet');return;}
   if(!sett.groqKey){toast('API key needed - see Settings');setTimeout(function(){navTo('settings');},800);return;}
   var btn=document.getElementById('btn-'+tool);btn.classList.add('busy');
@@ -2095,9 +2095,11 @@ var _importPending=null;
 function shareStudyLink(){if(!cur){toast('No study open');return;}syncFromInputs();shareStudyLinkById(cur.id);}
 function shareStudyLinkById(id){
   var s=studies.find(function(x){return x.id===id;});if(!s){toast('Study not found');return;}
-  // Strip image data before encoding — images are too large for a URL
+  // Strip image data and AI results before encoding — keeps URL short enough for SMS
+  var AI_KEYS=['lexical','grammar','historical','cultural','crossrefs','lexical_book','grammar_book','historical_book','cultural_book','crossrefs_book'];
   var copy=JSON.parse(JSON.stringify(s));
   if(copy.resources)copy.resources=copy.resources.map(function(r){return Object.assign({},r,{dataUrl:'',ocrStatus:r.ocrStatus==='done'?'done':'pending'});});
+  if(copy.refs)copy.refs=copy.refs.map(function(ref){var r=Object.assign({},ref);if(r.deep){r.deep=Object.assign({},r.deep);AI_KEYS.forEach(function(k){if(r.deep[k])r.deep[k]='__shared__';});}return r;});
   try{
     var json=JSON.stringify(copy);
     var encoded=btoa(unescape(encodeURIComponent(json)));
@@ -2141,7 +2143,12 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 // ── CHANGELOG ────────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'2.9',date:'March 24, 2026',label:'Latest',
+    version:'3.0',date:'March 25, 2026',label:'Latest',
+    items:[
+      'Share Study Link strips AI results — dots show which tools were run; recipient re-runs tools fresh; URLs now short enough for SMS'
+    ]},
+  {
+    version:'2.9',date:'March 24, 2026',
     items:[
       'Resources modal added to Deep Study header — tap "Resources" for reference material',
       'How to Study the Bible — foundational scriptures, 4 method insights, Historical-Grammatical approach overview, 8 study methods',
