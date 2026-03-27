@@ -22,7 +22,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 /* ── Base (mobile) ───────────────────────────────────────────── */
 html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--txt1);font-family:'Crimson Pro',serif;font-size:16px;-webkit-font-smoothing:antialiased}
-#app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;position:relative;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;position:relative;overflow:hidden}
 .scr{display:none;flex-direction:column;flex:1;overflow:hidden}
 .scr.on{display:flex}
 #scr-field{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;flex-direction:column}
@@ -137,12 +137,12 @@ select option{background:var(--bg2);color:var(--txt1)}
 .setsub{font-size:12px;color:var(--txt3);margin-bottom:13px;line-height:1.5}
 .conntag{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:13px;color:var(--txt2)}
 .conndot{width:8px;height:8px;border-radius:50%;background:var(--sagebright);flex-shrink:0}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;justify-content:center;z-index:500;padding-bottom:var(--safe-b);cursor:pointer}
+.overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;justify-content:center;z-index:500;padding-bottom:var(--safe-b);cursor:pointer}
 .res-popout{display:none;position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-top:2px solid var(--golddim);border-radius:var(--rl) var(--rl) 0 0;padding:16px 18px 24px;max-height:60%;overflow-y:auto;z-index:10;box-shadow:0 -8px 32px rgba(0,0,0,.6);}
 .res-popout.on{display:block;}
 .res-popout::-webkit-scrollbar{display:none;}
 .overlay.on{display:flex}
-.gemini-setup-overlay{position:fixed;inset:0;background:rgba(11,9,7,.96);display:none;align-items:center;justify-content:center;z-index:400;padding:20px}
+.gemini-setup-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(11,9,7,.96);display:none;align-items:center;justify-content:center;z-index:400;padding:20px}
 .gemini-setup-overlay.on{display:flex}
 .gemini-setup-card{background:var(--bg2);border:1px solid var(--borderlit);border-radius:var(--rl);padding:28px 24px;width:100%;max-width:420px}
 .modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl) var(--rl) 0 0;padding:20px 16px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto}
@@ -176,7 +176,7 @@ select option{background:var(--bg2);color:var(--txt1)}
 .tpl-name{font-family:'EB Garamond',serif;font-size:16px;color:var(--txt1)}
 .tpl-desc{font-size:11px;color:var(--txt4);line-height:1.4}
 /* ── Onboarding ─────────────────────────────────────────────── */
-.ob-overlay{position:fixed;inset:0;background:rgba(11,9,7,.92);display:none;align-items:flex-end;justify-content:center;z-index:300;padding-bottom:var(--safe-b)}
+.ob-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(11,9,7,.92);display:none;align-items:flex-end;justify-content:center;z-index:300;padding-bottom:var(--safe-b)}
 .ob-overlay.on{display:flex}
 .ob-card{background:var(--bg2);border:1px solid var(--borderlit);border-radius:var(--rl) var(--rl) 0 0;padding:28px 20px 20px;width:100%;max-width:480px}
 .ob-step{display:none}.ob-step.on{display:block}
@@ -255,7 +255,7 @@ select option{background:var(--bg2);color:var(--txt1)}
 /* ── Book Picker ─────────────────────────────────────────────── */
 .bp-open-btn{display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--borderlit);border-radius:var(--r);cursor:pointer;transition:all .15s;min-height:44px;min-width:44px;flex-shrink:0;color:var(--gold)}
 .bp-open-btn:active{background:var(--bg4)}
-.bp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.bp-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .bp-overlay.on{opacity:1;pointer-events:all}
 .bp-sheet{background:var(--bg1);border-radius:var(--rl) var(--rl) 0 0;width:100%;max-width:520px;max-height:82vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s ease}
 .bp-overlay.on .bp-sheet{transform:translateY(0)}
@@ -293,7 +293,7 @@ select option{background:var(--bg2);color:var(--txt1)}
 /* ── Tablet (481–900px) ───────────────────────────────────────── */
 @media(min-width:481px){
   html,body{overflow:auto}
-  #app{max-width:700px;height:auto;min-height:100dvh;overflow:visible}
+  #app{max-width:700px;height:auto;min-height:100vh;overflow:visible}
   .scr{overflow:visible;flex:none}
   .scr.on{display:flex}
   #scr-field{overflow-y:auto}
@@ -313,9 +313,9 @@ select option{background:var(--bg2);color:var(--txt1)}
 /* ── Desktop (901px+) ─────────────────────────────────────────── */
 @media(min-width:901px){
   html,body{overflow:hidden}
-  #app{max-width:100%;flex-direction:row;height:100dvh;overflow:hidden}
+  #app{max-width:100%;flex-direction:row;height:100vh;overflow:hidden}
   /* Sidebar — LEFT */
-  .botnav{flex-direction:column;width:220px;border-top:none;border-right:1px solid var(--border);border-bottom:none;height:100dvh;flex-shrink:0;padding-bottom:60px;justify-content:flex-start;padding-top:16px;position:relative}
+  .botnav{flex-direction:column;width:220px;border-top:none;border-right:1px solid var(--border);border-bottom:none;height:100vh;flex-shrink:0;padding-bottom:60px;justify-content:flex-start;padding-top:16px;position:relative}
   .navbtn{flex:none;flex-direction:row;justify-content:flex-start;padding:13px 20px;gap:12px;font-size:14px;letter-spacing:.04em;border-radius:var(--r);margin:2px 10px;width:calc(100% - 20px)}
   .navbtn svg{width:18px;height:18px;flex-shrink:0}
   .navbtn.on{background:color-mix(in srgb,var(--bg3),var(--golddim) 18%);color:var(--gold)}
@@ -334,7 +334,7 @@ select option{background:var(--bg2);color:var(--txt1)}
   .overlay{align-items:center}
   /* Deep Study TWO-COLUMN */
   .deep-cols{display:grid !important;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
-  .deep-col-right{position:sticky;top:0;max-height:100dvh;overflow-y:auto;padding-bottom:32px;}
+  .deep-col-right{position:sticky;top:0;max-height:100vh;overflow-y:auto;padding-bottom:32px;}
   .deep-col-right::-webkit-scrollbar{display:none;}
   .aitools{grid-template-columns:repeat(2,1fr)}
   .aitoolbtn[style*="grid-column:span 2"]{grid-column:span 2}
@@ -722,8 +722,6 @@ select option{background:var(--bg2);color:var(--txt1)}
 
 </div><!-- /desktop-main -->
 
-<button class="fab" onclick="newStudy()">+</button>
-
 <!-- MODALS -->
 <div class="overlay" id="del-overlay">
   <div class="modal">
@@ -966,6 +964,8 @@ select option{background:var(--bg2);color:var(--txt1)}
 <div class="toast" id="toast"></div>
 </div>
 
+<button class="fab" onclick="newStudy()">+</button>
+
 <script>
 var ESV_KEY='6788a84f19616a65bf00f0edda9f45ea83486ccf';
 var SK='bsn_studies_v2', SK_SETT='bsn_settings_v1', SK_TAGS='bsn_tags_v1';
@@ -1207,7 +1207,7 @@ function navTo(id){
 function saveAndGoLib(){saveStudy();navTo('library');}
 function goField(){navTo('field');}
 
-function newStudy(){document.getElementById('tpl-overlay').classList.add('on');}
+function newStudy(){setTimeout(function(){document.getElementById('tpl-overlay').classList.add('on');},50);}
 function createFromTemplate(tplKey){
   closeOverlay('tpl-overlay');
   var tpl=TEMPLATES[tplKey]||TEMPLATES.blank;
@@ -2159,7 +2159,7 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 var CHANGELOG=[
   {
     version:'3.1',date:'March 26, 2026',label:'Latest',
-    items:['Fixed: Orphan duplicate Study Resources modal removed — was permanently visible on iPad/Safari, blocking the FAB and swallowing taps','Fixed: Overlay backdrop now dismisses on iOS Safari tap (cursor:pointer added — required by WebKit click event model)','Fixed: FAB z-index raised from 10 to 60, safely above bottom nav bar','Fixed: FAB moved outside overflow:hidden container — iOS Safari silently drops touch events on fixed-position elements inside overflow:hidden parents']
+    items:['Fixed: Orphan duplicate Study Resources modal removed — was permanently visible on iPad/Safari, blocking the FAB and swallowing taps','Fixed: Overlay backdrop now dismisses on iOS Safari tap (cursor:pointer added — required by WebKit click event model)','Fixed: FAB z-index raised from 10 to 60, safely above bottom nav bar','Fixed: FAB moved outside overflow:hidden container — iOS Safari silently drops touch events on fixed-position elements inside overflow:hidden parents','Fixed: inset:0 replaced with top/right/bottom/left longhand — inset unsupported before iOS 14.5','Fixed: 100dvh replaced with 100vh — dvh unit unsupported before iOS 15.4']
   },{
     version:'3.0',date:'March 25, 2026',label:'',
     items:[
