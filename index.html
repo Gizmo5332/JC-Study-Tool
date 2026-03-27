@@ -1199,7 +1199,7 @@ function navTo(id){
   document.getElementById('scr-'+id).classList.add('on');
   document.getElementById('nav-'+id).classList.add('on');
   if(id==='library')renderLib();
-  if(id==='deep'){syncFromInputs();_fnotesOpen=false;var fb=document.getElementById('fnotes-body');if(fb)fb.classList.remove('open');var fc=document.getElementById('fnotes-chev');if(fc)fc.style.transform='';populateDeep();}
+  if(id==='deep'){_fnotesOpen=false;var fb=document.getElementById('fnotes-body');if(fb)fb.classList.remove('open');var fc=document.getElementById('fnotes-chev');if(fc)fc.style.transform='';populateDeep();}
   if(id==='field'&&cur)populateField();
   if(id==='stats')renderStats();
   if(id==='settings'){renderTagManager();renderChangelog();var dot=document.getElementById('gemini-status-dot'),txt=document.getElementById('gemini-status-text');if(dot&&txt){if(sett.groqKey){dot.style.background='var(--sagebright)';txt.textContent='Groq key saved';}else{dot.style.background='var(--crimsonbright)';txt.textContent='No Groq key saved — tap below to add one';}}var gdot=document.getElementById('gemini-ocr-dot'),gtxt=document.getElementById('gemini-ocr-text');if(gdot&&gtxt){if(sett.geminiKey){gdot.style.background='var(--sagebright)';gtxt.textContent='Gemini key saved (OCR enabled)';}else{gdot.style.background='var(--golddim)';gtxt.textContent='No Gemini key — OCR unavailable (optional)';}}}
@@ -1289,8 +1289,8 @@ function mdToHtml(md){
 }
 
 function openStudy(id){cur=studies.find(function(s){return s.id===id;});if(!cur)return;migrateStudy(cur);if(!cur.deep)cur.deep={conclusions:'',outline:''};if(!cur.deep.hasOwnProperty('conclusions'))cur.deep.conclusions='';if(!cur.deep.hasOwnProperty('outline'))cur.deep.outline='';if(!cur.resources)cur.resources=[];if(!cur.tags)cur.tags=[];activeRefIdx=0;studyScope=(activeRef()&&activeRef().deep&&activeRef().deep.studyScope)||'passage';trackOpen(cur);populateField();navTo('field');}
-function saveStudy(silent){if(!cur)return;syncFromInputs();cur.updatedAt=new Date().toISOString();var i=studies.findIndex(function(s){return s.id===cur.id;});if(i>=0)studies[i]=cur;else studies.unshift(cur);persist();if(!silent)toast('Saved');}
-function autoSave(){if(cur){syncFromInputs();saveStudy(true);}}
+function saveStudy(silent){if(!cur)return;syncFromInputs(!silent);cur.updatedAt=new Date().toISOString();var i=studies.findIndex(function(s){return s.id===cur.id;});if(i>=0)studies[i]=cur;else studies.unshift(cur);persist();if(!silent)toast('Saved');}
+function autoSave(){if(cur){syncFromInputs(false);saveStudy(true);}}
 function deleteStudy(){var id=_pendingDeleteId||(cur&&cur.id);if(!id)return;studies=studies.filter(function(s){return s.id!==id;});persist();if(cur&&cur.id===id)cur=null;_pendingDeleteId=null;closeOverlay('del-overlay');navTo('library');toast('Study deleted');}
 function showDeleteModal(){_pendingDeleteId=null;document.getElementById('del-overlay').classList.add('on');}
 function showDeleteById(id){_pendingDeleteId=id;document.getElementById('del-overlay').classList.add('on');}
@@ -1302,7 +1302,7 @@ function duplicateStudy(id){
   copy.updatedAt=new Date().toISOString();
   studies.unshift(copy);persist();renderLib();toast('Study duplicated');
 }
-function syncFromInputs(){if(!cur)return;cur.date=document.getElementById('f-date').value;cur.teacher=document.getElementById('f-teacher').value;cur.title=document.getElementById('f-title').value;cur.fieldNotes=document.getElementById('f-notes').value;if(cur.deep){cur.deep.conclusions=document.getElementById('d-conclusions')?document.getElementById('d-conclusions').value:cur.deep.conclusions;var outlineEl=document.getElementById('d-outline');var deepOn=document.getElementById('scr-deep')&&document.getElementById('scr-deep').classList.contains('on');if(outlineEl&&deepOn)cur.deep.outline=outlineEl.value;}var ar=activeRef();if(!ar)return;var fieldOn=document.getElementById('scr-field')&&document.getElementById('scr-field').classList.contains('on');if(fieldOn){ar.reference=document.getElementById('f-ref').value;ar.translation=document.getElementById('f-trans').value;}if(ar.deep)ar.deep.studyScope=studyScope;}
+function syncFromInputs(force){if(!cur)return;cur.date=document.getElementById('f-date').value;cur.teacher=document.getElementById('f-teacher').value;cur.title=document.getElementById('f-title').value;cur.fieldNotes=document.getElementById('f-notes').value;if(cur.deep){cur.deep.conclusions=document.getElementById('d-conclusions')?document.getElementById('d-conclusions').value:cur.deep.conclusions;var outlineEl=document.getElementById('d-outline');var deepOn=document.getElementById('scr-deep')&&document.getElementById('scr-deep').classList.contains('on');if(outlineEl&&(deepOn||force))cur.deep.outline=outlineEl.value;}var ar=activeRef();if(!ar)return;var fieldOn=document.getElementById('scr-field')&&document.getElementById('scr-field').classList.contains('on');if(fieldOn){ar.reference=document.getElementById('f-ref').value;ar.translation=document.getElementById('f-trans').value;}if(ar.deep)ar.deep.studyScope=studyScope;}
 
 function populateField(){
   if(!cur)return;
@@ -2158,8 +2158,13 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 // ── CHANGELOG ────────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'3.1',date:'March 26, 2026',label:'Latest',
-    items:['Fixed: Orphan duplicate Study Resources modal removed — was permanently visible on iPad/Safari, blocking the FAB and swallowing taps','Fixed: Overlay backdrop now dismisses on iOS Safari tap (cursor:pointer added — required by WebKit click event model)','Fixed: FAB z-index raised from 10 to 60, safely above bottom nav bar','Fixed: FAB moved outside overflow:hidden container — iOS Safari silently drops touch events on fixed-position elements inside overflow:hidden parents','Fixed: inset:0 replaced with top/right/bottom/left longhand — inset unsupported before iOS 14.5','Fixed: 100dvh replaced with 100vh — dvh unit unsupported before iOS 15.4']
+    version:'3.2',date:'March 27, 2026',label:'Latest',
+    items:[
+      'Fixed: Outline and Conclusions data loss — redundant syncFromInputs() call removed from navTo deep branch; stale textarea content from a previously viewed study could overwrite the current study\'s outline before populateDeep() loaded correct data'
+    ]
+  },{
+    version:'3.1',date:'March 26, 2026',label:'',
+    items:['Fixed: Orphan duplicate Study Resources modal removed — was permanently visible on iPad/Safari, blocking the FAB and swallowing taps','Fixed: Overlay backdrop now dismisses on iOS Safari tap (cursor:pointer added — required by WebKit click event model)','Fixed: FAB z-index raised from 10 to 60, safely above bottom nav bar','Fixed: FAB moved outside overflow:hidden container — iOS Safari silently drops touch events on fixed-position elements inside overflow:hidden parents','Fixed: inset:0 replaced with top/right/bottom/left longhand — inset unsupported before iOS 14.5','Fixed: 100dvh replaced with 100vh — dvh unit unsupported before iOS 15.4','Fixed: syncFromInputs gains force param — manual Save always commits outline regardless of active view; auto-save retains Deep Study guard to prevent stale textarea writes']
   },{
     version:'3.0',date:'March 25, 2026',label:'',
     items:[
