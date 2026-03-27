@@ -395,7 +395,6 @@ select option{background:var(--bg2);color:var(--txt1)}
     <div class="tag-filter-bar" id="tag-filter-bar"></div>
     <div class="lib-grid" id="lib-list"></div>
   </div>
-  <button class="fab" onclick="newStudy()">+</button>
 </div>
 
 <!-- FIELD MODE -->
@@ -722,6 +721,8 @@ select option{background:var(--bg2);color:var(--txt1)}
 </div>
 
 </div><!-- /desktop-main -->
+
+<button class="fab" onclick="newStudy()">+</button>
 
 <!-- MODALS -->
 <div class="overlay" id="del-overlay">
@@ -2158,7 +2159,7 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 var CHANGELOG=[
   {
     version:'3.1',date:'March 26, 2026',label:'Latest',
-    items:['Fixed: Orphan duplicate Study Resources modal removed — was permanently visible on iPad/Safari, blocking the FAB and swallowing taps','Fixed: Overlay backdrop now dismisses on iOS Safari tap (cursor:pointer added — required by WebKit click event model)','Fixed: FAB z-index raised from 10 to 60, safely above bottom nav bar']
+    items:['Fixed: Orphan duplicate Study Resources modal removed — was permanently visible on iPad/Safari, blocking the FAB and swallowing taps','Fixed: Overlay backdrop now dismisses on iOS Safari tap (cursor:pointer added — required by WebKit click event model)','Fixed: FAB z-index raised from 10 to 60, safely above bottom nav bar','Fixed: FAB moved outside overflow:hidden container — iOS Safari silently drops touch events on fixed-position elements inside overflow:hidden parents']
   },{
     version:'3.0',date:'March 25, 2026',label:'',
     items:[
