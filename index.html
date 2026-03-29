@@ -285,6 +285,8 @@ select option{background:var(--bg2);color:var(--txt1)}
 .ref-pill.on{border-color:var(--gold);color:var(--gold);background:color-mix(in srgb,var(--bg3),var(--golddim) 15%)}
 .ref-pill-x{font-size:11px;opacity:.5;margin-left:2px;padding:0 2px;transition:opacity .15s;line-height:1}
 .ref-pill:hover .ref-pill-x,.ref-pill-x:hover{opacity:1}
+.ref-pill-type{font-size:10px;margin-right:1px;opacity:.7;padding:0 1px;transition:opacity .15s;line-height:1;cursor:pointer}
+.ref-pill-type:hover{opacity:1}
 .ref-pill-add{border-style:dashed;color:var(--txt4) !important;border-color:var(--border) !important;background:none !important}
 /* Deep Study layout — single col mobile, two col desktop */
 .deep-cols{display:flex;flex-direction:column;gap:0}
@@ -1150,10 +1152,10 @@ function loadStudies(){try{studies=JSON.parse(localStorage.getItem(SK))||[];stud
 function persist(){try{localStorage.setItem(SK,JSON.stringify(studies));}catch(e){toast('Storage full');}}
 
 // ── MULTI-REF HELPERS ─────────────────────────────────────────────
-function makeRef(){return {id:'ref_'+Date.now(),reference:'',translation:'esv',pastedTranslation:'',scriptureText:'',deep:{lexical:'',grammar:'',historical:'',cultural:'',crossrefs:'',lexical_book:'',grammar_book:'',historical_book:'',cultural_book:'',crossrefs_book:'',studyScope:'passage'}};}
+function makeRef(type){return {id:'ref_'+Date.now(),reference:'',translation:'esv',pastedTranslation:'',scriptureText:'',type:type||'primary',deep:{lexical:'',grammar:'',historical:'',cultural:'',crossrefs:'',lexical_book:'',grammar_book:'',historical_book:'',cultural_book:'',crossrefs_book:'',studyScope:'passage'}};}
 function migrateStudy(s){
-  if(s.refs&&s.refs.length)return;
-  var ref=makeRef();
+  if(s.refs&&s.refs.length){s.refs.forEach(function(r){if(!r.type)r.type='primary';});return;}
+  var ref=makeRef('primary');
   ref.reference=s.reference||'';ref.translation=s.translation||'esv';ref.pastedTranslation=s.pastedTranslation||'';ref.scriptureText=s.scriptureText||'';
   if(s.deep){['lexical','grammar','historical','cultural','crossrefs','lexical_book','grammar_book','historical_book','cultural_book','crossrefs_book'].forEach(function(k){if(s.deep[k])ref.deep[k]=s.deep[k];});ref.deep.studyScope=s.deep.studyScope||'passage';['lexical','grammar','historical','cultural','crossrefs','lexical_book','grammar_book','historical_book','cultural_book','crossrefs_book','studyScope'].forEach(function(k){delete s.deep[k];});}
   s.refs=[ref];delete s.reference;delete s.translation;delete s.pastedTranslation;delete s.scriptureText;
@@ -1169,7 +1171,16 @@ function switchRef(idx){
   if(fieldOn){var ar=activeRef();document.getElementById('f-ref').value=ar?ar.reference||'':'';document.getElementById('f-trans').value=ar?ar.translation||'esv':'esv';updateBarRefLabel();if(ar&&ar.scriptureText){renderScrText(ar.scriptureText,ar.pastedTranslation||ar.translation);document.getElementById('scracts').style.display='flex';}else{document.getElementById('scrdisplay').innerHTML='<div class="empty" style="padding:14px 0"><p style="font-style:italic;font-size:13px">Enter a reference above to load the passage</p></div>';document.getElementById('scracts').style.display='none';}renderRefPills('f-ref-pills','field');}
   if(deepOn){populateDeep();}
 }
-function addRef(){if(!cur)return;if(!cur.refs)cur.refs=[];if(cur.refs.length>=12){toast('Maximum 12 passages per study');return;}cur.refs.push(makeRef());saveStudy(true);switchRef(cur.refs.length-1);toast('New passage added');}
+function addRef(){if(!cur)return;if(!cur.refs)cur.refs=[];cur.refs.push(makeRef('secondary'));saveStudy(true);switchRef(cur.refs.length-1);toast('New passage added');}
+function toggleRefType(idx){
+  if(!cur||!cur.refs||!cur.refs[idx])return;
+  cur.refs[idx].type=cur.refs[idx].type==='secondary'?'primary':'secondary';
+  saveStudy(true);
+  var fieldOn=document.getElementById('scr-field').classList.contains('on');
+  var deepOn=document.getElementById('scr-deep').classList.contains('on');
+  if(fieldOn)renderRefPills('f-ref-pills','field');
+  if(deepOn)renderRefPills('d-ref-pills','deep');
+}
 function removeRef(idx){
   if(!cur||!cur.refs)return;if(cur.refs.length<=1){toast('A study needs at least one passage');return;}
   var ref=cur.refs[idx];var hasContent=ref&&(ref.reference||ref.scriptureText||['lexical','grammar','historical','cultural','crossrefs','lexical_book','grammar_book','historical_book','cultural_book','crossrefs_book'].some(function(k){return ref.deep&&ref.deep[k];}));
@@ -1191,9 +1202,11 @@ function renderRefPills(containerId,mode){
   cur.refs.forEach(function(ref,i){
     var isActive=(i===activeRefIdx);var label=ref.reference||'Passage '+(i+1);if(label.length>20)label=label.slice(0,18)+'\u2026';
     var showX=cur.refs.length>1&&mode==='field';
-    html+='<button class="ref-pill'+(isActive?' on':'')+'" onclick="switchRef('+i+')">'+escHtml(label)+(showX?'<span class="ref-pill-x" onclick="event.stopPropagation();removeRef('+i+')">\u2715</span>':'')+'</button>';
+    var isPrimary=ref.type!=='secondary';
+    var typeBadge='<span class="ref-pill-type" onclick="event.stopPropagation();toggleRefType('+i+')" title="'+(isPrimary?'Primary (tap to make secondary)':'Secondary (tap to make primary)')+'">'+( isPrimary?'\u2605':'\u25cb')+'</span>';
+    html+='<button class="ref-pill'+(isActive?' on':'')+'" onclick="switchRef('+i+')">'+typeBadge+escHtml(label)+(showX?'<span class="ref-pill-x" onclick="event.stopPropagation();removeRef('+i+')">\u2715</span>':'')+'</button>';
   });
-  if(mode==='field'&&cur.refs.length<12){html+='<button class="ref-pill ref-pill-add" onclick="addRef()">+ Add Passage</button>';}
+  if(mode==='field'){html+='<button class="ref-pill ref-pill-add" onclick="addRef()">+ Add Passage</button>';}
   el.innerHTML=html;
 }
 function loadSett(){try{var s=JSON.parse(localStorage.getItem(SK_SETT));if(s)sett=Object.assign({},sett,s);if(!sett.scrMode)sett.scrMode='auto';document.getElementById('set-groq').value=sett.groqKey||'';document.getElementById('set-gemini').value=sett.geminiKey||'';updateScrModeUI();}catch(e){}}
@@ -1917,23 +1930,29 @@ async function exportPDF(opts){
     var trans0=ar?(ar.pastedTranslation||ar.translation||'ESV').toUpperCase():'ESV';
     var meta=[['Date',fmtDate(cur.date)],['Reference',ref0],['Translation',trans0],['Teacher',cur.teacher]].filter(function(m){return m[1];});
     meta.forEach(function(m){np(7);doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(60,45,20);doc.text(m[0]+':',mgL,y);doc.setFont('helvetica','normal');doc.setTextColor(30,25,15);doc.text(pdfSafe(String(m[1])),mgL+44,y);y+=6;});y+=6;
-    // 1. First reference scripture
+    // 1. Primary references — flow together after header
     var refs=cur.refs&&cur.refs.length?cur.refs:[];
-    var r0=refs[0];
-    if(opts.scripture&&r0&&r0.scriptureText){
-      section('Scripture — '+(r0.reference||'Passage'));
-      txt(pdfSafe(r0.scriptureText.replace(/<[^>]+>/g,'').replace(/\n\n/g,'\n')),10,'italic',[45,35,20]);
-    }
+    var primaryRefs=refs.filter(function(r){return r.type!=='secondary';});
+    var secondaryRefs=refs.filter(function(r){return r.type==='secondary';});
+    var firstPrimary=true;
+    primaryRefs.forEach(function(r){
+      if(!opts.scripture||!r.scriptureText)return;
+      if(firstPrimary){section('Scripture — '+(r.reference||'Passage'));firstPrimary=false;}
+      else{softsection('Scripture — '+(r.reference||'Passage'));}
+      txt(pdfSafe(r.scriptureText.replace(/<[^>]+>/g,'').replace(/\n\n/g,'\n')),10,'italic',[45,35,20],1);
+    });
     // 2. Outline
     var outln=document.getElementById('d-outline').value||(cur.deep&&cur.deep.outline)||'';
     if(opts.outline&&outln){section('Passage / Book Outline');txt(pdfSafe(outln),10,'normal',[30,25,15]);}
     // 3. Field Notes
     if(opts.fieldNotes&&cur.fieldNotes){section('Field Notes & Observations');txt(pdfSafe(cur.fieldNotes),10,'normal',[30,25,15]);}
-    // 4. Remaining references — new page after Field Notes, then flow together
-    if(opts.scripture&&refs.length>1&&refs.slice(1).some(function(r){return r.scriptureText;})){
+    // 4. Secondary references — new page, flow together
+    if(opts.scripture&&secondaryRefs.length&&secondaryRefs.some(function(r){return r.scriptureText;})){
       doc.addPage();y=mgT;
-      refs.slice(1).forEach(function(r){
+      var firstSec=true;
+      secondaryRefs.forEach(function(r){
         if(!r.scriptureText)return;
+        if(firstSec){y+=4;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=5;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text('SUPPORTING REFERENCES',mgL,y);y+=6;firstSec=false;}
         softsection('Scripture — '+(r.reference||'Passage'));
         txt(pdfSafe(r.scriptureText.replace(/<[^>]+>/g,'').replace(/\n\n/g,'\n')),10,'italic',[45,35,20],1);
       });
@@ -2247,6 +2266,9 @@ var CHANGELOG=[
       'Fixed: My Conclusions wiped on load — syncFromInputs() now guards d-conclusions with the same deepOn||force check already applied to the outline; was unconditionally reading the empty textarea whenever Field Mode was active',
       'AI panel: Clear button deletes the stored result for the active tab, removes the ready dot, and saves',
       'Export modal: All / None quick-select links added to the AI Study Tools section header',
+      'References: no limit on passages per study — previously capped at 12',
+      'References: Primary / Secondary type per passage — ★ = primary (shows on page 1 of PDF), ○ = secondary (prints as Supporting References); tap badge on any pill to toggle; new passages default to secondary',
+      'PDF export: primary refs flow together after the header; secondary refs print on a dedicated Supporting References page after Field Notes',
       'PDF export section order revised — Primary reference, Outline, Field Notes, additional references, Resources, AI tools, My Conclusions',
       'PDF export hides empty sections — sections with no content are skipped entirely rather than printing blank',
       'PDF export: bullet characters (•) now render as dashes instead of disappearing',
