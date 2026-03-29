@@ -1302,7 +1302,7 @@ function duplicateStudy(id){
   copy.updatedAt=new Date().toISOString();
   studies.unshift(copy);persist();renderLib();toast('Study duplicated');
 }
-function syncFromInputs(force){if(!cur)return;cur.date=document.getElementById('f-date').value;cur.teacher=document.getElementById('f-teacher').value;cur.title=document.getElementById('f-title').value;cur.fieldNotes=document.getElementById('f-notes').value;if(cur.deep){cur.deep.conclusions=document.getElementById('d-conclusions')?document.getElementById('d-conclusions').value:cur.deep.conclusions;var outlineEl=document.getElementById('d-outline');var deepOn=document.getElementById('scr-deep')&&document.getElementById('scr-deep').classList.contains('on');if(outlineEl&&(deepOn||force))cur.deep.outline=outlineEl.value;}var ar=activeRef();if(!ar)return;var fieldOn=document.getElementById('scr-field')&&document.getElementById('scr-field').classList.contains('on');if(fieldOn){ar.reference=document.getElementById('f-ref').value;ar.translation=document.getElementById('f-trans').value;}if(ar.deep)ar.deep.studyScope=studyScope;}
+function syncFromInputs(force){if(!cur)return;cur.date=document.getElementById('f-date').value;cur.teacher=document.getElementById('f-teacher').value;cur.title=document.getElementById('f-title').value;cur.fieldNotes=document.getElementById('f-notes').value;if(cur.deep){var deepOn=document.getElementById('scr-deep')&&document.getElementById('scr-deep').classList.contains('on');var conclusEl=document.getElementById('d-conclusions');if(conclusEl&&(deepOn||force))cur.deep.conclusions=conclusEl.value;var outlineEl=document.getElementById('d-outline');if(outlineEl&&(deepOn||force))cur.deep.outline=outlineEl.value;}var ar=activeRef();if(!ar)return;var fieldOn=document.getElementById('scr-field')&&document.getElementById('scr-field').classList.contains('on');if(fieldOn){ar.reference=document.getElementById('f-ref').value;ar.translation=document.getElementById('f-trans').value;}if(ar.deep)ar.deep.studyScope=studyScope;}
 
 function populateField(){
   if(!cur)return;
@@ -2179,6 +2179,7 @@ var CHANGELOG=[
     version:'3.2',date:'March 28, 2026',label:'Latest',
     items:[
       'Fixed: Outline and Conclusions data loss — redundant syncFromInputs() call removed from navTo deep branch; stale textarea content from a previously viewed study could overwrite the current study\'s outline before populateDeep() loaded correct data',
+      'Fixed: My Conclusions wiped on load — syncFromInputs() now guards d-conclusions with the same deepOn||force check already applied to the outline; was unconditionally reading the empty textarea whenever Field Mode was active',
       'PDF export section order revised — Primary reference, Outline, Field Notes, additional references, Resources, AI tools, My Conclusions',
       'PDF export hides empty sections — sections with no content are skipped entirely rather than printing blank',
       'PDF export: bullet characters (•) now render as dashes instead of disappearing',
