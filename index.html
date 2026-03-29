@@ -572,6 +572,10 @@ select option{background:var(--bg2);color:var(--txt1)}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
             Share
           </button>
+          <button class="btn btn-ghost btn-sm" onclick="deleteAIResult()" title="Delete this result" style="padding:5px 9px;font-size:12px;color:var(--crimsonbright);border-color:transparent">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Clear
+          </button>
           <button class="closepanel" onclick="closeAIPanel()">&#10005;</button>
         </div>
       </div>
@@ -762,7 +766,14 @@ select option{background:var(--bg2);color:var(--txt1)}
       <div class="exp-row on" id="exp-conclusions" onclick="expToggle(this)"><div class="exp-check"><svg class="exp-check-mark" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2 7 5 10 11 3"/></svg></div><div class="exp-row-text"><div class="exp-row-label">My Conclusions</div><div class="exp-row-sub">Your personal theological conclusions</div></div></div>
     </div>
     <div class="exp-section">
-      <div class="exp-section-title">AI Study Tools</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="exp-section-title" style="margin-bottom:0">AI Study Tools</div>
+        <div style="display:flex;gap:8px">
+          <span class="exp-selall" onclick="expSelectAllTools(true)">All</span>
+          <span style="color:var(--txt4);font-size:12px">|</span>
+          <span class="exp-selall" onclick="expSelectAllTools(false)">None</span>
+        </div>
+      </div>
       <p style="font-size:11px;color:var(--txt4);font-style:italic;margin-bottom:10px">Only tools with generated data are shown.</p>
       <div id="exp-tools-list"></div>
     </div>
@@ -1808,7 +1819,20 @@ function openExportModal(){
 }
 function expToggle(el){el.classList.toggle('on');}
 function expSelectAll(val){document.querySelectorAll('#export-overlay .exp-row, #export-overlay .exp-pill').forEach(function(el){if(val)el.classList.add('on');else el.classList.remove('on');});}
+function expSelectAllTools(val){document.querySelectorAll('#exp-tools-list .exp-pill').forEach(function(el){if(val)el.classList.add('on');else el.classList.remove('on');});}
 function expIsOn(id){var el=document.getElementById(id);return el&&el.classList.contains('on');}
+function deleteAIResult(){
+  if(!aiActiveTab)return;
+  var ar=activeRef();
+  if(ar&&ar.deep&&ar.deep.hasOwnProperty(aiActiveTab)){delete ar.deep[aiActiveTab];}
+  delete aiPanelResults[aiActiveTab];
+  var btn=document.getElementById('btn-'+aiActiveTab.replace('_book',''));
+  if(btn){btn.classList.remove('ready');var dot=btn.querySelector('.rdot');if(dot)dot.remove();}
+  saveStudy(true);
+  closeAIPanel();
+  updateToolDots();
+  toast('AI result cleared');
+}
 function runExport(){
   closeOverlay('export-overlay');
   var opts={scripture:expIsOn('exp-scripture'),fieldNotes:expIsOn('exp-fieldnotes'),outline:expIsOn('exp-outline'),resources:expIsOn('exp-resources'),conclusions:expIsOn('exp-conclusions'),tools:{}};
@@ -2181,6 +2205,8 @@ var CHANGELOG=[
     items:[
       'Fixed: Outline and Conclusions data loss — redundant syncFromInputs() call removed from navTo deep branch; stale textarea content from a previously viewed study could overwrite the current study\'s outline before populateDeep() loaded correct data',
       'Fixed: My Conclusions wiped on load — syncFromInputs() now guards d-conclusions with the same deepOn||force check already applied to the outline; was unconditionally reading the empty textarea whenever Field Mode was active',
+      'AI panel: Clear button deletes the stored result for the active tab, removes the ready dot, and saves',
+      'Export modal: All / None quick-select links added to the AI Study Tools section header',
       'PDF export section order revised — Primary reference, Outline, Field Notes, additional references, Resources, AI tools, My Conclusions',
       'PDF export hides empty sections — sections with no content are skipped entirely rather than printing blank',
       'PDF export: bullet characters (•) now render as dashes instead of disappearing',
