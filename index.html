@@ -6,7 +6,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0b0907">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -18,16 +18,16 @@
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root{--bg0:#0b0907;--bg1:#120f0a;--bg2:#1b1710;--bg3:#252019;--bg4:#2f2a1f;--border:#3a3022;--borderlit:#4d4430;--gold:#c9a84c;--golddim:#7a6520;--goldpale:#e8ca80;--crimson:#8b3535;--crimsonbright:#c05050;--sagebright:#5a9b70;--txt1:#e8d5a3;--txt2:#c4a870;--txt3:#8a7550;--txt4:#5a4d35;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--r:8px;--rl:14px;}
+:root{--bg0:#0b0907;--bg1:#120f0a;--bg2:#1b1710;--bg3:#252019;--bg4:#2f2a1f;--border:#3a3022;--borderlit:#4d4430;--gold:#c9a84c;--golddim:#7a6520;--goldpale:#e8ca80;--crimson:#8b3535;--crimsonbright:#c05050;--sagebright:#5a9b70;--txt1:#e8d5a3;--txt2:#c4a870;--txt3:#8a7550;--txt4:#5a4d35;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--r:8px;--rl:14px;--app-height:100vh;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 /* ── Base (mobile) ───────────────────────────────────────────── */
 html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--txt1);font-family:'Crimson Pro',serif;font-size:16px;-webkit-font-smoothing:antialiased}
-#app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;position:relative;overflow:hidden}
+#app{display:flex;flex-direction:column;height:var(--app-height);max-width:480px;margin:0 auto;position:relative;overflow:hidden}
 .scr{display:none;flex-direction:column;flex:1;overflow:hidden}
 .scr.on{display:flex}
 #scr-field{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;flex-direction:column}
 #scr-field .topbar{position:sticky;top:0;z-index:20;flex-shrink:0}
-.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;overscroll-behavior-y:contain}
 .scroll::-webkit-scrollbar{display:none}
 #desktop-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .topbar{display:flex;align-items:center;gap:10px;padding:12px 16px;padding-top:calc(12px + var(--safe-t));background:var(--bg1);border-bottom:1px solid var(--border);flex-shrink:0;min-height:56px}
@@ -986,6 +986,17 @@ select option{background:var(--bg2);color:var(--txt1)}
     </div>
   </div>
 </div>
+<div class="overlay" id="copylink-overlay">
+  <div class="modal">
+    <div class="modal-title">Copy Study Link</div>
+    <p style="font-size:13px;color:var(--txt3);margin-bottom:10px;line-height:1.5">Tap the field to select all, then copy.</p>
+    <textarea id="copylink-textarea" rows="4" readonly onclick="this.select()" style="font-size:12px;line-height:1.5;word-break:break-all;background:var(--bg1);border-color:var(--borderlit);resize:none;margin-bottom:12px"></textarea>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-sec" style="flex:1" onclick="closeOverlay('copylink-overlay')">Done</button>
+      <button class="btn btn-primary" style="flex:1" onclick="copyLinkFromModal()">Copy</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 </div>
 
@@ -1127,7 +1138,10 @@ var obStep=0;
 var mfBlob=new Blob([JSON.stringify({name:'Arche - Pilgrim',short_name:'Pilgrim',start_url:'./',display:'standalone',background_color:'#0b0907',theme_color:'#0b0907'})],{type:'application/json'});
 document.getElementById('pwa-manifest').href=URL.createObjectURL(mfBlob);
 
-window.addEventListener('load',function(){loadStudies();loadTags();loadSett();renderLib();updateOffline();document.getElementById('f-date').value=todayStr();setTimeout(checkImportHash,300);setInterval(autoSave,30000);initSwipe();checkOnboarding();checkGeminiSetup();});
+window.addEventListener('load',function(){loadStudies();loadTags();loadSett();renderLib();updateOffline();document.getElementById('f-date').value=todayStr();setTimeout(checkImportHash,300);setInterval(autoSave,30000);initSwipe();checkOnboarding();checkGeminiSetup();setAppHeight();});
+function setAppHeight(){document.documentElement.style.setProperty('--app-height',window.innerHeight+'px');}
+window.addEventListener('resize',setAppHeight);
+window.addEventListener('orientationchange',function(){setTimeout(setAppHeight,200);});
 
 // WORD COUNT & FONT SIZE
 var notesFontLarge=false;
@@ -2211,7 +2225,6 @@ function shareApp(){
 function shareStudyLink(){if(!cur){toast('No study open');return;}syncFromInputs(true);shareStudyLinkById(cur.id);}
 function shareStudyLinkById(id){
   var s=studies.find(function(x){return x.id===id;});if(!s){toast('Study not found');return;}
-  // Strip image data and AI results before encoding — keeps URL short enough for SMS
   var AI_KEYS=['lexical','grammar','historical','cultural','crossrefs','lexical_book','grammar_book','historical_book','cultural_book','crossrefs_book'];
   var copy=JSON.parse(JSON.stringify(s));
   if(copy.resources)copy.resources=copy.resources.map(function(r){return Object.assign({},r,{dataUrl:'',ocrStatus:r.ocrStatus==='done'?'done':'pending'});});
@@ -2219,14 +2232,42 @@ function shareStudyLinkById(id){
   try{
     var json=JSON.stringify(copy);
     var encoded=btoa(unescape(encodeURIComponent(json)));
-    var url=window.location.origin+window.location.pathname+'#study='+encoded;
-    if(navigator.clipboard){
-      navigator.clipboard.writeText(url).then(function(){toast('Link copied to clipboard!');}).catch(function(){promptCopyFallback(url);});
-    } else {promptCopyFallback(url);}
+    var base='https://gizmo5332.github.io/JC-Study-Tool/';
+    var url=base+'#study='+encoded;
+    var title=s.title||'Bible Study';
+    var ref0=(s.refs&&s.refs[0]&&s.refs[0].reference)||'';
+    var shareText='Check out this study'+(ref0?' on '+ref0:'')+' from Arché · Pilgrim:';
+    // 1. Native share sheet — best on iOS and Android, handles URL cleanly
+    if(navigator.share){
+      navigator.share({title:title,text:shareText,url:url}).catch(function(e){
+        if(e.name!=='AbortError'){
+          // share failed for non-cancel reason — fall to clipboard
+          _copyUrlToClipboard(url);
+        }
+      });
+      return;
+    }
+    // 2. Clipboard — works on PC and Android Chrome
+    _copyUrlToClipboard(url);
   }catch(e){toast('Could not generate link: '+e.message);}
 }
+function _copyUrlToClipboard(url){
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(function(){toast('Link copied to clipboard!');}).catch(function(){promptCopyFallback(url);});
+  } else {promptCopyFallback(url);}
+}
 function promptCopyFallback(url){
-  window.prompt('Copy this link to share your study:',url);
+  var ta=document.getElementById('copylink-textarea');
+  if(ta){ta.value=url;}
+  document.getElementById('copylink-overlay').classList.add('on');
+  setTimeout(function(){if(ta){ta.focus();ta.select();}},200);
+}
+function copyLinkFromModal(){
+  var ta=document.getElementById('copylink-textarea');
+  if(!ta)return;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(ta.value).then(function(){toast('Link copied!');closeOverlay('copylink-overlay');}).catch(function(){ta.select();toast('Select all and copy manually');});
+  } else {ta.select();toast('Select all and copy manually');}
 }
 function checkImportHash(){
   try{
@@ -2290,6 +2331,9 @@ var CHANGELOG=[
       'AI panel: Clear button deletes the stored result for the active tab, removes the ready dot, and saves',
       'Export modal: All / None quick-select links added to the AI Study Tools section header',
       'References: no limit on passages per study — previously capped at 12',
+      'Fixed: viewport-fit=cover added to meta viewport — safe-area-inset values now work correctly on notched iPhones; without this env() always returned 0',
+      'Fixed: --app-height CSS variable set from window.innerHeight and updated on resize/orientation change — prevents scroll lock when Android/iOS address bar appears or disappears',
+      'Fixed: overscroll-behavior-y:contain on scroll containers — prevents browser toolbar toggling from interfering with in-app scrolling',
       'References: Primary / Secondary type per passage — ★ = primary (shows on page 1 of PDF), ○ = secondary (prints as Supporting References); tap badge on any pill to toggle; new passages default to secondary',
       'PDF export: primary refs flow together after the header; secondary refs print on a dedicated Supporting References page after Field Notes',
       'PDF export section order revised — Primary reference, Outline, Field Notes, additional references, Resources, AI tools, My Conclusions',
