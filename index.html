@@ -1816,7 +1816,7 @@ function runExport(){
   exportPDF(opts);
 }
 
-function pdfSafe(str){var s=String(str),out='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if((c>=32&&c<=126)||(c>=160&&c<=255)||c===9||c===10||c===13)out+=s[i];else out+=' ';}return out.replace(/\(\s*\)/g,'').replace(/  +/g,' ').trim();}
+function pdfSafe(str){var s=String(str).replace(/\u2022/g,'-').replace(/\u2013|\u2014/g,'-'),out='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if((c>=32&&c<=126)||(c>=160&&c<=255)||c===9||c===10||c===13)out+=s[i];else out+=' ';}return out.replace(/\(\s*\)/g,'').trim();}
 
 async function exportPDF(opts){
   if(!cur){toast('No study to export');return;}syncFromInputs();
@@ -1827,16 +1827,23 @@ async function exportPDF(opts){
     var jsPDF=window.jspdf.jsPDF;
     var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
     var pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight();
-    var mgL=20,mgR=20,mgT=20,mgB=18,footH=16,cw=pw-mgL-mgR,y=mgT;
+    var mgL=13,mgR=13,mgT=15,mgB=12,footH=12,cw=pw-mgL-mgR,y=mgT;
     var lh=function(sz){return sz*0.3528*1.55;};
     var np=function(need){need=need||10;if(y+need>ph-mgB-footH){doc.addPage();y=mgT;}};
     var txt=function(str,sz,style,rgb){
       if(!str)return;doc.setFontSize(sz);doc.setFont('helvetica',style||'normal');doc.setTextColor.apply(doc,rgb||[30,25,15]);
       var lhv=lh(sz);
-      String(str).split('\n').forEach(function(para){doc.splitTextToSize(para||' ',cw).forEach(function(line){np(lhv+1);doc.text(line,mgL,y);y+=lhv;});});
+      String(str).split('\n').forEach(function(para){
+        var m=para.match(/^([ \t]*)/);
+        var spaces=m?(m[1].replace(/\t/g,'    ').length):0;
+        var indMm=Math.min(spaces,24)*1.5;
+        var content=para.replace(/^[ \t]+/,'');
+        if(!content){np(lhv+1);y+=lhv;return;}
+        doc.splitTextToSize(content,cw-indMm).forEach(function(line){np(lhv+1);doc.text(line,mgL+indMm,y);y+=lhv;});
+      });
       y+=2;
     };
-    var section=function(title){np(22);y+=7;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=5;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(title.toUpperCase()),mgL,y);y+=6;};
+    var _secN=0;var section=function(title){if(_secN>0){doc.addPage();y=mgT;}y+=4;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=5;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(title.toUpperCase()),mgL,y);y+=6;_secN++;};
     doc.setFillColor(245,240,225);doc.rect(0,0,pw,36,'F');doc.setFillColor(140,105,30);doc.rect(0,34,pw,0.6,'F');
     doc.setFontSize(18);doc.setFont('helvetica','bold');doc.setTextColor(120,85,15);
     doc.text(doc.splitTextToSize(pdfSafe(cur.title||'Arche Pilgrim Study'),cw),mgL,14);y=44;
@@ -2171,7 +2178,11 @@ var CHANGELOG=[
     items:[
       'Fixed: Outline and Conclusions data loss — redundant syncFromInputs() call removed from navTo deep branch; stale textarea content from a previously viewed study could overwrite the current study\'s outline before populateDeep() loaded correct data',
       'PDF export section order revised — Primary reference, Outline, Field Notes, additional references, Resources, AI tools, My Conclusions',
-      'PDF export hides empty sections — sections with no content are skipped entirely rather than printing blank'
+      'PDF export hides empty sections — sections with no content are skipped entirely rather than printing blank',
+      'PDF export: bullet characters (•) now render as dashes instead of disappearing',
+      'PDF export: outline indentation preserved — leading spaces and tabs translate to x-offset in the rendered PDF',
+      'PDF export: each section header always starts on a new page for a cleaner layout',
+      'PDF export: margins tightened from 20mm to 13mm each side for more content per page'
     ]
   },{
     version:'3.1',date:'March 26, 2026',label:'',
