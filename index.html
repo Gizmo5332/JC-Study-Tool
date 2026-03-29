@@ -1878,7 +1878,7 @@ function runExport(){
   exportPDF(opts);
 }
 
-function pdfSafe(str){var s=String(str).replace(/\u2022/g,'-').replace(/\u2013|\u2014/g,'-'),out='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if((c>=32&&c<=126)||(c>=160&&c<=255)||c===9||c===10||c===13)out+=s[i];else out+=' ';}return out.replace(/\(\s*\)/g,'').trim();}
+function pdfSafe(str){var s=String(str).replace(/\u2022/g,'-').replace(/\u2013|\u2014/g,'-').replace(/\u201c|\u201d/g,'"').replace(/\u2018|\u2019/g,"'"),out='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if((c>=32&&c<=126)||(c>=160&&c<=255)||c===9||c===10||c===13)out+=s[i];else out+=' ';}return out.replace(/\(\s*\)/g,'').trim();}
 
 async function exportPDF(opts){
   if(!cur){toast('No study to export');return;}syncFromInputs();
