@@ -1236,6 +1236,8 @@ function createFromTemplate(tplKey){
   var tpl=TEMPLATES[tplKey]||TEMPLATES.blank;
   cur={id:'bsn_'+Date.now(),date:todayStr(),title:tpl.title||'',teacher:'',fieldNotes:tpl.fieldNotes||'',tags:(tpl.tags||[]).slice(),resources:[],refs:[makeRef()],deep:{conclusions:'',outline:''}};
   activeRefIdx=0;studyScope='passage';
+  var oel=document.getElementById('d-outline');if(oel)oel.value='';
+  var cel=document.getElementById('d-conclusions');if(cel)cel.value='';
   trackOpen(cur);
   populateField();navTo('field');
 }
@@ -1311,7 +1313,7 @@ function mdToHtml(md){
   closeLists();return html;
 }
 
-function openStudy(id){cur=studies.find(function(s){return s.id===id;});if(!cur)return;migrateStudy(cur);if(!cur.deep)cur.deep={conclusions:'',outline:''};if(!cur.deep.hasOwnProperty('conclusions'))cur.deep.conclusions='';if(!cur.deep.hasOwnProperty('outline'))cur.deep.outline='';if(!cur.resources)cur.resources=[];if(!cur.tags)cur.tags=[];activeRefIdx=0;studyScope=(activeRef()&&activeRef().deep&&activeRef().deep.studyScope)||'passage';trackOpen(cur);populateField();navTo('field');}
+function openStudy(id){cur=studies.find(function(s){return s.id===id;});if(!cur)return;migrateStudy(cur);if(!cur.deep)cur.deep={conclusions:'',outline:''};if(!cur.deep.hasOwnProperty('conclusions'))cur.deep.conclusions='';if(!cur.deep.hasOwnProperty('outline'))cur.deep.outline='';if(!cur.resources)cur.resources=[];if(!cur.tags)cur.tags=[];activeRefIdx=0;studyScope=(activeRef()&&activeRef().deep&&activeRef().deep.studyScope)||'passage';var oel=document.getElementById('d-outline');if(oel)oel.value='';var cel=document.getElementById('d-conclusions');if(cel)cel.value='';trackOpen(cur);populateField();navTo('field');}
 function saveStudy(silent){if(!cur)return;syncFromInputs(!silent);cur.updatedAt=new Date().toISOString();var i=studies.findIndex(function(s){return s.id===cur.id;});if(i>=0)studies[i]=cur;else studies.unshift(cur);persist();if(!silent)toast('Saved');}
 function autoSave(){if(cur){syncFromInputs(false);saveStudy(true);}}
 function deleteStudy(){var id=_pendingDeleteId||(cur&&cur.id);if(!id)return;studies=studies.filter(function(s){return s.id!==id;});persist();if(cur&&cur.id===id)cur=null;_pendingDeleteId=null;closeOverlay('del-overlay');navTo('library');toast('Study deleted');}
