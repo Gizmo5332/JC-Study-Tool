@@ -1889,7 +1889,7 @@ async function exportPDF(opts){
     var jsPDF=window.jspdf.jsPDF;
     var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
     var pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight();
-    var mgL=13,mgR=13,mgT=15,mgB=18,footH=14,cw=pw-mgL-mgR,y=mgT;
+    var mgL=13,mgR=13,mgT=15,mgB=22,footH=18,cw=pw-mgL-mgR,y=mgT;
     var lh=function(sz){return sz*0.3528*1.55;};
     var np=function(need){need=need||10;if(y+need>ph-mgB-footH){doc.addPage();y=mgT;}};
     var txt=function(str,sz,style,rgb,gap){
@@ -1945,7 +1945,7 @@ async function exportPDF(opts){
     var concl=document.getElementById('d-conclusions').value||(cur.deep&&cur.deep.conclusions);
     if(opts.conclusions&&concl){section('My Conclusions');txt(pdfSafe(concl),10,'normal',[30,25,15]);}
     var total=doc.internal.getNumberOfPages();
-    for(var i=1;i<=total;i++){doc.setPage(i);doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(100,95,90);var footY=ph-14;doc.setFillColor(140,105,30);doc.rect(mgL,footY-4,cw,0.4,'F');doc.text('Arche Pilgrim  -  '+(ref0||'')+' - Page '+i+' of '+total,mgL,footY);}
+    for(var i=1;i<=total;i++){doc.setPage(i);doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(100,95,90);var footY=ph-20;doc.setFillColor(140,105,30);doc.rect(mgL,footY-3,cw,0.4,'F');doc.text('Arche Pilgrim  -  '+(ref0||'')+' - Page '+i+' of '+total,mgL,footY+5);}
     var fname=pdfSafe((cur.title||'study').replace(/[^a-z0-9]/gi,'_'))+'_'+(cur.date||'undated')+'.pdf';
     if(navigator.share&&/Mobi|Android/i.test(navigator.userAgent)){try{var blob=doc.output('blob'),file=new File([blob],fname,{type:'application/pdf'});await navigator.share({files:[file],title:cur.title||'Arche Pilgrim Study'});toast('PDF shared');return;}catch(e){}}
     doc.save(fname);toast('PDF downloaded');
