@@ -1844,23 +1844,32 @@ async function exportPDF(opts){
     var trans0=ar?(ar.pastedTranslation||ar.translation||'ESV').toUpperCase():'ESV';
     var meta=[['Date',fmtDate(cur.date)],['Reference',ref0],['Translation',trans0],['Teacher',cur.teacher]].filter(function(m){return m[1];});
     meta.forEach(function(m){np(7);doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(60,45,20);doc.text(m[0]+':',mgL,y);doc.setFont('helvetica','normal');doc.setTextColor(30,25,15);doc.text(pdfSafe(String(m[1])),mgL+44,y);y+=6;});y+=6;
-    // Scripture — export all refs
-    if(opts.scripture&&cur.refs&&cur.refs.length){
-      cur.refs.forEach(function(r){
+    // 1. First reference scripture
+    var refs=cur.refs&&cur.refs.length?cur.refs:[];
+    var r0=refs[0];
+    if(opts.scripture&&r0&&r0.scriptureText){
+      section('Scripture — '+(r0.reference||'Passage'));
+      txt(pdfSafe(r0.scriptureText.replace(/<[^>]+>/g,'').replace(/\n\n/g,'\n')),10,'italic',[45,35,20]);
+    }
+    // 2. Outline
+    var outln=document.getElementById('d-outline').value||(cur.deep&&cur.deep.outline)||'';
+    if(opts.outline&&outln){section('Passage / Book Outline');txt(pdfSafe(outln),10,'normal',[30,25,15]);}
+    // 3. Field Notes
+    if(opts.fieldNotes&&cur.fieldNotes){section('Field Notes & Observations');txt(pdfSafe(cur.fieldNotes),10,'normal',[30,25,15]);}
+    // 4. Remaining references
+    if(opts.scripture&&refs.length>1){
+      refs.slice(1).forEach(function(r){
         if(!r.scriptureText)return;
         section('Scripture — '+(r.reference||'Passage'));
         txt(pdfSafe(r.scriptureText.replace(/<[^>]+>/g,'').replace(/\n\n/g,'\n')),10,'italic',[45,35,20]);
       });
-    } else if(opts.scripture&&ar&&ar.scriptureText){
-      section('Scripture Text');txt(pdfSafe(ar.scriptureText.replace(/<[^>]+>/g,'').replace(/\n\n/g,'\n')),10,'italic',[45,35,20]);
     }
-    if(opts.fieldNotes&&cur.fieldNotes){section('Field Notes & Observations');txt(pdfSafe(cur.fieldNotes),10,'normal',[30,25,15]);}
-    var outln=document.getElementById('d-outline').value||(cur.deep&&cur.deep.outline)||'';
-    if(opts.outline&&outln){section('Passage / Book Outline');txt(pdfSafe(outln),10,'normal',[30,25,15]);}
+    // 5. Resources
     if(opts.resources&&cur.resources&&cur.resources.length){var hasOcr=cur.resources.some(function(r){return r.ocrStatus==='done'&&r.ocrText;});if(hasOcr){section('Resources & Documents');cur.resources.forEach(function(r){if(r.ocrStatus!=='done'||!r.ocrText)return;np(14);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(r.title+' - '+r.date),mgL,y);y+=6;txt(pdfSafe(r.ocrText),9,'normal',[35,28,18]);y+=2;});}}
-    // AI tools — from activeRef
+    // 6. AI tools — from activeRef
     ['lexical','grammar','historical','cultural','crossrefs'].forEach(function(k){var c=ar&&ar.deep&&ar.deep[k];if(!c||!(opts.tools[k]&&opts.tools[k].passage))return;section(TOOL_LABELS[k]+' - Passage');txt(pdfSafe(c.replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/^#+\s/gm,'')),9,'normal',[35,28,18]);});
     ['lexical','grammar','historical','cultural','crossrefs'].forEach(function(k){var c=ar&&ar.deep&&ar.deep[k+'_book'];if(!c||!(opts.tools[k]&&opts.tools[k].book))return;section(TOOL_LABELS[k]+' - Whole Book');txt(pdfSafe(c.replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/^#+\s/gm,'')),9,'normal',[35,28,18]);});
+    // 7. My Conclusions
     var concl=document.getElementById('d-conclusions').value||(cur.deep&&cur.deep.conclusions);
     if(opts.conclusions&&concl){section('My Conclusions');txt(pdfSafe(concl),10,'normal',[30,25,15]);}
     var total=doc.internal.getNumberOfPages();
@@ -2158,9 +2167,11 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 // ── CHANGELOG ────────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'3.2',date:'March 27, 2026',label:'Latest',
+    version:'3.2',date:'March 28, 2026',label:'Latest',
     items:[
-      'Fixed: Outline and Conclusions data loss — redundant syncFromInputs() call removed from navTo deep branch; stale textarea content from a previously viewed study could overwrite the current study\'s outline before populateDeep() loaded correct data'
+      'Fixed: Outline and Conclusions data loss — redundant syncFromInputs() call removed from navTo deep branch; stale textarea content from a previously viewed study could overwrite the current study\'s outline before populateDeep() loaded correct data',
+      'PDF export section order revised — Primary reference, Outline, Field Notes, additional references, Resources, AI tools, My Conclusions',
+      'PDF export hides empty sections — sections with no content are skipped entirely rather than printing blank'
     ]
   },{
     version:'3.1',date:'March 26, 2026',label:'',
