@@ -1843,7 +1843,9 @@ async function exportPDF(opts){
       });
       y+=2;
     };
-    var _secN=0;var section=function(title){if(_secN>0){doc.addPage();y=mgT;}y+=4;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=5;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(title.toUpperCase()),mgL,y);y+=6;_secN++;};
+    var _secN=0;
+    var section=function(title){if(_secN>0){doc.addPage();y=mgT;}y+=4;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=5;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(title.toUpperCase()),mgL,y);y+=6;_secN++;};
+    var softsection=function(title){np(22);y+=7;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=5;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(title.toUpperCase()),mgL,y);y+=6;};
     doc.setFillColor(245,240,225);doc.rect(0,0,pw,36,'F');doc.setFillColor(140,105,30);doc.rect(0,34,pw,0.6,'F');
     doc.setFontSize(18);doc.setFont('helvetica','bold');doc.setTextColor(120,85,15);
     doc.text(doc.splitTextToSize(pdfSafe(cur.title||'Arche Pilgrim Study'),cw),mgL,14);y=44;
@@ -1863,11 +1865,11 @@ async function exportPDF(opts){
     if(opts.outline&&outln){section('Passage / Book Outline');txt(pdfSafe(outln),10,'normal',[30,25,15]);}
     // 3. Field Notes
     if(opts.fieldNotes&&cur.fieldNotes){section('Field Notes & Observations');txt(pdfSafe(cur.fieldNotes),10,'normal',[30,25,15]);}
-    // 4. Remaining references
+    // 4. Remaining references — flow on same page, no forced break
     if(opts.scripture&&refs.length>1){
       refs.slice(1).forEach(function(r){
         if(!r.scriptureText)return;
-        section('Scripture — '+(r.reference||'Passage'));
+        softsection('Scripture — '+(r.reference||'Passage'));
         txt(pdfSafe(r.scriptureText.replace(/<[^>]+>/g,'').replace(/\n\n/g,'\n')),10,'italic',[45,35,20]);
       });
     }
