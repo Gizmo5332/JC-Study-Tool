@@ -1841,7 +1841,7 @@ function resInsertText(id){
 
 // EXPORT MODAL
 function openExportModal(){
-  if(!cur){toast('No study to export');return;}syncFromInputs();
+  if(!cur){toast('No study to export');return;}syncFromInputs(true);
   var ar=activeRef();
   var list=document.getElementById('exp-tools-list');list.innerHTML='';
   ['lexical','grammar','historical','cultural','crossrefs'].forEach(function(k){
@@ -1881,7 +1881,7 @@ function runExport(){
 function pdfSafe(str){var s=String(str).replace(/\u2022/g,'-').replace(/\u2013|\u2014/g,'-').replace(/\u201c|\u201d/g,'"').replace(/\u2018|\u2019/g,"'"),out='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if((c>=32&&c<=126)||(c>=160&&c<=255)||c===9||c===10||c===13)out+=s[i];else out+=' ';}return out.replace(/\(\s*\)/g,'').trim();}
 
 async function exportPDF(opts){
-  if(!cur){toast('No study to export');return;}syncFromInputs();
+  if(!cur){toast('No study to export');return;}syncFromInputs(true);
   var ar=activeRef();
   if(!opts)opts={scripture:true,fieldNotes:true,resources:true,conclusions:true,tools:{lexical:{passage:true,book:true},grammar:{passage:true,book:true},historical:{passage:true,book:true},cultural:{passage:true,book:true},crossrefs:{passage:true,book:true}}};
   toast('Generating PDF...');
@@ -2187,7 +2187,7 @@ function shareApp(){
   }else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('Invite copied to clipboard!');}).catch(function(){promptCopyFallback(text);});
   }else{promptCopyFallback(text);}
 }
-function shareStudyLink(){if(!cur){toast('No study open');return;}syncFromInputs();shareStudyLinkById(cur.id);}
+function shareStudyLink(){if(!cur){toast('No study open');return;}syncFromInputs(true);shareStudyLinkById(cur.id);}
 function shareStudyLinkById(id){
   var s=studies.find(function(x){return x.id===id;});if(!s){toast('Study not found');return;}
   // Strip image data and AI results before encoding — keeps URL short enough for SMS
