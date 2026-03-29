@@ -512,6 +512,18 @@ select option{background:var(--bg2);color:var(--txt1)}
       <div id="d-teacher" style="font-size:12px;color:var(--txt3);margin-top:2px"></div>
       <div id="d-ref-pills" class="ref-pills" style="margin-top:8px"></div>
     </div>
+    <div class="fnotes-collapsible" id="deep-scr-collapsible" style="margin-bottom:14px;display:none">
+      <button class="fnotes-toggle" onclick="toggleDeepScripture()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span id="deep-scr-label">Scripture</span>
+        <svg id="deep-scr-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13" style="margin-left:auto;transition:transform .2s"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="fnotes-body" id="deep-scr-body">
+        <div class="fnotes-body-inner">
+          <div id="d-scrtext" style="font-family:'EB Garamond',serif;font-size:16px;color:var(--txt1);line-height:1.9;font-style:italic;white-space:pre-wrap"></div>
+        </div>
+      </div>
+    </div>
     <div class="fnotes-collapsible" id="fnotes-collapsible">
       <button class="fnotes-toggle" onclick="toggleFnotes()" id="fnotes-toggle-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
@@ -1462,16 +1474,42 @@ function populateDeep(){
   _outlineOpen=false;var ob=document.getElementById('outline-body');var oc=document.getElementById('outline-chev');if(ob)ob.classList.remove('open');if(oc)oc.style.transform='';
   studyScope=(ar&&ar.deep&&ar.deep.studyScope)||'passage';
   renderRefPills('d-ref-pills','deep');
+  // Scripture collapsible
+  var scrEl=document.getElementById('d-scrtext');
+  var scrPanel=document.getElementById('deep-scr-collapsible');
+  var scrLabel=document.getElementById('deep-scr-label');
+  if(scrEl&&scrPanel){
+    var scrText=ar&&ar.scriptureText?ar.scriptureText.replace(/<[^>]+>/g,''):'';
+    if(scrText){
+      scrEl.textContent=scrText;
+      if(scrLabel)scrLabel.textContent=(ar&&ar.reference)||'Scripture';
+      scrPanel.style.display='';
+    } else {
+      scrPanel.style.display='none';
+    }
+    // reset collapsed state when switching studies/refs
+    _deepScrOpen=false;
+    var sb=document.getElementById('deep-scr-body');var sc=document.getElementById('deep-scr-chev');
+    if(sb)sb.classList.remove('open');if(sc)sc.style.transform='';
+  }
   closeAIPanel();updateToolDots();renderResources();setScope(studyScope);
 }
 var _fnotesOpen=false;
 var _outlineOpen=false;
+var _deepScrOpen=false;
 function toggleFnotes(){
   _fnotesOpen=!_fnotesOpen;
   var body=document.getElementById('fnotes-body');
   var chev=document.getElementById('fnotes-chev');
   if(body)body.classList.toggle('open',_fnotesOpen);
   if(chev)chev.style.transform=_fnotesOpen?'rotate(180deg)':'';
+}
+function toggleDeepScripture(){
+  _deepScrOpen=!_deepScrOpen;
+  var body=document.getElementById('deep-scr-body');
+  var chev=document.getElementById('deep-scr-chev');
+  if(body)body.classList.toggle('open',_deepScrOpen);
+  if(chev)chev.style.transform=_deepScrOpen?'rotate(180deg)':'';
 }
 function toggleOutline(){
   _outlineOpen=!_outlineOpen;
@@ -1869,7 +1907,7 @@ async function exportPDF(opts){
     };
     var _secN=0;
     var section=function(title){if(_secN>0){doc.addPage();y=mgT;}y+=4;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=5;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(title.toUpperCase()),mgL,y);y+=6;_secN++;};
-    var softsection=function(title){np(50);y+=3;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=4;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(title.toUpperCase()),mgL,y);y+=5;};
+    var softsection=function(title){np(35);y+=3;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=4;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(title.toUpperCase()),mgL,y);y+=5;};
     doc.setFillColor(245,240,225);doc.rect(0,0,pw,36,'F');doc.setFillColor(140,105,30);doc.rect(0,34,pw,0.6,'F');
     doc.setFontSize(18);doc.setFont('helvetica','bold');doc.setTextColor(120,85,15);
     doc.text(doc.splitTextToSize(pdfSafe(cur.title||'Arche Pilgrim Study'),cw),mgL,14);y=44;
