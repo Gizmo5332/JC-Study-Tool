@@ -1854,7 +1854,7 @@ async function exportPDF(opts){
     var mgL=13,mgR=13,mgT=15,mgB=12,footH=12,cw=pw-mgL-mgR,y=mgT;
     var lh=function(sz){return sz*0.3528*1.55;};
     var np=function(need){need=need||10;if(y+need>ph-mgB-footH){doc.addPage();y=mgT;}};
-    var txt=function(str,sz,style,rgb){
+    var txt=function(str,sz,style,rgb,gap){
       if(!str)return;doc.setFontSize(sz);doc.setFont('helvetica',style||'normal');doc.setTextColor.apply(doc,rgb||[30,25,15]);
       var lhv=lh(sz);
       String(str).split('\n').forEach(function(para){
@@ -1865,11 +1865,11 @@ async function exportPDF(opts){
         if(!content){np(lhv+1);y+=lhv;return;}
         doc.splitTextToSize(content,cw-indMm).forEach(function(line){np(lhv+1);doc.text(line,mgL+indMm,y);y+=lhv;});
       });
-      y+=2;
+      y+=(gap!==undefined?gap:2);
     };
     var _secN=0;
     var section=function(title){if(_secN>0){doc.addPage();y=mgT;}y+=4;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=5;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(title.toUpperCase()),mgL,y);y+=6;_secN++;};
-    var softsection=function(title){np(50);y+=7;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=5;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(title.toUpperCase()),mgL,y);y+=6;};
+    var softsection=function(title){np(50);y+=3;doc.setFillColor(140,105,30);doc.rect(mgL,y-1,cw,0.5,'F');y+=4;doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(90,65,20);doc.text(pdfSafe(title.toUpperCase()),mgL,y);y+=5;};
     doc.setFillColor(245,240,225);doc.rect(0,0,pw,36,'F');doc.setFillColor(140,105,30);doc.rect(0,34,pw,0.6,'F');
     doc.setFontSize(18);doc.setFont('helvetica','bold');doc.setTextColor(120,85,15);
     doc.text(doc.splitTextToSize(pdfSafe(cur.title||'Arche Pilgrim Study'),cw),mgL,14);y=44;
@@ -1895,7 +1895,7 @@ async function exportPDF(opts){
       refs.slice(1).forEach(function(r){
         if(!r.scriptureText)return;
         softsection('Scripture — '+(r.reference||'Passage'));
-        txt(pdfSafe(r.scriptureText.replace(/<[^>]+>/g,'').replace(/\n\n/g,'\n')),10,'italic',[45,35,20]);
+        txt(pdfSafe(r.scriptureText.replace(/<[^>]+>/g,'').replace(/\n\n/g,'\n')),10,'italic',[45,35,20],1);
       });
     }
     // 5. Resources
