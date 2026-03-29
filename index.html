@@ -2251,6 +2251,29 @@ function confirmImportLink(){
   var ref0=(s.refs&&s.refs[0]&&s.refs[0].reference)||s.reference||'';
   toast('Study imported: '+(s.title||ref0||'Untitled'));
   if(!sett.groqKey){setTimeout(function(){document.getElementById('gemini-setup-overlay').classList.add('on');},800);}
+  // Auto-fetch missing scripture for all refs (shared studies have scriptureText stripped)
+  if(online&&sett.scrMode!=='paste'){setTimeout(function(){fetchAllMissingScripture(s);},600);}
+}
+async function fetchAllMissingScripture(s){
+  if(!s||!s.refs||!s.refs.length)return;
+  var fetched=0;
+  for(var i=0;i<s.refs.length;i++){
+    var r=s.refs[i];
+    if(!r.reference||r.scriptureText)continue;// already has text or no ref
+    if(r.pastedTranslation)continue;// was originally pasted — can't auto-fetch
+    try{
+      var trans=r.translation||'esv';
+      var text=trans==='esv'?await getESV(r.reference):await getBibleAPI(r.reference,trans);
+      if(text){r.scriptureText=text;fetched++;}
+    }catch(e){/* silently skip failed refs */}
+  }
+  if(fetched>0){
+    // Update in studies array and persist
+    var idx=studies.findIndex(function(x){return x.id===s.id;});
+    if(idx>=0)studies[idx]=s;
+    persist();
+    toast('Scripture loaded for '+fetched+' passage'+(fetched!==1?'s':''));
+  }
 }
 function clearAll(){document.getElementById('clearall-overlay').classList.add('on');}
 function confirmClearAll(){studies=[];cur=null;persist();renderLib();closeOverlay('clearall-overlay');toast('All data cleared');}
