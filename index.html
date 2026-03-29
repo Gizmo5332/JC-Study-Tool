@@ -1865,8 +1865,9 @@ async function exportPDF(opts){
     if(opts.outline&&outln){section('Passage / Book Outline');txt(pdfSafe(outln),10,'normal',[30,25,15]);}
     // 3. Field Notes
     if(opts.fieldNotes&&cur.fieldNotes){section('Field Notes & Observations');txt(pdfSafe(cur.fieldNotes),10,'normal',[30,25,15]);}
-    // 4. Remaining references — flow on same page, no forced break
-    if(opts.scripture&&refs.length>1){
+    // 4. Remaining references — new page after Field Notes, then flow together
+    if(opts.scripture&&refs.length>1&&refs.slice(1).some(function(r){return r.scriptureText;})){
+      doc.addPage();y=mgT;
       refs.slice(1).forEach(function(r){
         if(!r.scriptureText)return;
         softsection('Scripture — '+(r.reference||'Passage'));
