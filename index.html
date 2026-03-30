@@ -1438,6 +1438,8 @@ async function syncFromGist(){
       });
       TAGS=mergedTags;
       persistTags();
+      renderTagManager();
+      renderTagPicker();
     }
     renderLib();
     // Count what actually changed
@@ -1450,8 +1452,9 @@ async function syncFromGist(){
     var msg=added||updated?
       (added?added+' new':'')+( added&&updated?' + ':'')+( updated?updated+' updated':''):
       'Already up to date';
+    var tagMsg=Array.isArray(remote.tags)?' + '+remote.tags.length+' tags':'';
     gistSetStatus('Pulled — '+new Date().toLocaleTimeString(),'var(--sagebright)');
-    toast('Sync complete — '+msg);
+    toast('Sync complete — '+msg+tagMsg);
   }catch(e){
     gistSetStatus('Pull failed: '+e.message,'var(--crimsonbright)');
     toast('Sync failed: '+e.message);
