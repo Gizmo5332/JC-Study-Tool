@@ -663,6 +663,18 @@ select option{background:var(--bg2);color:var(--txt1)}
     </div>
     <div class="divider"></div>
     <div style="margin-bottom:22px">
+      <div class="sethead">Study Sync — GitHub Gist</div>
+      <div class="setsub">Sync studies across all your devices. Requires a free GitHub account and a Personal Access Token with <strong style="color:var(--txt2)">gist</strong> scope. <a href="https://github.com/settings/tokens/new?scopes=gist&description=Arche+Pilgrim+Sync" target="_blank" style="color:var(--gold);">Create token ↗</a></div>
+      <div class="conntag" style="margin-bottom:10px"><div class="conndot" id="gist-status-dot" style="background:var(--golddim)"></div><span id="gist-status-text">Not configured</span></div>
+      <div class="ig" style="margin-bottom:9px"><label>GitHub Personal Access Token</label><input type="password" id="set-github-token" placeholder="ghp_..." autocomplete="off" spellcheck="false"></div>
+      <div class="ig" style="margin-bottom:9px"><label>Gist ID <span style="font-weight:400;color:var(--txt4)">(auto-filled after first sync)</span></label><input type="text" id="set-gist-id" placeholder="Leave blank to create a new Gist" autocomplete="off" spellcheck="false"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-sec" style="flex:1" onclick="syncFromGist()">&#8595; Pull</button>
+        <button class="btn btn-primary" style="flex:1" onclick="syncToGist()">&#8593; Push</button>
+      </div>
+      <div id="gist-sync-status" style="font-size:12px;color:var(--txt4);margin-top:8px;min-height:16px;text-align:center"></div>
+    </div>
+    <div style="margin-bottom:22px">
       <div class="sethead">ESV Bible API</div>
       <div class="setsub">Pre-configured with your Crossway API key.</div>
       <div class="conntag"><div class="conndot"></div>ESV API connected</div>
@@ -1005,7 +1017,7 @@ select option{background:var(--bg2);color:var(--txt1)}
 <script>
 var ESV_KEY='6788a84f19616a65bf00f0edda9f45ea83486ccf';
 var SK='bsn_studies_v2', SK_SETT='bsn_settings_v1', SK_TAGS='bsn_tags_v1';
-var studies=[], cur=null, online=navigator.onLine, sett={groqKey:'', geminiKey:'', scrMode:'auto'};
+var studies=[], cur=null, online=navigator.onLine, sett={groqKey:'', geminiKey:'', scrMode:'auto', githubToken:'', gistId:''};
 var hdrCollapsed=false, scrCollapsed=false, studyScope='passage';
 var activeRefIdx=0;
 var _editingTagId=null;
@@ -1223,7 +1235,7 @@ function renderRefPills(containerId,mode){
   if(mode==='field'){html+='<button class="ref-pill ref-pill-add" onclick="addRef()">+ Add Passage</button>';}
   el.innerHTML=html;
 }
-function loadSett(){try{var s=JSON.parse(localStorage.getItem(SK_SETT));if(s)sett=Object.assign({},sett,s);if(!sett.scrMode)sett.scrMode='auto';document.getElementById('set-groq').value=sett.groqKey||'';document.getElementById('set-gemini').value=sett.geminiKey||'';updateScrModeUI();}catch(e){}}
+function loadSett(){try{var s=JSON.parse(localStorage.getItem(SK_SETT));if(s)sett=Object.assign({},sett,s);if(!sett.scrMode)sett.scrMode='auto';document.getElementById('set-groq').value=sett.groqKey||'';document.getElementById('set-gemini').value=sett.geminiKey||'';document.getElementById('set-github-token').value=sett.githubToken||'';document.getElementById('set-gist-id').value=sett.gistId||'';updateScrModeUI();}catch(e){}}
 function setScrMode(mode){sett.scrMode=mode;localStorage.setItem(SK_SETT,JSON.stringify(sett));updateScrModeUI();if(mode==='paste'&&cur&&cur.reference){openPasteModal();}else if(mode==='auto'&&cur&&cur.reference){fetchScr();}}
 function updateScrModeUI(){
   var isAuto=sett.scrMode!=='paste';
@@ -1237,7 +1249,7 @@ function updateScrModeUI(){
     btnAuto.style.background='none';btnAuto.style.color='var(--txt3)';btnAuto.style.fontWeight='400';
   }
 }
-function saveSettings(){var gq=document.getElementById('set-groq').value.trim();var gm=document.getElementById('set-gemini').value.trim();sett.groqKey=gq;sett.geminiKey=gm;localStorage.setItem(SK_SETT,JSON.stringify(sett));toast('Settings saved');if(gq){var ov=document.getElementById('gemini-setup-overlay');if(ov)ov.classList.remove('on');}}
+function saveSettings(){var gq=document.getElementById('set-groq').value.trim();var gm=document.getElementById('set-gemini').value.trim();var gt=document.getElementById('set-github-token').value.trim();var gi=document.getElementById('set-gist-id').value.trim();sett.groqKey=gq;sett.geminiKey=gm;sett.githubToken=gt;sett.gistId=gi;localStorage.setItem(SK_SETT,JSON.stringify(sett));toast('Settings saved');if(gq){var ov=document.getElementById('gemini-setup-overlay');if(ov)ov.classList.remove('on');}updateGistStatusDot();}
 function checkGeminiSetup(){if(!sett.groqKey&&!window.location.hash.startsWith('#study=')){setTimeout(function(){document.getElementById('gemini-setup-overlay').classList.add('on');},600);}}
 function saveGeminiSetup(){var k=document.getElementById('gemini-setup-input').value.trim();if(!k){toast('Please enter your API key');return;}sett.groqKey=k;localStorage.setItem(SK_SETT,JSON.stringify(sett));document.getElementById('set-groq').value=k;document.getElementById('gemini-setup-overlay').classList.remove('on');toast('API key saved — AI tools ready');}
 function skipGeminiSetup(){document.getElementById('gemini-setup-overlay').classList.remove('on');}
@@ -1252,7 +1264,7 @@ function navTo(id){
   if(id==='deep'){_fnotesOpen=false;var fb=document.getElementById('fnotes-body');if(fb)fb.classList.remove('open');var fc=document.getElementById('fnotes-chev');if(fc)fc.style.transform='';populateDeep();}
   if(id==='field'&&cur)populateField();
   if(id==='stats')renderStats();
-  if(id==='settings'){renderTagManager();renderChangelog();var dot=document.getElementById('gemini-status-dot'),txt=document.getElementById('gemini-status-text');if(dot&&txt){if(sett.groqKey){dot.style.background='var(--sagebright)';txt.textContent='Groq key saved';}else{dot.style.background='var(--crimsonbright)';txt.textContent='No Groq key saved — tap below to add one';}}var gdot=document.getElementById('gemini-ocr-dot'),gtxt=document.getElementById('gemini-ocr-text');if(gdot&&gtxt){if(sett.geminiKey){gdot.style.background='var(--sagebright)';gtxt.textContent='Gemini key saved (OCR enabled)';}else{gdot.style.background='var(--golddim)';gtxt.textContent='No Gemini key — OCR unavailable (optional)';}}}
+  if(id==='settings'){renderTagManager();renderChangelog();var dot=document.getElementById('gemini-status-dot'),txt=document.getElementById('gemini-status-text');if(dot&&txt){if(sett.groqKey){dot.style.background='var(--sagebright)';txt.textContent='Groq key saved';}else{dot.style.background='var(--crimsonbright)';txt.textContent='No Groq key saved — tap below to add one';}}var gdot=document.getElementById('gemini-ocr-dot'),gtxt=document.getElementById('gemini-ocr-text');if(gdot&&gtxt){if(sett.geminiKey){gdot.style.background='var(--sagebright)';gtxt.textContent='Gemini key saved (OCR enabled)';}else{gdot.style.background='var(--golddim)';gtxt.textContent='No Gemini key — OCR unavailable (optional)';}}updateGistStatusDot();}
 }
 function saveAndGoLib(){saveStudy();navTo('library');}
 function goField(){navTo('field');}
@@ -1341,8 +1353,85 @@ function mdToHtml(md){
 }
 
 function openStudy(id){cur=studies.find(function(s){return s.id===id;});if(!cur)return;migrateStudy(cur);if(!cur.deep)cur.deep={conclusions:'',outline:''};if(!cur.deep.hasOwnProperty('conclusions'))cur.deep.conclusions='';if(!cur.deep.hasOwnProperty('outline'))cur.deep.outline='';if(!cur.resources)cur.resources=[];if(!cur.tags)cur.tags=[];activeRefIdx=0;studyScope=(activeRef()&&activeRef().deep&&activeRef().deep.studyScope)||'passage';var oel=document.getElementById('d-outline');if(oel)oel.value='';var cel=document.getElementById('d-conclusions');if(cel)cel.value='';trackOpen(cur);populateField();navTo('field');}
-function saveStudy(silent){if(!cur)return;syncFromInputs(!silent);cur.updatedAt=new Date().toISOString();var i=studies.findIndex(function(s){return s.id===cur.id;});if(i>=0)studies[i]=cur;else studies.unshift(cur);persist();if(!silent)toast('Saved');}
+function saveStudy(silent){if(!cur)return;syncFromInputs(!silent);cur.updatedAt=new Date().toISOString();var i=studies.findIndex(function(s){return s.id===cur.id;});if(i>=0)studies[i]=cur;else studies.unshift(cur);persist();if(!silent)toast('Saved');if(sett.githubToken&&online){setTimeout(function(){syncToGist(true);},800);}}
 function autoSave(){if(cur){syncFromInputs(false);saveStudy(true);}}
+
+// ── GIST SYNC ─────────────────────────────────────────────────────
+var _gistSyncing=false;
+function updateGistStatusDot(){
+  var dot=document.getElementById('gist-status-dot');
+  var txt=document.getElementById('gist-status-text');
+  if(!dot||!txt)return;
+  if(!sett.githubToken){dot.style.background='var(--golddim)';txt.textContent='Not configured';}
+  else if(sett.gistId){dot.style.background='var(--sagebright)';txt.textContent='Sync configured — Gist ID saved';}
+  else{dot.style.background='var(--gold)';txt.textContent='Token saved — push once to create Gist';}
+}
+function mergeStudies(local,remote){
+  var merged={};
+  local.forEach(function(s){merged[s.id]=s;});
+  remote.forEach(function(r){
+    if(!merged[r.id]){merged[r.id]=r;}
+    else{
+      var localTime=new Date(merged[r.id].updatedAt||merged[r.id].date||0).getTime();
+      var remoteTime=new Date(r.updatedAt||r.date||0).getTime();
+      if(remoteTime>localTime)merged[r.id]=r;
+    }
+  });
+  return Object.values(merged).sort(function(a,b){return (b.updatedAt||b.date||'')>(a.updatedAt||a.date||'')?1:-1;});
+}
+function gistSetStatus(msg,color){
+  var el=document.getElementById('gist-sync-status');
+  if(el){el.textContent=msg;el.style.color=color||'var(--txt4)';}
+}
+async function syncToGist(silent){
+  if(!sett.githubToken){if(!silent)toast('Add a GitHub token in Settings first');return;}
+  if(_gistSyncing)return;
+  _gistSyncing=true;
+  if(!silent)gistSetStatus('Pushing...','var(--txt3)');
+  try{
+    var payload=JSON.stringify({studies:studies},null,2);
+    var body={description:'Arché · Pilgrim Studies',public:false,files:{'arche-pilgrim-studies.json':{content:payload}}};
+    var method=sett.gistId?'PATCH':'POST';
+    var url=sett.gistId?'https://api.github.com/gists/'+sett.gistId:'https://api.github.com/gists';
+    var res=await fetch(url,{method:method,headers:{'Authorization':'token '+sett.githubToken,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},body:JSON.stringify(body)});
+    if(!res.ok)throw new Error('GitHub '+res.status);
+    var data=await res.json();
+    if(!sett.gistId){
+      sett.gistId=data.id;
+      localStorage.setItem(SK_SETT,JSON.stringify(sett));
+      var gi=document.getElementById('set-gist-id');if(gi)gi.value=sett.gistId;
+      updateGistStatusDot();
+    }
+    if(!silent){gistSetStatus('Pushed — '+new Date().toLocaleTimeString(),'var(--sagebright)');}
+  }catch(e){
+    if(!silent){gistSetStatus('Push failed: '+e.message,'var(--crimsonbright)');toast('Sync failed: '+e.message);}
+  }finally{_gistSyncing=false;}
+}
+async function syncFromGist(){
+  if(!sett.githubToken){toast('Add a GitHub token in Settings first');return;}
+  if(!sett.gistId){toast('No Gist ID — push first to create one');return;}
+  if(_gistSyncing)return;
+  _gistSyncing=true;
+  gistSetStatus('Pulling...','var(--txt3)');
+  try{
+    var res=await fetch('https://api.github.com/gists/'+sett.gistId,{headers:{'Authorization':'token '+sett.githubToken,'Accept':'application/vnd.github.v3+json'}});
+    if(!res.ok)throw new Error('GitHub '+res.status);
+    var data=await res.json();
+    var file=data.files&&data.files['arche-pilgrim-studies.json'];
+    if(!file||!file.content)throw new Error('No studies file found in Gist');
+    var remote=JSON.parse(file.content);
+    if(!remote.studies||!Array.isArray(remote.studies))throw new Error('Invalid Gist format');
+    remote.studies.forEach(function(s){migrateStudy(s);});
+    studies=mergeStudies(studies,remote.studies);
+    persist();
+    renderLib();
+    gistSetStatus('Pulled — '+new Date().toLocaleTimeString(),'var(--sagebright)');
+    toast('Sync complete — '+remote.studies.length+' studies merged');
+  }catch(e){
+    gistSetStatus('Pull failed: '+e.message,'var(--crimsonbright)');
+    toast('Sync failed: '+e.message);
+  }finally{_gistSyncing=false;}
+}
 function deleteStudy(){var id=_pendingDeleteId||(cur&&cur.id);if(!id)return;studies=studies.filter(function(s){return s.id!==id;});persist();if(cur&&cur.id===id)cur=null;_pendingDeleteId=null;closeOverlay('del-overlay');navTo('library');toast('Study deleted');}
 function showDeleteModal(){_pendingDeleteId=null;document.getElementById('del-overlay').classList.add('on');}
 function showDeleteById(id){_pendingDeleteId=id;document.getElementById('del-overlay').classList.add('on');}
@@ -2334,6 +2423,7 @@ var CHANGELOG=[
       'Fixed: viewport-fit=cover added to meta viewport — safe-area-inset values now work correctly on notched iPhones; without this env() always returned 0',
       'Fixed: --app-height CSS variable set from window.innerHeight and updated on resize/orientation change — prevents scroll lock when Android/iOS address bar appears or disappears',
       'Fixed: overscroll-behavior-y:contain on scroll containers — prevents browser toolbar toggling from interfering with in-app scrolling',
+      'Study Sync — GitHub Gist: add a GitHub Personal Access Token (gist scope) in Settings to sync studies across all devices; Push/Pull buttons for manual sync; auto-pushes silently after every Save; merges by updatedAt so no work is lost',
       'References: Primary / Secondary type per passage — ★ = primary (shows on page 1 of PDF), ○ = secondary (prints as Supporting References); tap badge on any pill to toggle; new passages default to secondary',
       'PDF export: primary refs flow together after the header; secondary refs print on a dedicated Supporting References page after Field Notes',
       'PDF export section order revised — Primary reference, Outline, Field Notes, additional references, Resources, AI tools, My Conclusions',
