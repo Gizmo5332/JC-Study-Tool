@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
 :root{--bg0:#0b0907;--bg1:#120f0a;--bg2:#1b1710;--bg3:#252019;--bg4:#2f2a1f;--border:#3a3022;--borderlit:#4d4430;--gold:#c9a84c;--golddim:#7a6520;--goldpale:#e8ca80;--crimson:#8b3535;--crimsonbright:#c05050;--sagebright:#5a9b70;--txt1:#e8d5a3;--txt2:#c4a870;--txt3:#8a7550;--txt4:#5a4d35;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--r:8px;--rl:14px;--app-height:100vh;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -485,6 +486,10 @@ select option{background:var(--bg2);color:var(--txt1)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         Gallery
       </button>
+      <button class="btn btn-ghost btn-sm" onclick="resAddDocPrompt()" style="flex:1;font-size:12px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Document
+      </button>
     </div>
     <div id="field-res-tiles" style="margin-top:10px"></div>
   </div>
@@ -569,6 +574,7 @@ select option{background:var(--bg2);color:var(--txt1)}
     <p style="font-size:12px;color:var(--txt4);font-style:italic;margin-bottom:12px;line-height:1.5">Photos captured in Field Mode. Tap a tile to view extracted text.</p>
     <input type="file" id="res-input-camera" accept="image/*" capture="environment" style="display:none" onchange="resHandleFile(this)">
     <input type="file" id="res-input-gallery" accept="image/*" style="display:none" onchange="resHandleFile(this)">
+    <input type="file" id="res-input-doc" accept=".txt,.md,.docx,.doc" style="display:none" onchange="resHandleDoc(this)">
     <div id="res-status" class="res-status"></div>
     <div id="res-list"></div>
     </div><!-- /deep-col-left -->
@@ -649,25 +655,22 @@ select option{background:var(--bg2);color:var(--txt1)}
   <div class="topbar"><div class="topbar-title">Settings</div></div>
   <div class="scroll">
     <div style="margin-bottom:22px">
-      <div class="sethead">AI Study Tools — Groq</div>
-      <div class="setsub">Powers all AI study tools (Lexical, Grammar, Historical, Cultural, Cross-Refs). Free tier: 30 req/min, 14,400/day. Get a free key at <a href="https://console.groq.com" target="_blank" style="color:var(--gold);">console.groq.com ↗</a></div>
-      <div class="conntag" id="gemini-status-tag" style="margin-bottom:10px"><div class="conndot" id="gemini-status-dot"></div><span id="gemini-status-text">No Groq key saved</span></div>
-      <div class="ig"><label>Groq API Key</label><input type="password" id="set-groq" placeholder="gsk_..." autocomplete="off" spellcheck="false"></div>
+      <div class="sethead">AI Study Tools</div>
+      <div class="setsub">Lexical Study, Grammar &amp; Syntax, Historical Context, Cultural Context, and Cross-References — all powered by the Arché proxy server. No API key required.</div>
+      <div class="conntag"><div class="conndot" style="background:var(--sagebright)"></div>AI tools active — powered by Arché proxy</div>
     </div>
     <div style="margin-bottom:22px">
       <div class="sethead">Text Extraction (OCR) — Gemini</div>
       <div class="setsub">Powers photo text extraction only. Optional — only needed if you use the camera/gallery capture feature. Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--gold);">aistudio.google.com ↗</a></div>
       <div class="conntag" style="margin-bottom:10px"><div class="conndot" id="gemini-ocr-dot" style="background:var(--golddim)"></div><span id="gemini-ocr-text">No Gemini key saved</span></div>
       <div class="ig"><label>Google Gemini API Key</label><input type="password" id="set-gemini" placeholder="AIza..." autocomplete="off" spellcheck="false"></div>
-      <button class="btn btn-primary btn-full" onclick="saveSettings()">Save API Keys</button>
+      <button class="btn btn-primary btn-full" onclick="saveSettings()">Save Gemini Key</button>
     </div>
     <div class="divider"></div>
     <div style="margin-bottom:22px">
-      <div class="sethead">Study Sync — GitHub Gist</div>
-      <div class="setsub">Sync studies across all your devices. Requires a free GitHub account and a Personal Access Token with <strong style="color:var(--txt2)">gist</strong> scope. <a href="https://github.com/settings/tokens/new?scopes=gist&description=Arche+Pilgrim+Sync" target="_blank" style="color:var(--gold);">Create token ↗</a></div>
-      <div class="conntag" style="margin-bottom:10px"><div class="conndot" id="gist-status-dot" style="background:var(--golddim)"></div><span id="gist-status-text">Not configured</span></div>
-      <div class="ig" style="margin-bottom:9px"><label>GitHub Personal Access Token</label><input type="password" id="set-github-token" placeholder="ghp_..." autocomplete="off" spellcheck="false"></div>
-      <div class="ig" style="margin-bottom:9px"><label>Gist ID <span style="font-weight:400;color:var(--txt4)">(auto-filled after first sync)</span></label><input type="text" id="set-gist-id" placeholder="Leave blank to create a new Gist" autocomplete="off" spellcheck="false"></div>
+      <div class="sethead">Study Sync</div>
+      <div class="setsub">Studies sync automatically across all your devices after every Save. Use the buttons below to manually push or pull at any time.</div>
+      <div class="conntag" style="margin-bottom:10px"><div class="conndot" id="gist-status-dot" style="background:var(--sagebright)"></div><span id="gist-status-text">Sync active — powered by Arché proxy</span></div>
       <div style="display:flex;gap:8px;margin-top:4px">
         <button class="btn btn-sec" style="flex:1" onclick="syncFromGist()">&#8595; Pull</button>
         <button class="btn btn-primary" style="flex:1" onclick="syncToGist()">&#8593; Push</button>
@@ -676,8 +679,8 @@ select option{background:var(--bg2);color:var(--txt1)}
     </div>
     <div style="margin-bottom:22px">
       <div class="sethead">ESV Bible API</div>
-      <div class="setsub">Pre-configured with your Crossway API key.</div>
-      <div class="conntag"><div class="conndot"></div>ESV API connected</div>
+      <div class="setsub">Scripture quotations are from the ESV&reg; Bible (The Holy Bible, English Standard Version&reg;), copyright &copy; 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved.</div>
+      <div class="conntag"><div class="conndot" style="background:var(--sagebright)"></div>ESV API connected via Arché proxy</div>
     </div>
     <div class="divider"></div>
     <div style="margin-bottom:22px">
@@ -704,7 +707,7 @@ select option{background:var(--bg2);color:var(--txt1)}
     <div class="divider"></div>
     <div style="margin-bottom:22px">
       <div class="sethead">Share Arché · Pilgrim</div>
-      <div class="setsub">Invite a friend to use Arché · Pilgrim. They'll need to set up their own free API key at <a href="https://console.groq.com" target="_blank" style="color:var(--gold);">console.groq.com ↗</a> to use AI tools.</div>
+      <div class="setsub">Invite a friend to use Arché · Pilgrim — free, no install required, AI study tools included.</div>
       <button class="btn btn-sec btn-full" onclick="shareApp()" style="margin-bottom:10px">✦ Share This App</button>
     </div>
     <div class="divider"></div>
@@ -940,20 +943,7 @@ select option{background:var(--bg2);color:var(--txt1)}
   </div>
 </div>
 
-<!-- GROQ SETUP OVERLAY -->
-<div class="gemini-setup-overlay" id="gemini-setup-overlay">
-  <div class="gemini-setup-card">
-    <div class="ornament" style="margin-bottom:16px">&#10022;</div>
-    <div style="font-family:'EB Garamond',serif;font-size:22px;color:var(--gold);text-align:center;margin-bottom:8px">AI Study Tools Setup</div>
-    <p style="font-size:14px;color:var(--txt2);text-align:center;line-height:1.65;margin-bottom:20px">Arché · Pilgrim uses Groq for AI study tools — free tier with 14,400 requests/day.<br><br><a href="https://console.groq.com" target="_blank" style="color:var(--gold);font-size:13px">Get a free key at console.groq.com ↗</a></p>
-    <div class="ig" style="margin-bottom:16px">
-      <label>Groq API Key</label>
-      <input type="password" id="gemini-setup-input" placeholder="gsk_..." autocomplete="off" spellcheck="false">
-    </div>
-    <button class="btn btn-primary btn-full" onclick="saveGeminiSetup()" style="margin-bottom:10px">Save &amp; Continue</button>
-    <button class="btn btn-ghost btn-full" onclick="skipGeminiSetup()" style="font-size:13px">Skip for now — I'll use Paste mode</button>
-  </div>
-</div>
+<!-- Groq setup overlay removed — Worker mode handles all AI keys server-side -->
 
 <div class="overlay" id="deltag-overlay">
   <div class="modal">
@@ -1015,9 +1005,9 @@ select option{background:var(--bg2);color:var(--txt1)}
 <button class="fab" onclick="newStudy()">+</button>
 
 <script>
-var ESV_KEY='6788a84f19616a65bf00f0edda9f45ea83486ccf';
+var WORKER_URL='https://arche-proxy.archestudytools.workers.dev';
 var SK='bsn_studies_v2', SK_SETT='bsn_settings_v1', SK_TAGS='bsn_tags_v1';
-var studies=[], cur=null, online=navigator.onLine, sett={groqKey:'', geminiKey:'', scrMode:'auto', githubToken:'', gistId:''};
+var studies=[], cur=null, online=navigator.onLine, sett={geminiKey:'', scrMode:'auto', lastPasteTrans:''};
 var hdrCollapsed=false, scrCollapsed=false, studyScope='passage';
 var activeRefIdx=0;
 var _editingTagId=null;
@@ -1150,7 +1140,7 @@ var obStep=0;
 var mfBlob=new Blob([JSON.stringify({name:'Arche - Pilgrim',short_name:'Pilgrim',start_url:'./',display:'standalone',background_color:'#0b0907',theme_color:'#0b0907'})],{type:'application/json'});
 document.getElementById('pwa-manifest').href=URL.createObjectURL(mfBlob);
 
-window.addEventListener('load',function(){loadStudies();loadTags();loadSett();renderLib();updateOffline();document.getElementById('f-date').value=todayStr();setTimeout(checkImportHash,300);setInterval(autoSave,30000);initSwipe();checkOnboarding();checkGeminiSetup();setAppHeight();});
+window.addEventListener('load',function(){loadStudies();loadTags();loadSett();renderLib();updateOffline();document.getElementById('f-date').value=todayStr();setTimeout(checkImportHash,300);setInterval(autoSave,30000);initSwipe();checkOnboarding();setAppHeight();});
 function setAppHeight(){document.documentElement.style.setProperty('--app-height',window.innerHeight+'px');}
 window.addEventListener('resize',setAppHeight);
 window.addEventListener('orientationchange',function(){setTimeout(setAppHeight,200);});
@@ -1198,9 +1188,33 @@ function switchRef(idx){
   if(deepOn){populateDeep();}
 }
 function addRef(){if(!cur)return;if(!cur.refs)cur.refs=[];cur.refs.push(makeRef('secondary'));saveStudy(true);switchRef(cur.refs.length-1);toast('New passage added');}
+function moveRef(dir){
+  if(!cur||!cur.refs||cur.refs.length<2)return;
+  var idx=activeRefIdx;var type=cur.refs[idx].type;
+  var target=idx+dir;
+  while(target>=0&&target<cur.refs.length&&cur.refs[target].type!==type)target+=dir;
+  if(target<0||target>=cur.refs.length||cur.refs[target].type!==type)return;
+  var tmp=cur.refs[idx];cur.refs[idx]=cur.refs[target];cur.refs[target]=tmp;
+  activeRefIdx=target;saveStudy(true);
+  var fieldOn=document.getElementById('scr-field').classList.contains('on');
+  var deepOn=document.getElementById('scr-deep').classList.contains('on');
+  if(fieldOn)renderRefPills('f-ref-pills','field');
+  if(deepOn)renderRefPills('d-ref-pills','deep');
+}
 function toggleRefType(idx){
   if(!cur||!cur.refs||!cur.refs[idx])return;
-  cur.refs[idx].type=cur.refs[idx].type==='secondary'?'primary':'secondary';
+  var newType=cur.refs[idx].type==='secondary'?'primary':'secondary';
+  cur.refs[idx].type=newType;
+  var ref=cur.refs.splice(idx,1)[0];
+  if(newType==='primary'){
+    var lastPrimary=-1;
+    cur.refs.forEach(function(r,i){if(r.type==='primary')lastPrimary=i;});
+    cur.refs.splice(lastPrimary+1,0,ref);activeRefIdx=lastPrimary+1;
+  } else {
+    var firstSec=cur.refs.length;
+    for(var si=0;si<cur.refs.length;si++){if(cur.refs[si].type==='secondary'){firstSec=si;break;}}
+    cur.refs.splice(firstSec,0,ref);activeRefIdx=firstSec;
+  }
   saveStudy(true);
   var fieldOn=document.getElementById('scr-field').classList.contains('on');
   var deepOn=document.getElementById('scr-deep').classList.contains('on');
@@ -1229,13 +1243,17 @@ function renderRefPills(containerId,mode){
     var isActive=(i===activeRefIdx);var label=ref.reference||'Passage '+(i+1);if(label.length>20)label=label.slice(0,18)+'\u2026';
     var showX=cur.refs.length>1&&mode==='field';
     var isPrimary=ref.type!=='secondary';
-    var typeBadge='<span class="ref-pill-type" onclick="event.stopPropagation();toggleRefType('+i+')" title="'+(isPrimary?'Primary (tap to make secondary)':'Secondary (tap to make primary)')+'">'+( isPrimary?'\u2605':'\u25cb')+'</span>';
-    html+='<button class="ref-pill'+(isActive?' on':'')+'" onclick="switchRef('+i+')">'+typeBadge+escHtml(label)+(showX?'<span class="ref-pill-x" onclick="event.stopPropagation();removeRef('+i+')">\u2715</span>':'')+'</button>';
+    var typeBadge='<span class="ref-pill-type" onclick="event.stopPropagation();toggleRefType('+i+')" title="'+(isPrimary?'Primary':'Secondary')+'">'+( isPrimary?'\u2605':'\u25cb')+'</span>';
+    var canLeft=false,canRight=false;
+    if(isActive&&cur.refs.length>1){for(var li=i-1;li>=0;li--){if(cur.refs[li].type===ref.type){canLeft=true;break;}}for(var ri=i+1;ri<cur.refs.length;ri++){if(cur.refs[ri].type===ref.type){canRight=true;break;}}}
+    var leftArr=canLeft?'<span class="ref-pill-type" onclick="event.stopPropagation();moveRef(-1)" title="Move left">\u2039</span>':'';
+    var rightArr=canRight?'<span class="ref-pill-type" onclick="event.stopPropagation();moveRef(1)" title="Move right">\u203a</span>':'';
+    html+='<button class="ref-pill'+(isActive?' on':'')+'" onclick="switchRef('+i+')">'+typeBadge+leftArr+escHtml(label)+rightArr+(showX?'<span class="ref-pill-x" onclick="event.stopPropagation();removeRef('+i+')">\u2715</span>':'')+'</button>';
   });
   if(mode==='field'){html+='<button class="ref-pill ref-pill-add" onclick="addRef()">+ Add Passage</button>';}
   el.innerHTML=html;
 }
-function loadSett(){try{var s=JSON.parse(localStorage.getItem(SK_SETT));if(s)sett=Object.assign({},sett,s);if(!sett.scrMode)sett.scrMode='auto';document.getElementById('set-groq').value=sett.groqKey||'';document.getElementById('set-gemini').value=sett.geminiKey||'';document.getElementById('set-github-token').value=sett.githubToken||'';document.getElementById('set-gist-id').value=sett.gistId||'';updateScrModeUI();}catch(e){}}
+function loadSett(){try{var s=JSON.parse(localStorage.getItem(SK_SETT));if(s)sett=Object.assign({},sett,s);if(!sett.scrMode)sett.scrMode='auto';document.getElementById('set-gemini').value=sett.geminiKey||'';updateScrModeUI();}catch(e){}}
 function setScrMode(mode){sett.scrMode=mode;localStorage.setItem(SK_SETT,JSON.stringify(sett));updateScrModeUI();if(mode==='paste'&&cur&&cur.reference){openPasteModal();}else if(mode==='auto'&&cur&&cur.reference){fetchScr();}}
 function updateScrModeUI(){
   var isAuto=sett.scrMode!=='paste';
@@ -1249,10 +1267,10 @@ function updateScrModeUI(){
     btnAuto.style.background='none';btnAuto.style.color='var(--txt3)';btnAuto.style.fontWeight='400';
   }
 }
-function saveSettings(){var gq=document.getElementById('set-groq').value.trim();var gm=document.getElementById('set-gemini').value.trim();var gt=document.getElementById('set-github-token').value.trim();var gi=document.getElementById('set-gist-id').value.trim();sett.groqKey=gq;sett.geminiKey=gm;sett.githubToken=gt;sett.gistId=gi;localStorage.setItem(SK_SETT,JSON.stringify(sett));toast('Settings saved');if(gq){var ov=document.getElementById('gemini-setup-overlay');if(ov)ov.classList.remove('on');}updateGistStatusDot();}
-function checkGeminiSetup(){if(!sett.groqKey&&!window.location.hash.startsWith('#study=')){setTimeout(function(){document.getElementById('gemini-setup-overlay').classList.add('on');},600);}}
-function saveGeminiSetup(){var k=document.getElementById('gemini-setup-input').value.trim();if(!k){toast('Please enter your API key');return;}sett.groqKey=k;localStorage.setItem(SK_SETT,JSON.stringify(sett));document.getElementById('set-groq').value=k;document.getElementById('gemini-setup-overlay').classList.remove('on');toast('API key saved — AI tools ready');}
-function skipGeminiSetup(){document.getElementById('gemini-setup-overlay').classList.remove('on');}
+function saveSettings(){var gm=document.getElementById('set-gemini').value.trim();sett.geminiKey=gm;localStorage.setItem(SK_SETT,JSON.stringify(sett));toast('Settings saved');}
+function checkGeminiSetup(){/* no-op in Worker mode */}
+function saveGeminiSetup(){}
+function skipGeminiSetup(){}
 
 function navTo(id){
   if(cur)syncFromInputs();
@@ -1264,7 +1282,7 @@ function navTo(id){
   if(id==='deep'){_fnotesOpen=false;var fb=document.getElementById('fnotes-body');if(fb)fb.classList.remove('open');var fc=document.getElementById('fnotes-chev');if(fc)fc.style.transform='';populateDeep();}
   if(id==='field'&&cur)populateField();
   if(id==='stats')renderStats();
-  if(id==='settings'){renderTagManager();renderChangelog();var dot=document.getElementById('gemini-status-dot'),txt=document.getElementById('gemini-status-text');if(dot&&txt){if(sett.groqKey){dot.style.background='var(--sagebright)';txt.textContent='Groq key saved';}else{dot.style.background='var(--crimsonbright)';txt.textContent='No Groq key saved — tap below to add one';}}var gdot=document.getElementById('gemini-ocr-dot'),gtxt=document.getElementById('gemini-ocr-text');if(gdot&&gtxt){if(sett.geminiKey){gdot.style.background='var(--sagebright)';gtxt.textContent='Gemini key saved (OCR enabled)';}else{gdot.style.background='var(--golddim)';gtxt.textContent='No Gemini key — OCR unavailable (optional)';}}updateGistStatusDot();}
+  if(id==='settings'){renderTagManager();renderChangelog();var gdot=document.getElementById('gemini-ocr-dot'),gtxt=document.getElementById('gemini-ocr-text');if(gdot&&gtxt){if(sett.geminiKey){gdot.style.background='var(--sagebright)';gtxt.textContent='Gemini key saved (OCR enabled)';}else{gdot.style.background='var(--golddim)';gtxt.textContent='No Gemini key — OCR unavailable (optional)';}};}
 }
 function saveAndGoLib(){saveStudy();navTo('library');}
 function goField(){navTo('field');}
@@ -1353,7 +1371,7 @@ function mdToHtml(md){
 }
 
 function openStudy(id){cur=studies.find(function(s){return s.id===id;});if(!cur)return;migrateStudy(cur);if(!cur.deep)cur.deep={conclusions:'',outline:''};if(!cur.deep.hasOwnProperty('conclusions'))cur.deep.conclusions='';if(!cur.deep.hasOwnProperty('outline'))cur.deep.outline='';if(!cur.resources)cur.resources=[];if(!cur.tags)cur.tags=[];activeRefIdx=0;studyScope=(activeRef()&&activeRef().deep&&activeRef().deep.studyScope)||'passage';var oel=document.getElementById('d-outline');if(oel)oel.value='';var cel=document.getElementById('d-conclusions');if(cel)cel.value='';trackOpen(cur);populateField();navTo('field');}
-function saveStudy(silent){if(!cur)return;syncFromInputs(!silent);cur.updatedAt=new Date().toISOString();var i=studies.findIndex(function(s){return s.id===cur.id;});if(i>=0)studies[i]=cur;else studies.unshift(cur);persist();if(!silent)toast('Saved');if(sett.githubToken&&online){setTimeout(function(){syncToGist(true);},800);}}
+function saveStudy(silent){if(!cur)return;syncFromInputs(!silent);cur.updatedAt=new Date().toISOString();var i=studies.findIndex(function(s){return s.id===cur.id;});if(i>=0)studies[i]=cur;else studies.unshift(cur);persist();if(!silent)toast('Saved');if(online){setTimeout(function(){syncToGist(true);},800);}}
 function autoSave(){if(cur){syncFromInputs(false);saveStudy(true);}}
 
 // ── GIST SYNC ─────────────────────────────────────────────────────
@@ -1362,9 +1380,7 @@ function updateGistStatusDot(){
   var dot=document.getElementById('gist-status-dot');
   var txt=document.getElementById('gist-status-text');
   if(!dot||!txt)return;
-  if(!sett.githubToken){dot.style.background='var(--golddim)';txt.textContent='Not configured';}
-  else if(sett.gistId){dot.style.background='var(--sagebright)';txt.textContent='Sync configured — Gist ID saved';}
-  else{dot.style.background='var(--gold)';txt.textContent='Token saved — push once to create Gist';}
+  dot.style.background='var(--sagebright)';txt.textContent='Sync active — powered by Archē proxy';
 }
 function mergeStudies(local,remote){
   var merged={};
@@ -1384,43 +1400,26 @@ function gistSetStatus(msg,color){
   if(el){el.textContent=msg;el.style.color=color||'var(--txt4)';}
 }
 async function syncToGist(silent){
-  if(!sett.githubToken){if(!silent)toast('Add a GitHub token in Settings first');return;}
   if(_gistSyncing)return;
-  // First-time push — confirm user knows they need to share this ID with other devices
-  if(!sett.gistId&&!silent){
-    if(!confirm('This will create a new Gist to store your studies.\n\nIMPORTANT: After it\'s created, copy the Gist ID and enter it on your other devices so they all sync to the same place.\n\nContinue?'))return;
-  }
   _gistSyncing=true;
   if(!silent)gistSetStatus('Pushing...','var(--txt3)');
   try{
     var payload=JSON.stringify({studies:studies,tags:TAGS},null,2);
     var body={description:'Arché · Pilgrim Studies',public:false,files:{'arche-pilgrim-studies.json':{content:payload}}};
-    var method=sett.gistId?'PATCH':'POST';
-    var url=sett.gistId?'https://api.github.com/gists/'+sett.gistId:'https://api.github.com/gists';
-    var res=await fetch(url,{method:method,headers:{'Authorization':'token '+sett.githubToken,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},body:JSON.stringify(body)});
-    if(!res.ok)throw new Error('GitHub '+res.status);
-    var data=await res.json();
-    if(!sett.gistId){
-      sett.gistId=data.id;
-      localStorage.setItem(SK_SETT,JSON.stringify(sett));
-      var gi=document.getElementById('set-gist-id');if(gi)gi.value=sett.gistId;
-      updateGistStatusDot();
-      if(!silent)toast('Gist created — copy this ID to your other devices!');
-    }
+    var res=await fetch(WORKER_URL+'/gist',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok)throw new Error('Sync '+res.status);
     if(!silent){gistSetStatus('Pushed — '+new Date().toLocaleTimeString(),'var(--sagebright)');}
   }catch(e){
     if(!silent){gistSetStatus('Push failed: '+e.message,'var(--crimsonbright)');toast('Sync failed: '+e.message);}
   }finally{_gistSyncing=false;}
 }
 async function syncFromGist(){
-  if(!sett.githubToken){toast('Add a GitHub token in Settings first');return;}
-  if(!sett.gistId){toast('No Gist ID — push first to create one');return;}
   if(_gistSyncing)return;
   _gistSyncing=true;
   gistSetStatus('Pulling...','var(--txt3)');
   try{
-    var res=await fetch('https://api.github.com/gists/'+sett.gistId,{headers:{'Authorization':'token '+sett.githubToken,'Accept':'application/vnd.github.v3+json'}});
-    if(!res.ok)throw new Error('GitHub '+res.status);
+    var res=await fetch(WORKER_URL+'/gist');
+    if(!res.ok)throw new Error('Sync '+res.status);
     var data=await res.json();
     var file=data.files&&data.files['arche-pilgrim-studies.json'];
     if(!file||!file.content)throw new Error('No studies file found in Gist');
@@ -1546,7 +1545,7 @@ async function fetchScr(){
 }
 async function getESV(ref){
   var p=new URLSearchParams({q:ref,'include-headings':'false','include-footnotes':'false','include-verse-numbers':'true','include-short-copyright':'false','include-passage-references':'false'});
-  var r=await fetch('https://api.esv.org/v3/passage/text/?'+p,{headers:{Authorization:'Token '+ESV_KEY}});
+  var r=await fetch(WORKER_URL+'/esv?'+p);
   if(!r.ok)throw new Error('ESV '+r.status);
   var d=await r.json();return d.passages?d.passages.join('\n\n'):'';
 }
@@ -1786,13 +1785,12 @@ function closeLexiconModal(){document.getElementById('lexicon-overlay').classLis
 async function runLexiconLookup(){
   var inp=document.getElementById('lexicon-input');var res=document.getElementById('lexicon-result');var btn=document.getElementById('lexicon-btn');
   var query=(inp?inp.value.trim():'');if(!query)return;
-  var sett=JSON.parse(localStorage.getItem('bsn_settings_v1')||'{}');
-  if(!sett.groqKey){res.innerHTML='<p style="color:var(--crimsonbright);">No Groq API key — add it in Settings.</p>';return;}
+
   btn.disabled=true;btn.textContent='Looking up\u2026';
   res.innerHTML='<div style="display:flex;align-items:center;gap:10px;color:var(--txt3);padding:8px 0;"><div class="spin"></div>Searching lexicon\u2026</div>';
   var prompt='You are a seminary-level biblical lexicographer. The user has looked up: "'+query+'". Provide a focused lexical entry with the following sections:\n\n1. **Term** \u2014 the Hebrew or Greek word, transliteration, and Strong\'s number\n2. **Part of Speech** \u2014 noun, verb, adjective, etc.\n3. **Definition** \u2014 concise lexical definition\n4. **Range of Meaning** \u2014 the full semantic range; list variant meanings\n5. **Key Occurrences** \u2014 3\u20135 significant passages where this word appears; reference only, no interpretation\n6. **Usage Notes** \u2014 any notable grammatical, syntactical, or lexical patterns\n\nProvide data only. Do not state what the word means theologically. Do not draw conclusions. All interpretation belongs to the student.';
   try{
-    var r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sett.groqKey},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:700,messages:[{role:'user',content:prompt}]})});
+    var r=await fetch(WORKER_URL+'/groq',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:700,messages:[{role:'user',content:prompt}]})});
     var d=await r.json();
     if(!r.ok){res.innerHTML='<p style="color:var(--crimsonbright);font-size:13px;">'+groqErrMsg(d.error&&d.error.message?d.error.message:'HTTP '+r.status)+'</p>';return;}
     res.innerHTML=mdToHtml(d.choices[0].message.content);
@@ -1805,7 +1803,7 @@ function groqErrMsg(msg){
   if(msg.toLowerCase().includes('rate')||msg.toLowerCase().includes('quota')||msg.toLowerCase().includes('429'))
     return'Rate limit reached — the free tier allows 30 requests/min. Please wait 1–2 minutes and try again.';
   if(msg.toLowerCase().includes('expired')||msg.toLowerCase().includes('invalid')||msg.toLowerCase().includes('api key')||msg.includes('401'))
-    return'Groq API key invalid or expired — update it in <button onclick="navTo(\'settings\')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-family:\'Crimson Pro\',serif;font-size:14px;padding:0;text-decoration:underline;">Settings</button> or get a new key at <a href="https://console.groq.com" target="_blank" style="color:var(--gold);">console.groq.com ↗</a>.';
+    return'AI service error — please try again in a moment or check your connection.';
   return'Error: '+msg;
 }
 async function runTool(tool){
@@ -1815,7 +1813,7 @@ async function runTool(tool){
   var ck=studyScope==='book'?tool+'_book':tool;
   if(ar.deep&&ar.deep[ck]&&ar.deep[ck]!=='__shared__'){showAIPanel(tool,ar.deep[ck]);return;}
   if(!online){toast('AI tools require internet');return;}
-  if(!sett.groqKey){toast('API key needed - see Settings');setTimeout(function(){navTo('settings');},800);return;}
+
   var btn=document.getElementById('btn-'+tool);btn.classList.add('busy');
   document.getElementById('aipanel-title').innerHTML=TOOL_LABELS[tool];
   document.getElementById('aipanel-content').innerHTML='<div style="display:flex;align-items:center;gap:11px;color:var(--txt3);padding:6px 0"><div class="spin"></div>Analyzing '+ar.reference+'...</div>';
@@ -1824,7 +1822,7 @@ async function runTool(tool){
   try{
     var trans=ar.pastedTranslation||ar.translation||'ESV';
     var prompt=buildPrompt(tool,ar.reference,trans,studyScope);
-    var res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sett.groqKey},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],max_tokens:2048,temperature:0.2})});
+    var res=await fetch(WORKER_URL+'/groq',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],max_tokens:2048,temperature:0.2})});
     if(!res.ok){var err=await res.json().catch(function(){return{};});throw new Error(err.error?err.error.message:'HTTP '+res.status);}
     var data=await res.json();
     var content=data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content||'No response received.';
@@ -1907,6 +1905,45 @@ function shareAIResult(){
 
 // RESOURCES
 function resCapture(mode){if(!cur){toast('Open a study first');return;}var el=document.getElementById(mode==='camera'?'res-input-camera':'res-input-gallery');el.value='';el.click();}
+function resAddDocPrompt(){if(!cur){toast('Open a study first');return;}var el=document.getElementById('res-input-doc');el.value='';el.click();}
+function resHandleDoc(input){
+  var file=input.files[0];if(!file)return;
+  var name=file.name;
+  var ext=name.split('.').pop().toLowerCase();
+  toast('Reading '+name+'...');
+  if(ext==='docx'||ext==='doc'){
+    // Use mammoth.js for DOCX
+    if(typeof mammoth==='undefined'){toast('Document reader not loaded — try refreshing');return;}
+    var reader=new FileReader();
+    reader.onload=function(e){
+      mammoth.extractRawText({arrayBuffer:e.target.result}).then(function(result){
+        resAddDocResource(name,result.value||'No text could be extracted.');
+      }).catch(function(err){toast('Could not read document: '+err.message);});
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    // TXT, MD — read as plain text
+    var reader=new FileReader();
+    reader.onload=function(e){resAddDocResource(name,e.target.result||'');};
+    reader.readAsText(file);
+  }
+}
+function resAddDocResource(filename,text){
+  if(!cur.resources)cur.resources=[];
+  var res={
+    id:'r'+Date.now(),
+    type:'doc',
+    dataUrl:'',
+    ocrText:text.trim(),
+    ocrStatus:'done',
+    title:filename,
+    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+  };
+  cur.resources.push(res);
+  saveStudy();
+  renderResources();
+  toast('Document added — tap to view or insert into notes');
+}
 function resHandleFile(input){var file=input.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){resCompressImage(e.target.result,function(c){resAddResource(c);});};reader.readAsDataURL(file);}
 function resCompressImage(dataUrl,callback){var img=new Image();img.onload=function(){var canvas=document.createElement('canvas'),MAX=1200,w=img.width,h=img.height;if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);callback(canvas.toDataURL('image/jpeg',0.82));};img.src=dataUrl;}
 function resAddResource(dataUrl){if(!cur.resources)cur.resources=[];var res={id:'r'+Date.now(),dataUrl:dataUrl,ocrText:'',ocrStatus:'pending',title:'Resource '+(cur.resources.length+1),date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})};cur.resources.push(res);saveStudy();renderResources();resRunOCR(res.id);}
@@ -1933,6 +1970,7 @@ function resToggleText(id){var el=document.getElementById('res-ocr-'+id);if(!el)
 function resViewFull(id){
   if(!cur||!cur.resources)return;
   var res=cur.resources.find(function(r){return r.id===id;});if(!res)return;
+  var isDoc=res.type==='doc';
   var ob='';
   if(res.ocrStatus==='running')ob='<div style="display:flex;align-items:center;gap:9px;padding:8px 0;color:var(--txt3);font-size:13px;font-style:italic"><div class="spin"></div>Extracting...</div>';
   else if(res.ocrStatus==='done'&&res.ocrText)ob='<div style="font-size:14px;color:var(--txt2);line-height:1.7;white-space:pre-wrap;margin-bottom:12px">'+escHtml(res.ocrText)+'</div><button class="res-insert-btn" onclick="resInsertText(\''+id+'\');closeOverlay(\'res-view-overlay\')">&#43; Insert into Notes</button>';
@@ -1940,7 +1978,11 @@ function resViewFull(id){
   else ob='<div style="color:var(--txt4);font-size:12px;font-style:italic">Extracting text...</div>';
   var ov=document.getElementById('res-view-overlay');
   if(!ov){ov=document.createElement('div');ov.id='res-view-overlay';ov.className='overlay';ov.innerHTML='<div class="modal" style="max-width:520px"></div>';ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('on');});document.body.appendChild(ov);}
-  ov.querySelector('.modal').innerHTML='<img src="'+res.dataUrl+'" style="width:100%;max-height:240px;object-fit:contain;border-radius:var(--r);margin-bottom:14px;background:var(--bg3);display:block"><div style="font-family:\'EB Garamond\',serif;font-size:18px;color:var(--txt1);margin-bottom:4px">'+escHtml(res.title)+'</div><div style="font-size:11px;color:var(--txt4);margin-bottom:14px">'+res.date+'</div><div class="seclabel">Extracted Text</div>'+ob+'<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="resEditTitle(\''+id+'\')" style="font-size:12px">Rename</button><button class="btn btn-ghost btn-sm" onclick="resRetryOCR(\''+id+'\')" style="font-size:12px">Re-extract</button><button class="btn btn-danger btn-sm" onclick="resDeleteResource(\''+id+'\');closeOverlay(\'res-view-overlay\')" style="font-size:12px">Delete</button><button class="btn btn-sec btn-sm" onclick="closeOverlay(\'res-view-overlay\')" style="font-size:12px;margin-left:auto">Close</button></div>';
+  var imgHtml=isDoc
+    ?'<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg3);border-radius:var(--r);margin-bottom:14px"><svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span style="font-size:13px;color:var(--txt3)">Document</span></div>'
+    :'<img src="'+res.dataUrl+'" style="width:100%;max-height:240px;object-fit:contain;border-radius:var(--r);margin-bottom:14px;background:var(--bg3);display:block">';
+  var reExtractBtn=isDoc?'':'<button class="btn btn-ghost btn-sm" onclick="resRetryOCR(\''+id+'\')" style="font-size:12px">Re-extract</button>';
+  ov.querySelector('.modal').innerHTML=imgHtml+'<div style="font-family:\'EB Garamond\',serif;font-size:18px;color:var(--txt1);margin-bottom:4px">'+escHtml(res.title)+'</div><div style="font-size:11px;color:var(--txt4);margin-bottom:14px">'+res.date+'</div><div class="seclabel">'+(isDoc?'Document Content':'Extracted Text')+'</div>'+ob+'<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="resEditTitle(\''+id+'\')" style="font-size:12px">Rename</button>'+reExtractBtn+'<button class="btn btn-danger btn-sm" onclick="resDeleteResource(\''+id+'\');closeOverlay(\'res-view-overlay\')" style="font-size:12px">Delete</button><button class="btn btn-sec btn-sm" onclick="closeOverlay(\'res-view-overlay\')" style="font-size:12px;margin-left:auto">Close</button></div>';
   ov.classList.add('on');
 }
 function resEditTitle(id){if(!cur||!cur.resources)return;var res=cur.resources.find(function(r){return r.id===id;});if(!res)return;_renameResId=id;document.getElementById('rename-res-input').value=res.title;document.getElementById('rename-res-overlay').classList.add('on');setTimeout(function(){var inp=document.getElementById('rename-res-input');if(inp){inp.focus();inp.select();}},200);}
@@ -1948,11 +1990,17 @@ function confirmRenameRes(){if(!_renameResId||!cur||!cur.resources)return;var re
 function renderResources(){
   var list=document.getElementById('res-list'),status=document.getElementById('res-status');
   if(!list)return;
-  if(!cur||!cur.resources||!cur.resources.length){list.innerHTML='<p style="font-size:12px;color:var(--txt4);font-style:italic">No photos yet. Add them in Field Mode.</p>';if(status)status.textContent='';renderFieldTiles();return;}
+  if(!cur||!cur.resources||!cur.resources.length){list.innerHTML='<p style="font-size:12px;color:var(--txt4);font-style:italic">No resources yet. Add photos or documents in Field Mode.</p>';if(status)status.textContent='';renderFieldTiles();return;}
   if(status)status.textContent=cur.resources.length+' resource'+(cur.resources.length!==1?'s':'');
-  // Deep Study: tile grid — tap to expand full card
   list.innerHTML='<div class="res-tile-grid">'+cur.resources.map(function(r){
-    var badge=r.ocrStatus==='done'&&r.ocrText?'<div class="res-tile-badge" title="Text extracted"></div>':'';
+    var badge=r.ocrStatus==='done'&&r.ocrText?'<div class="res-tile-badge" title="Text ready"></div>':'';
+    if(r.type==='doc'){
+      return '<div class="res-tile" onclick="resViewFull(\''+r.id+'\')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;min-height:80px;">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" width="24" height="24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
+        badge+
+        '<div class="res-tile-label" style="text-align:center;margin-top:4px">'+escHtml(r.title)+'</div>'+
+      '</div>';
+    }
     return '<div class="res-tile" onclick="resViewFull(\''+r.id+'\')">'+
       '<img src="'+r.dataUrl+'" alt="'+escHtml(r.title)+'">'+
       badge+
@@ -1965,7 +2013,14 @@ function renderFieldTiles(){
   var el=document.getElementById('field-res-tiles');if(!el)return;
   if(!cur||!cur.resources||!cur.resources.length){el.innerHTML='';return;}
   el.innerHTML='<div class="res-tile-grid">'+cur.resources.map(function(r){
-    var badge=r.ocrStatus==='done'&&r.ocrText?'<div class="res-tile-badge" title="Text extracted"></div>':'';
+    var badge=r.ocrStatus==='done'&&r.ocrText?'<div class="res-tile-badge" title="Text ready"></div>':'';
+    if(r.type==='doc'){
+      return '<div class="res-tile" onclick="resViewFull(\''+r.id+'\')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;min-height:80px;">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" width="24" height="24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
+        badge+
+        '<div class="res-tile-label" style="text-align:center;margin-top:4px">'+escHtml(r.title)+'</div>'+
+      '</div>';
+    }
     return '<div class="res-tile" onclick="resViewFull(\''+r.id+'\')">'+
       '<img src="'+r.dataUrl+'" alt="'+escHtml(r.title)+'">'+
       badge+
@@ -2334,7 +2389,7 @@ function importDataFromFile(input){
 var _importPending=null;
 function shareApp(){
   var url='https://gizmo5332.github.io/JC-Study-Tool/';
-  var text='I\'ve been using Arché · Pilgrim for Bible study and thought you\'d love it. It\'s free and works right in your browser — no install needed.\n\nYou\'ll need a free Groq API key (takes 2 min) to use the AI tools: https://console.groq.com\n\nOpen the app here: '+url;
+  var text='I\'ve been using Arché · Pilgrim for Bible study and thought you\'d love it. It\'s free, works right in your browser — no install needed, and includes AI-powered study tools.\n\nOpen the app here: '+url;
   if(navigator.share){navigator.share({title:'Arché · Pilgrim',text:text,url:url}).catch(function(){});
   }else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('Invite copied to clipboard!');}).catch(function(){promptCopyFallback(text);});
   }else{promptCopyFallback(text);}
@@ -2408,7 +2463,7 @@ function confirmImportLink(){
   persist();renderLib();closeOverlay('import-overlay');window.location.hash='';
   var ref0=(s.refs&&s.refs[0]&&s.refs[0].reference)||s.reference||'';
   toast('Study imported: '+(s.title||ref0||'Untitled'));
-  if(!sett.groqKey){setTimeout(function(){document.getElementById('gemini-setup-overlay').classList.add('on');},800);}
+
   // Auto-fetch missing scripture for all refs (shared studies have scriptureText stripped)
   if(online&&sett.scrMode!=='paste'){setTimeout(function(){fetchAllMissingScripture(s);},600);}
 }
@@ -2441,7 +2496,17 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 // ── CHANGELOG ────────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'3.2',date:'March 28, 2026',label:'Latest',
+    version:'3.3',date:'March 30, 2026',label:'Latest',
+    _clSectionOpen:false,_clOpen:false,
+    items:[
+      'Cloudflare Worker proxy — all API calls (Groq AI, ESV Bible, GitHub Gist sync) now route through a secure server-side proxy; no API keys required on any device',
+      'Study Sync fully automatic — studies push silently after every Save with no manual token or Gist ID setup needed; Pull button still available for manual sync',
+      'Settings simplified — Groq key and GitHub sync fields removed; Gemini OCR key is the only user-configurable setting',
+      'ESV attribution added — proper Crossway copyright notice displayed in Settings per API v3 guidelines',
+      'Share app text updated — AI tools now highlighted as included with no setup required for recipients'
+    ]
+  },{
+    version:'3.2',date:'March 28, 2026',label:'',
     items:[
       'Fixed: Outline and Conclusions data loss — redundant syncFromInputs() call removed from navTo deep branch; stale textarea content from a previously viewed study could overwrite the current study\'s outline before populateDeep() loaded correct data',
       'Fixed: My Conclusions wiped on load — syncFromInputs() now guards d-conclusions with the same deepOn||force check already applied to the outline; was unconditionally reading the empty textarea whenever Field Mode was active',
