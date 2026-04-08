@@ -1453,8 +1453,9 @@ async function syncFromGist(){
     if(!res.ok)throw new Error('Sync '+res.status);
     var data=await res.json();
     var file=data.files&&data.files['arche-pilgrim-studies.json'];
-    if(!file||!file.content)throw new Error('No studies file found in Gist');
-    var remote=JSON.parse(file.content);
+    if(!file||(!file.content&&!file.raw_url))throw new Error('No studies file found in Gist');
+    var fileContent=file.raw_url?(await (await fetch(file.raw_url)).text()):file.content;
+    var remote=JSON.parse(fileContent);
     if(!remote.studies||!Array.isArray(remote.studies))throw new Error('Invalid Gist format');
     remote.studies.forEach(function(s){migrateStudy(s);});
     var before=studies.map(function(s){return {id:s.id,upd:s.updatedAt};});
@@ -2535,12 +2536,18 @@ var _tt;function toast(msg){var el=document.getElementById('toast');el.textConte
 // ── CHANGELOG ────────────────────────────────────────────────────
 var CHANGELOG=[
   {
-    version:'3.5',date:'April 5, 2026',label:'Latest',
+    version:'3.6',date:'April 8, 2026',label:'Latest',
+    _clSectionOpen:false,_clOpen:false,
+    items:[
+      'Fixed: Pull now fetches raw_url from GitHub Gist when available — prevents truncated sync on large study libraries and reduces stale-cache pull misses'
+    ]
+  },{
+    version:'3.5',date:'April 5, 2026',label:'',
     _clSectionOpen:false,_clOpen:false,
     items:[
       'Fixed: Toggling a passage between Primary and Secondary no longer corrupts its reference label — f-ref input is now synced to the moved ref before saveStudy reads it',
       'Fixed: Scripture text no longer bleeds into the wrong passage slot when switching refs during a network fetch — async fetchScr re-resolves ref by ID after await',
-      'Improved: OCR engine switched from Gemini to Groq Llama 3.2 Vision (90B) — faster extraction, no separate Gemini key required'
+      'Improved: OCR engine switched from Gemini to Groq Llama 3.2 Vision — faster extraction, no separate Gemini key required'
     ]
   },{
     version:'3.4',date:'April 3, 2026',label:'',
