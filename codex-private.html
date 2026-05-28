@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<!-- © 2026 Jesse Caldwell. All rights reserved. Arché · Codex — part of Arché Study Tools. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0b0907">
+<title>Arché · Codex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#0b0907;--bg1:#120f0a;--bg2:#1b1710;--bg3:#252019;--bg4:#2f2a1f;
+  --border:#3a3022;--borderlit:#4d4430;
+  --gold:#c9a84c;--golddim:#7a6520;--goldpale:#e8ca80;--goldglow:rgba(201,168,76,0.15);
+  --crimson:#8b3535;--crimsonbright:#c05050;
+  --sage:#3d6b4f;--sagebright:#5a9b70;
+  --txt1:#e8d5a3;--txt2:#c4a870;--txt3:#8a7550;--txt4:#5a4d35;
+  --code-bg:#0d1117;--code-border:#2a2a3a;--code-txt:#e6edf3;
+  --code-key:#ff7b72;--code-str:#a5d6ff;--code-num:#79c0ff;--code-com:#8b949e;--code-fn:#d2a8ff;
+  --r:8px;--rl:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg0);color:var(--txt1);font-family:'Crimson Pro',serif;font-size:16px;-webkit-font-smoothing:antialiased;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:520px;margin:0 auto;position:relative;overflow:hidden}
+@media(min-width:900px){
+  html,body{overflow:auto}
+  #app{max-width:100%;flex-direction:row;height:100vh;overflow:hidden}
+  #shared-botnav{flex-direction:column;width:200px;height:100%;border-top:none;border-right:1px solid var(--border);justify-content:flex-start;padding:24px 0;flex-shrink:0;order:-1}
+  .navbtn{flex-direction:row;gap:10px;justify-content:flex-start;padding:14px 24px;font-size:12px;border-radius:0}
+  .navbtn svg{width:18px;height:18px;flex-shrink:0}
+  #app-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+  .topbar{padding:18px 28px}
+  .scroll{padding:20px 28px}
+  .topbar-title{font-size:24px}
+  #dash-version-wrap{display:flex;align-items:center;gap:8px}
+}
+
+/* ── Typography ── */
+h1,h2,h3,.garamond{font-family:'EB Garamond',serif}
+code,pre,.mono{font-family:'JetBrains Mono',monospace}
+
+/* ── Screens ── */
+.scr{display:none;flex-direction:column;flex:1;overflow:hidden}
+.scr.on{display:flex}
+
+/* ── Topbar ── */
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--bg1);border-bottom:1px solid var(--border);flex-shrink:0}
+.topbar-title{font-family:'EB Garamond',serif;font-size:20px;font-weight:500;color:var(--gold);flex:1;letter-spacing:.02em}
+.topbar-sub{font-size:13px;color:var(--txt3);font-style:italic}
+.back-btn{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:20px;padding:4px 8px 4px 0;line-height:1}
+.back-btn:active{color:var(--gold)}
+
+/* ── Scroll ── */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;overscroll-behavior-y:contain}
+.scroll::-webkit-scrollbar{display:none}
+
+/* ── Bottom Nav ── */
+.botnav{display:flex;background:var(--bg1);border-top:1px solid var(--border);flex-shrink:0}
+.navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;background:none;border:none;color:var(--txt4);cursor:pointer;font-family:'Crimson Pro',serif;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;transition:color .2s}
+.navbtn.on{color:var(--gold)}
+.navbtn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:var(--r);font-family:'Crimson Pro',serif;font-size:15px;font-weight:500;cursor:pointer;border:none;transition:all .15s;min-height:44px}
+.btn-primary{background:var(--gold);color:var(--bg0);font-weight:600}.btn-primary:active{background:var(--golddim);color:var(--txt1)}
+.btn-sec{background:var(--bg3);color:var(--txt1);border:1px solid var(--borderlit)}.btn-sec:active{background:var(--bg4)}
+.btn-ghost{background:none;color:var(--txt2);border:1px solid var(--border)}.btn-ghost:active{background:var(--bg3)}
+.btn-full{width:100%}
+.btn-sm{padding:7px 13px;font-size:13px;min-height:36px}
+
+/* ── Cards ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px;margin-bottom:12px}
+.card-gold{border-color:var(--golddim);background:linear-gradient(135deg,var(--bg2),#1e1a0f)}
+
+/* ── Module List ── */
+.module-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color .2s,background .2s}
+.module-card:active{background:var(--bg3);border-color:var(--borderlit)}
+.module-card.locked{opacity:.55;cursor:default}
+.module-card.complete{border-color:var(--sage)}
+.module-num{font-size:11px;color:var(--txt4);letter-spacing:.08em;text-transform:uppercase;font-family:'Crimson Pro',serif;margin-bottom:4px}
+.module-title{font-family:'EB Garamond',serif;font-size:19px;color:var(--txt1);margin-bottom:4px}
+.module-desc{font-size:13px;color:var(--txt3);line-height:1.5}
+.module-meta{display:flex;align-items:center;gap:10px;margin-top:10px}
+.module-pill{font-size:11px;padding:3px 8px;border-radius:20px;font-family:'Crimson Pro',serif}
+.pill-locked{background:var(--bg3);color:var(--txt4);border:1px solid var(--border)}
+.pill-active{background:var(--goldglow);color:var(--gold);border:1px solid var(--golddim)}
+.pill-done{background:rgba(90,155,112,.15);color:var(--sagebright);border:1px solid var(--sage)}
+.pill-review{background:rgba(139,53,53,.15);color:var(--crimsonbright);border:1px solid var(--crimson)}
+.progress-bar-wrap{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.progress-bar-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .4s}
+
+/* ── Lesson List ── */
+.lesson-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+.lesson-row:active{border-color:var(--borderlit);background:var(--bg3)}
+.lesson-row.locked{opacity:.5;cursor:default}
+.lesson-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.icon-locked{background:var(--bg3);border:1px solid var(--border)}
+.icon-active{background:var(--goldglow);border:1px solid var(--golddim)}
+.icon-done{background:rgba(90,155,112,.2);border:1px solid var(--sage)}
+.icon-review{background:rgba(139,53,53,.2);border:1px solid var(--crimson)}
+.lesson-title{font-family:'EB Garamond',serif;font-size:16px;color:var(--txt1);flex:1}
+.lesson-meta{font-size:11px;color:var(--txt4)}
+.prereq-warn{font-size:11px;color:var(--crimsonbright);margin-top:3px;display:flex;align-items:center;gap:4px}
+
+/* ── Lesson Content ── */
+.lesson-section{margin-bottom:22px}
+.lesson-section-title{font-family:'EB Garamond',serif;font-size:16px;color:var(--gold);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.lesson-body{font-size:15px;color:var(--txt2);line-height:1.75}
+.lesson-body p{margin-bottom:12px}
+.lesson-body strong{color:var(--txt1)}
+.lesson-body em{color:var(--goldpale);font-style:italic}
+.analogy-box{background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 var(--r) var(--r) 0;padding:12px 14px;margin:14px 0;font-size:14px;color:var(--txt2);line-height:1.6}
+.analogy-box .analogy-label{font-size:11px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;font-family:'Crimson Pro',serif}
+
+/* ── Code Blocks ── */
+.code-block{background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--r);margin:14px 0;overflow:hidden}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--code-border)}
+.code-label{font-size:11px;color:var(--txt4);font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
+.code-copy{font-size:11px;color:var(--txt3);background:none;border:none;cursor:pointer;font-family:'Crimson Pro',serif;padding:2px 6px}
+.code-copy:active{color:var(--gold)}
+.code-body{padding:14px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.7;color:var(--code-txt)}
+.code-body::-webkit-scrollbar{height:4px}
+.code-body::-webkit-scrollbar-track{background:var(--code-bg)}
+.code-body::-webkit-scrollbar-thumb{background:var(--code-border);border-radius:2px}
+.ck{color:var(--code-key)}.cs{color:var(--code-str)}.cn{color:var(--code-num)}.cc{color:var(--code-com);font-style:italic}.cf{color:var(--code-fn)}
+.annotation{background:rgba(201,168,76,.08);border-left:2px solid var(--gold);padding:8px 12px;margin:10px 0;font-size:13px;color:var(--txt2);line-height:1.6;border-radius:0 4px 4px 0}
+.annotation .ann-num{color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;margin-bottom:3px}
+
+/* ── Quiz ── */
+.quiz-wrap{background:var(--bg2);border:1px solid var(--borderlit);border-radius:var(--rl);padding:16px;margin-top:8px}
+.quiz-title{font-family:'EB Garamond',serif;font-size:17px;color:var(--txt1);margin-bottom:4px}
+.quiz-sub{font-size:12px;color:var(--txt4);margin-bottom:14px}
+.quiz-q{font-size:14px;color:var(--txt1);margin-bottom:10px;line-height:1.6;font-weight:500}
+.quiz-opt{display:block;width:100%;text-align:left;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--txt2);font-family:'Crimson Pro',serif;font-size:14px;cursor:pointer;margin-bottom:7px;transition:all .15s;line-height:1.4}
+.quiz-opt:active{background:var(--bg4)}
+.quiz-opt.selected{border-color:var(--gold);background:var(--goldglow);color:var(--txt1)}
+.quiz-opt.correct{border-color:var(--sagebright);background:rgba(90,155,112,.15);color:var(--sagebright)}
+.quiz-opt.wrong{border-color:var(--crimsonbright);background:rgba(139,53,53,.15);color:var(--crimsonbright)}
+.quiz-feedback{font-size:13px;padding:10px 12px;border-radius:var(--r);margin-top:8px;line-height:1.5}
+.quiz-pass{background:rgba(90,155,112,.15);color:var(--sagebright);border:1px solid var(--sage)}
+.quiz-fail{background:rgba(139,53,53,.15);color:var(--crimsonbright);border:1px solid var(--crimson)}
+.quiz-progress{display:flex;gap:6px;margin-bottom:14px}
+.quiz-dot{width:8px;height:8px;border-radius:50%;background:var(--bg4);transition:background .2s}
+.quiz-dot.answered{background:var(--gold)}
+.quiz-dot.correct-dot{background:var(--sagebright)}
+.quiz-dot.wrong-dot{background:var(--crimsonbright)}
+
+/* ── Confidence Rating ── */
+.conf-wrap{text-align:center;padding:20px 0}
+.conf-title{font-family:'EB Garamond',serif;font-size:18px;color:var(--txt1);margin-bottom:6px}
+.conf-sub{font-size:13px;color:var(--txt3);margin-bottom:18px;line-height:1.5}
+.conf-stars{display:flex;justify-content:center;gap:10px;margin-bottom:16px}
+.conf-star{font-size:30px;color:var(--bg4);cursor:pointer;transition:color .15s;line-height:1}
+.conf-star.active{color:var(--gold)}
+.conf-label{font-size:12px;color:var(--txt4);min-height:18px;margin-bottom:14px}
+
+/* ── Dashboard ── */
+.dash-section{margin-bottom:20px}
+.dash-label{font-size:11px;color:var(--txt4);letter-spacing:.08em;text-transform:uppercase;font-family:'Crimson Pro',serif;margin-bottom:10px}
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center}
+.stat-num{font-family:'EB Garamond',serif;font-size:26px;color:var(--gold);line-height:1}
+.stat-lbl{font-size:11px;color:var(--txt4);margin-top:4px}
+.review-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:7px;cursor:pointer}
+.review-item:active{border-color:var(--borderlit);background:var(--bg3)}
+.review-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.review-name{flex:1;font-size:14px;color:var(--txt1)}
+.review-due{font-size:11px;color:var(--txt4)}
+.streak-bar{display:flex;gap:4px;margin-bottom:6px}
+.streak-day{width:28px;height:28px;border-radius:4px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--txt4);font-family:'JetBrains Mono',monospace}
+.streak-day.done{background:var(--goldglow);border:1px solid var(--golddim);color:var(--gold)}
+
+/* ── Divider / Ornament ── */
+.divider{height:1px;background:var(--border);margin:18px 0}
+.ornament{text-align:center;color:var(--txt4);font-size:12px;letter-spacing:.2em;margin:10px 0}
+
+/* ── Misc ── */
+.sethead{font-family:'EB Garamond',serif;font-size:20px;color:var(--gold);margin-bottom:6px}
+.setsub{font-size:13px;color:var(--txt3);line-height:1.6;margin-bottom:12px}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-family:'Crimson Pro',serif;letter-spacing:.04em}
+.badge-gold{background:var(--goldglow);color:var(--gold);border:1px solid var(--golddim)}
+.badge-green{background:rgba(90,155,112,.15);color:var(--sagebright);border:1px solid var(--sage)}
+.badge-red{background:rgba(139,53,53,.15);color:var(--crimsonbright);border:1px solid var(--crimson)}
+.empty-state{text-align:center;padding:32px 16px;color:var(--txt4);font-size:14px;line-height:1.7}
+.empty-icon{font-size:32px;margin-bottom:10px}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--borderlit);border-radius:var(--r);padding:10px 18px;font-size:13px;color:var(--txt1);z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.cdx-rp{background:none;border:1px solid var(--border);border-radius:4px;color:var(--txt3);font-size:11px;font-family:'Crimson Pro',serif;padding:3px 7px;cursor:pointer;transition:color .15s,border-color .15s}
+.cdx-rp.active{color:var(--gold);border-color:var(--gold)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══ MAIN CONTENT WRAPPER (desktop sidebar layout) ═══ -->
+<div id="app-main" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
+
+<!-- ═══ SCREEN: DASHBOARD ═══ -->
+<div class="scr on" id="scr-dash">
+  <div class="topbar">
+    <div style="flex:1">
+      <div class="topbar-title">Arché · Codex</div>
+      <div class="topbar-sub">Code Literacy School</div>
+    </div>
+    <div id="dash-version-wrap" style="display:flex;align-items:center;gap:8px">
+      <svg width="28" height="28" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;border-radius:6px">
+        <rect width="400" height="400" rx="56" fill="#f5e8c0"/>
+        <rect x="64" y="118" width="108" height="164" rx="4" fill="#2a2010"/>
+        <line x1="78" y1="143" x2="156" y2="143" stroke="#c9a84c" stroke-width="1.5" opacity="0.45"/>
+        <line x1="78" y1="158" x2="156" y2="158" stroke="#c9a84c" stroke-width="1.5" opacity="0.4"/>
+        <line x1="78" y1="173" x2="156" y2="173" stroke="#c9a84c" stroke-width="1.5" opacity="0.35"/>
+        <line x1="78" y1="188" x2="156" y2="188" stroke="#c9a84c" stroke-width="1.5" opacity="0.3"/>
+        <line x1="78" y1="203" x2="152" y2="203" stroke="#c9a84c" stroke-width="1.5" opacity="0.25"/>
+        <line x1="78" y1="218" x2="146" y2="218" stroke="#c9a84c" stroke-width="1.5" opacity="0.2"/>
+        <rect x="170" y="110" width="8" height="180" rx="2" fill="#f5e8c0"/>
+        <rect x="178" y="118" width="108" height="164" rx="4" fill="#c9a84c"/>
+        <text x="232" y="205" text-anchor="middle" dominant-baseline="middle" font-family="'Courier New',monospace" font-size="40" font-weight="700" fill="#0b0907">&lt;/&gt;</text>
+      </svg>
+      <div id="dash-version" style="font-size:11px;color:var(--txt4);font-family:'JetBrains Mono',monospace"></div>
+    </div>
+  </div>
+  <div class="scroll" id="dash-scroll">
+    <div class="dash-section">
+      <div class="stat-row" id="dash-stats"></div>
+    </div>
+    <div id="dash-reviews-section" class="dash-section" style="display:none">
+      <div class="dash-label">&#9670; Due for Review</div>
+      <div id="dash-reviews"></div>
+    </div>
+    <div class="dash-section">
+      <div class="dash-label">&#9670; Modules</div>
+      <div id="dash-modules"></div>
+    </div>
+    <div class="ornament">&#10022; &#10022; &#10022;</div>
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN: PROGRESS ═══ -->
+<div class="scr" id="scr-progress">
+  <div class="topbar">
+    <div class="topbar-title">Progress</div>
+  </div>
+  <div class="scroll" id="progress-scroll">
+    <div id="progress-content"></div>
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN: REVIEW ═══ -->
+<div class="scr" id="scr-review">
+  <div class="topbar">
+    <div class="topbar-title">Review</div>
+  </div>
+  <div class="scroll" id="review-scroll">
+    <div id="review-content"></div>
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN: ABOUT ═══ -->
+<div class="scr" id="scr-about">
+  <div class="topbar">
+    <div class="topbar-title">About</div>
+  </div>
+  <div class="scroll">
+    <div class="sethead">Arché · Codex</div>
+    <div class="setsub">Your personal code literacy school — built around your own apps, using the Ebbinghaus spaced repetition method to lock in knowledge over time.</div>
+    <div class="divider"></div>
+    <div class="sethead" style="font-size:16px">How It Works</div>
+    <div class="card" style="margin-top:10px">
+      <div style="font-size:13px;color:var(--txt2);line-height:1.75">
+        <p style="margin-bottom:8px"><strong style="color:var(--gold)">1. Read</strong> — Each lesson explains a concept in detail, with real code examples from your own apps.</p>
+        <p style="margin-bottom:8px"><strong style="color:var(--gold)">2. Quiz</strong> — Pass at 70% to mark a lesson complete. Three attempts before a cooldown.</p>
+        <p style="margin-bottom:8px"><strong style="color:var(--gold)">3. Rate Confidence</strong> — 1–5 stars after passing. Your rating sets the next review date.</p>
+        <p style="margin-bottom:0"><strong style="color:var(--gold)">4. Review</strong> — The Ebbinghaus scheduler brings concepts back at the right intervals so they stick.</p>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="sethead" style="font-size:16px">Spaced Repetition Intervals</div>
+    <div class="card" style="margin-top:10px">
+      <div style="font-size:13px;color:var(--txt2);line-height:1.9">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px">
+          <span style="color:var(--txt3)">★☆☆☆☆ Unsure</span><span>Next day</span>
+          <span style="color:var(--txt3)">★★☆☆☆ Shaky</span><span>3 days</span>
+          <span style="color:var(--txt3)">★★★☆☆ Getting it</span><span>7 days</span>
+          <span style="color:var(--txt3)">★★★★☆ Solid</span><span>14 days</span>
+          <span style="color:var(--txt3)">★★★★★ Confident</span><span>30 days</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="sethead" style="font-size:16px">Study Sync</div>
+    <div class="setsub">Sync your progress across all devices via Arché proxy. Push after studying, Pull on a new device.</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button class="btn btn-sec" style="flex:1" onclick="codexPull()">&#8595; Pull</button>
+      <button class="btn btn-primary" style="flex:1" onclick="codexPush()">&#8593; Push</button>
+    </div>
+    <div id="codex-sync-status" style="font-size:12px;color:var(--txt4);min-height:16px;text-align:center;margin-bottom:4px"></div>
+    <div class="divider"></div>
+    <div class="sethead" style="font-size:16px">Audio &amp; Voice</div>
+    <div class="setsub">Choose the voice and speed used for lesson playback. Settings sync with Pilgrim.</div>
+    <div class="card" style="margin-top:10px">
+      <!-- Voice selector -->
+      <div style="font-size:12px;color:var(--txt4);margin-bottom:6px;font-family:'Crimson Pro',serif">Voice</div>
+      <select id="about-voice-sel" onchange="cdxSetVoice(this.value);cdxSyncAboutVoice()" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--txt2);font-family:'Crimson Pro',serif;font-size:13px;padding:7px 10px;cursor:pointer;margin-bottom:12px">
+        <option value="">Default</option>
+      </select>
+      <div style="font-size:11px;color:var(--txt4);margin-bottom:14px">Voice options vary by device and OS. Select one and hit Test to preview.</div>
+      <!-- Rate -->
+      <div style="font-size:12px;color:var(--txt4);margin-bottom:6px;font-family:'Crimson Pro',serif">Playback Speed</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+        <button onclick="cdxSetRate(0.75);cdxSyncAboutRate()" class="cdx-rp" id="about-rp-0_75">0.75×</button>
+        <button onclick="cdxSetRate(1);cdxSyncAboutRate()"    class="cdx-rp" id="about-rp-1">1×</button>
+        <button onclick="cdxSetRate(1.25);cdxSyncAboutRate()" class="cdx-rp" id="about-rp-1_25">1.25×</button>
+        <button onclick="cdxSetRate(1.5);cdxSyncAboutRate()"  class="cdx-rp" id="about-rp-1_5">1.5×</button>
+        <button onclick="cdxSetRate(2);cdxSyncAboutRate()"    class="cdx-rp" id="about-rp-2">2×</button>
+      </div>
+      <!-- Test button -->
+      <button id="about-tts-test" onclick="cdxTestVoice()" style="width:100%;background:none;border:1px solid var(--border);border-radius:6px;color:var(--txt2);font-family:'Crimson Pro',serif;font-size:13px;padding:8px 14px;cursor:pointer">&#9654; Test Voice</button>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:11px;color:var(--txt4);text-align:center;line-height:1.9">
+      Arché · Codex v1.6.1<br>Part of Arché Study Tools<br>© 2026 Jesse Caldwell
+    </div>
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN: MODULE ═══ -->
+<div class="scr" id="scr-module">
+  <div class="topbar">
+    <button class="back-btn" onclick="goBack()">&#8592;</button>
+    <div style="flex:1">
+      <div class="topbar-title" id="mod-title"></div>
+    </div>
+  </div>
+  <div class="scroll">
+    <div id="mod-lessons"></div>
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN: LESSON ═══ -->
+<div class="scr" id="scr-lesson">
+  <div class="topbar">
+    <button class="back-btn" onclick="goBack()">&#8592;</button>
+    <div style="flex:1">
+      <div class="topbar-title" id="lesson-title-bar"></div>
+    </div>
+    <div id="lesson-status-badge"></div>
+  </div>
+  <div class="scroll" id="lesson-scroll">
+    <div id="lesson-content"></div>
+    <div style="height:16px"></div>
+  </div>
+  <!-- TTS Player Bar — flex child, stacks below scroll -->
+  <div id="cdx-player" style="display:none;background:var(--bg2);border-top:1px solid var(--border);padding:10px 14px 12px;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <button onclick="cdxTTSSkipPrev()" title="Previous" style="background:none;border:none;color:var(--txt3);cursor:pointer;padding:4px;font-size:18px;line-height:1">&#9198;</button>
+      <button id="cdx-play-btn" onclick="cdxTTSToggle()" style="width:36px;height:36px;border-radius:50%;background:var(--gold);border:none;color:#000;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg id="cdx-play-icon" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>
+      <button onclick="cdxTTSSkipNext()" title="Next" style="background:none;border:none;color:var(--txt3);cursor:pointer;padding:4px;font-size:18px;line-height:1">&#9197;</button>
+      <div style="flex:1;min-width:0">
+        <div id="cdx-track-name" style="font-size:12px;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+        <div id="cdx-track-dots" style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap"></div>
+      </div>
+      <!-- Repeat -->
+      <button id="cdx-repeat-btn" onclick="cdxToggleRepeat()" title="Repeat" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--txt4);cursor:pointer;padding:4px 6px;line-height:1;font-size:15px">&#8635;</button>
+      <!-- Playlist -->
+      <button id="cdx-playlist-btn" onclick="cdxTogglePlaylist()" title="Select sections" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--txt4);cursor:pointer;padding:4px 6px;line-height:1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="3" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="3" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <!-- Rate / Settings -->
+      <button onclick="cdxTTSShowSettings()" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--txt3);cursor:pointer;padding:3px 7px;font-size:11px;font-family:'Crimson Pro',serif">
+        <span id="cdx-rate-lbl">1×</span>
+      </button>
+    </div>
+    <!-- Settings row -->
+    <div id="cdx-settings-row" style="display:none;padding-top:8px;border-top:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="font-size:11px;color:var(--txt4);font-family:'Crimson Pro',serif;width:32px">Rate</span>
+        <button onclick="cdxSetRate(0.75)" class="cdx-rp" id="cdx-rp-0_75">0.75×</button>
+        <button onclick="cdxSetRate(1)"    class="cdx-rp" id="cdx-rp-1">1×</button>
+        <button onclick="cdxSetRate(1.25)" class="cdx-rp" id="cdx-rp-1_25">1.25×</button>
+        <button onclick="cdxSetRate(1.5)"  class="cdx-rp" id="cdx-rp-1_5">1.5×</button>
+        <button onclick="cdxSetRate(2)"    class="cdx-rp" id="cdx-rp-2">2×</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:var(--txt4);font-family:'Crimson Pro',serif;width:32px">Voice</span>
+        <select id="cdx-voice-sel" onchange="cdxSetVoice(this.value)" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--txt2);font-size:12px;padding:4px 6px;cursor:pointer">
+          <option value="">Default</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SHARED BOTTOM NAV ═══ -->
+</div><!-- /app-main -->
+<div class="botnav" id="shared-botnav">
+  <button class="navbtn on" id="nav-dash" onclick="nav('dash')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </button>
+  <button class="navbtn" id="nav-progress" onclick="nav('progress')">
+    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Progress
+  </button>
+  <button class="navbtn" id="nav-review" onclick="nav('review')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Review
+  </button>
+  <button class="navbtn" id="nav-about" onclick="nav('about')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    About
+  </button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+</div><!-- /app -->
+
+<script>
+// ── CONSTANTS ─────────────────────────────────────────────────
+var CODEX_VERSION = '1.6.1';
+var SK = 'arche-codex-progress';
+var WORKER_URL = 'https://arche-proxy.archestudytools.workers.dev';
+var GIST_FILE = 'arche-codex-progress.json';
+var EBBINGHAUS = [1,3,7,14,30,60]; // days by confidence 1-5 (conf 5 = index 4 = 30 days, then 60)
+
+// ── CURRICULUM ────────────────────────────────────────────────
+var MODULES = [
+  {
+    id:'m1',
+    title:'The Blueprint',
+    desc:'How a web app is structured — the three layers every app is built from.',
+    prereqs:[],
+    lessons:[
+      {
+        id:'m1l1',
+        title:'HTML — The Skeleton',
+        prereqs:[],
+        content: buildLesson_m1l1(),
+        quiz: quiz_m1l1()
+      },
+      {
+        id:'m1l2',
+        title:'CSS — The Skin',
+        prereqs:['m1l1'],
+        content: buildLesson_m1l2(),
+        quiz: quiz_m1l2()
+      },
+      {
+        id:'m1l3',
+        title:'JavaScript — The Brain',
+        prereqs:['m1l1','m1l2'],
+        content: buildLesson_m1l3(),
+        quiz: quiz_m1l3()
+      }
+    ]
+  },
+  {
+    id:'m2',
+    title:'Reading Functions',
+    desc:'What functions are, what they do, how to read inputs and outputs.',
+    prereqs:['m1l3'],
+    lessons:[
+      {
+        id:'m2l1',
+        title:'What Is a Function?',
+        prereqs:['m1l3'],
+        content: buildLesson_m2l1(),
+        quiz: quiz_m2l1()
+      },
+      {
+        id:'m2l2',
+        title:'Inputs, Outputs & Return Values',
+        prereqs:['m2l1'],
+        content: buildLesson_m2l2(),
+        quiz: quiz_m2l2()
+      }
+    ]
+  },
+  {
+    id:'m3',
+    title:'Variables & Data',
+    desc:'Types, scope, and recognizing how data flows through your app.',
+    prereqs:['m2l1'],
+    lessons:[
+      {
+        id:'m3l1',
+        title:'Variables — var, let, const',
+        prereqs:['m2l1'],
+        content: buildLesson_m3l1(),
+        quiz: quiz_m3l1()
+      }
+    ]
+  },
+  {
+    id:'m4',
+    title:'Error Literacy',
+    desc:'Reading console errors and stack traces like a pro.',
+    prereqs:['m2l2'],
+    lessons:[
+      {
+        id:'m4l1',
+        title:'The Browser Console',
+        prereqs:['m2l2'],
+        content: buildLesson_m4l1(),
+        quiz: quiz_m4l1()
+      }
+    ]
+  },
+  {
+    id:'m5',
+    title:'CSS Decoded',
+    desc:'The cascade, specificity, and why one rule beats another.',
+    prereqs:['m1l2'],
+    lessons:[
+      {
+        id:'m5l1',
+        title:'The Cascade & Specificity',
+        prereqs:['m1l2'],
+        content: buildLesson_m5l1(),
+        quiz: quiz_m5l1()
+      }
+    ]
+  },
+  {
+    id:'m6',
+    title:'Your App — Pilgrim',
+    desc:'Real Pilgrim code dissected. Patterns, structure, and architecture.',
+    prereqs:['m1l3','m2l2','m3l1'],
+    lessons:[
+      {
+        id:'m6l1',
+        title:'How Pilgrim Is Organized',
+        prereqs:['m1l3','m2l2','m3l1'],
+        content: buildLesson_m6l1(),
+        quiz: quiz_m6l1()
+      }
+    ]
+  }
+];
+
+// ── LESSON CONTENT BUILDERS ───────────────────────────────────
+
+function buildLesson_m1l1(){
+  return `
+<div class="lesson-section">
+  <div class="lesson-section-title">What Is HTML?</div>
+  <div class="lesson-body">
+    <p>HTML stands for <strong>HyperText Markup Language</strong>. It is not a programming language — it cannot do math, make decisions, or remember things. It has one job: <em>describe the structure of a page</em>.</p>
+    <p>Think of HTML as the skeleton of a building. It defines what rooms exist, where doors go, and how things are arranged — but it doesn't decide what color the walls are (that's CSS) or whether the lights turn on when you clap (that's JavaScript).</p>
+  </div>
+  <div class="analogy-box">
+    <div class="analogy-label">&#9670; Analogy</div>
+    HTML is like a house blueprint. It shows you where every room is, but the blueprint itself has no color, no furniture, and no electricity.
+  </div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">Tags — The Core Syntax</div>
+  <div class="lesson-body">
+    <p>HTML is written in <strong>tags</strong>. A tag is a word inside angle brackets. Most tags come in pairs — an opening tag and a closing tag. The closing tag has a forward slash.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">HTML — Tag Anatomy</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">&lt;!-- Opening tag --&gt;</span>
+<span class="ck">&lt;div&gt;</span>
+  This text is inside the div.
+<span class="ck">&lt;/div&gt;</span>  <span class="cc">&lt;!-- Closing tag — note the / --&gt;</span>
+
+<span class="cc">&lt;!-- A paragraph tag --&gt;</span>
+<span class="ck">&lt;p&gt;</span>This is a paragraph.<span class="ck">&lt;/p&gt;</span>
+
+<span class="cc">&lt;!-- A heading --&gt;</span>
+<span class="ck">&lt;h1&gt;</span>Main Title<span class="ck">&lt;/h1&gt;</span>
+<span class="ck">&lt;h2&gt;</span>Subtitle<span class="ck">&lt;/h2&gt;</span></div>
+  </div>
+  <div class="annotation"><div class="ann-num">&#9650; KEY POINT</div>If you open a tag, you must close it. A missing closing tag is one of the most common causes of layout bugs — everything after the unclosed tag gets swallowed into it.</div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">Attributes — Adding Details to Tags</div>
+  <div class="lesson-body">
+    <p>Tags can have <strong>attributes</strong> — extra information written inside the opening tag. The format is always: <em>name="value"</em>.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">HTML — Attributes (from Pilgrim)</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">&lt;!-- id gives this element a unique name JavaScript can find --&gt;</span>
+<span class="ck">&lt;div</span> <span class="cf">id</span>=<span class="cs">"diag-feedback-form"</span><span class="ck">&gt;</span>
+  Feedback form content here
+<span class="ck">&lt;/div&gt;</span>
+
+<span class="cc">&lt;!-- class lets CSS style this element --&gt;</span>
+<span class="ck">&lt;button</span> <span class="cf">class</span>=<span class="cs">"btn btn-primary"</span><span class="ck">&gt;</span>
+  Send Feedback
+<span class="ck">&lt;/button&gt;</span>
+
+<span class="cc">&lt;!-- onclick tells JavaScript what to do when clicked --&gt;</span>
+<span class="ck">&lt;button</span> <span class="cf">onclick</span>=<span class="cs">"submitFeedback()"</span><span class="ck">&gt;</span>
+  Submit
+<span class="ck">&lt;/button&gt;</span></div>
+  </div>
+  <div class="annotation"><div class="ann-num">&#9650; FROM YOUR APP</div>The <code>id="diag-feedback-form"</code> is the exact ID used in Pilgrim's feedback form. When we fixed the checkbox bug, JavaScript found this element by its id.</div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">Nesting — Tags Inside Tags</div>
+  <div class="lesson-body">
+    <p>HTML elements can live inside other elements. This is called <strong>nesting</strong>. The outer element is the <em>parent</em>, the inner is the <em>child</em>. Good nesting is what makes layouts work. Bad nesting is what breaks them.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">HTML — Nesting (Correct vs Wrong)</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">/* CORRECT — tags close in reverse order they opened */</span>
+<span class="ck">&lt;div&gt;</span>
+  <span class="ck">&lt;p&gt;</span>Hello <span class="ck">&lt;strong&gt;</span>world<span class="ck">&lt;/strong&gt;&lt;/p&gt;</span>
+<span class="ck">&lt;/div&gt;</span>
+
+<span class="cc">/* WRONG — overlapping tags, browser behavior unpredictable */</span>
+<span class="ck">&lt;div&gt;</span>
+  <span class="ck">&lt;p&gt;</span>Hello <span class="ck">&lt;strong&gt;</span>world<span class="ck">&lt;/p&gt;&lt;/strong&gt;</span>
+<span class="ck">&lt;/div&gt;</span></div>
+  </div>
+</div>`;
+}
+
+function quiz_m1l1(){
+  return [
+    {q:"What does HTML stand for?",opts:["HyperText Markup Language","High-Tech Modern Layout","HyperText Manage Language","HyperLink Markup Language"],correct:0,explain:"HTML = HyperText Markup Language. It describes structure, not behavior."},
+    {q:"Which of these correctly closes an HTML tag?",opts:["<div/>","</div>","<-div>","[/div]"],correct:1,explain:"Closing tags use a forward slash before the tag name: </div>"},
+    {q:"In HTML, what is an 'attribute'?",opts:["A CSS color rule","Extra information added inside an opening tag","A JavaScript function","A type of closing tag"],correct:1,explain:"Attributes add details to tags: <button id=\"myBtn\" class=\"btn\">"},
+    {q:"What does the 'id' attribute do?",opts:["Sets the color of an element","Gives an element a unique name JavaScript can find","Controls the font size","Links to another page"],correct:1,explain:"The id attribute gives an element a unique identifier so JavaScript (and CSS) can target it specifically."},
+    {q:"You open a <div> tag but forget the closing </div>. What happens?",opts:["Nothing, it's optional","Everything after it gets treated as if it's inside the div","The page shows an error message","The tag self-closes automatically"],correct:1,explain:"An unclosed tag swallows everything that follows it — a very common cause of layout bugs."}
+  ];
+}
+
+function buildLesson_m1l2(){
+  return `
+<div class="lesson-section">
+  <div class="lesson-section-title">What Is CSS?</div>
+  <div class="lesson-body">
+    <p>CSS stands for <strong>Cascading Style Sheets</strong>. It controls the visual appearance of HTML elements — color, size, spacing, fonts, layout, and more.</p>
+    <p>HTML says "there is a button here." CSS says "that button is gold, 44px tall, with rounded corners and this font."</p>
+  </div>
+  <div class="analogy-box">
+    <div class="analogy-label">&#9670; Analogy</div>
+    If HTML is the blueprint, CSS is the interior design. Same rooms, completely different feel depending on how you apply it.
+  </div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">The Rule Syntax</div>
+  <div class="lesson-body">
+    <p>A CSS rule has two parts: a <strong>selector</strong> (which elements to target) and a <strong>declaration block</strong> (what to do to them). Each declaration is a <em>property: value</em> pair.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">CSS — Rule Anatomy</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">/* selector { property: value; } */</span>
+
+<span class="cf">.btn</span> {
+  <span class="ck">background</span>: <span class="cs">var(--gold)</span>;    <span class="cc">/* gold background */</span>
+  <span class="ck">color</span>: <span class="cs">var(--bg0)</span>;       <span class="cc">/* dark text */</span>
+  <span class="ck">padding</span>: <span class="cn">11px 18px</span>;     <span class="cc">/* space inside */</span>
+  <span class="ck">border-radius</span>: <span class="cs">var(--r)</span>; <span class="cc">/* rounded corners */</span>
+}</div>
+  </div>
+  <div class="annotation"><div class="ann-num">&#9650; FROM YOUR APP</div>This is the exact <code>.btn</code> rule from Pilgrim. Every button in the app uses this as its base style. Notice <code>var(--gold)</code> — that's a CSS variable, which we'll cover in a moment.</div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">CSS Variables</div>
+  <div class="lesson-body">
+    <p>CSS variables (officially called <em>custom properties</em>) let you define a value once and reuse it everywhere. They're defined with two dashes: <code>--gold</code>. You use them with <code>var(--name)</code>.</p>
+    <p>This is why Pilgrim has a consistent color scheme — the gold color is defined once, and every element that needs it just references the variable.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">CSS — Variables (from Pilgrim)</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">/* :root defines variables available everywhere */</span>
+<span class="cf">:root</span> {
+  <span class="ck">--bg0</span>: <span class="cs">#0b0907</span>;      <span class="cc">/* darkest background */</span>
+  <span class="ck">--gold</span>: <span class="cs">#c9a84c</span>;     <span class="cc">/* the signature gold */</span>
+  <span class="ck">--txt1</span>: <span class="cs">#e8d5a3</span>;     <span class="cc">/* main text color */</span>
+  <span class="ck">--r</span>: <span class="cn">8px</span>;             <span class="cc">/* border radius */</span>
+}
+
+<span class="cc">/* Using them — change --gold once, updates everywhere */</span>
+<span class="cf">.btn-primary</span> { <span class="ck">background</span>: <span class="cs">var(--gold)</span>; }
+<span class="cf">.topbar-title</span> { <span class="ck">color</span>: <span class="cs">var(--gold)</span>; }
+<span class="cf">.nav-icon.on</span> { <span class="ck">color</span>: <span class="cs">var(--gold)</span>; }</div>
+  </div>
+</div>`;
+}
+
+function quiz_m1l2(){
+  return [
+    {q:"What does CSS stand for?",opts:["Computer Style Sheets","Cascading Style Sheets","Creative Syntax Styling","Coded Style System"],correct:1,explain:"CSS = Cascading Style Sheets. The 'cascading' part is important — rules flow down and can be overridden."},
+    {q:"In a CSS rule, what is the 'selector'?",opts:["The value being set","The property being changed","Which elements to target","The file the CSS is in"],correct:2,explain:"The selector targets which HTML elements the rule applies to. .btn targets all elements with class='btn'."},
+    {q:"What is a CSS variable?",opts:["A JavaScript variable used in CSS","A value defined once with -- and reused with var()","A property that changes randomly","A color that animates"],correct:1,explain:"CSS variables use --name syntax and are accessed with var(--name). Define once, use everywhere."},
+    {q:"In Pilgrim, why does --gold appear throughout the CSS?",opts:["It's a required HTML rule","It's a bug that should be fixed","It's a CSS variable — change it once to update all gold elements","It's a JavaScript function call"],correct:2,explain:"--gold is defined in :root once. Every element that references var(--gold) automatically gets that color. Change the variable, change the whole app."}
+  ];
+}
+
+function buildLesson_m1l3(){
+  return `
+<div class="lesson-section">
+  <div class="lesson-section-title">What Is JavaScript?</div>
+  <div class="lesson-body">
+    <p>JavaScript (JS) is a <strong>programming language</strong> — unlike HTML or CSS, it can <em>think</em>. It makes decisions, responds to user actions, remembers data, and changes the page after it loads.</p>
+    <p>JS is why clicking a button does something. It's why Pilgrim can save your notes, run a diagnostic, and send data to Discord — all without reloading the page.</p>
+  </div>
+  <div class="analogy-box">
+    <div class="analogy-label">&#9670; Analogy</div>
+    If HTML is the blueprint and CSS is the interior design, JavaScript is the electrical system and plumbing. It's what makes things actually work. Lights turn on, water flows, the elevator moves.
+  </div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">How JS Connects to HTML</div>
+  <div class="lesson-body">
+    <p>JavaScript interacts with HTML through the <strong>DOM</strong> (Document Object Model) — a live representation of your page that JS can read and modify. You can find an element by its id, change its text, show or hide it, or respond when a user clicks it.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">JavaScript — DOM Interaction (from Pilgrim)</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">// Find an element by its id</span>
+<span class="ck">var</span> btn = document.<span class="cf">getElementById</span>(<span class="cs">'diag-run-btn'</span>);
+
+<span class="cc">// Change its text</span>
+btn.textContent = <span class="cs">'Running...'</span>;
+
+<span class="cc">// Disable it so it can't be clicked</span>
+btn.disabled = <span class="ck">true</span>;
+
+<span class="cc">// Show a hidden element (display:none → display:block)</span>
+<span class="ck">var</span> form = document.<span class="cf">getElementById</span>(<span class="cs">'diag-feedback-form'</span>);
+form.style.display = <span class="cs">'block'</span>;</div>
+  </div>
+  <div class="annotation"><div class="ann-num">&#9650; FROM YOUR APP</div>This is exactly how Pilgrim shows the feedback form after diagnostics run. JavaScript finds the element by id and changes its display style from 'none' to 'block'.</div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">The Three Layers Together</div>
+  <div class="lesson-body">
+    <p>Every web app — including Pilgrim — is built from the same three layers working together:</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">The Three Layers — Pilgrim's Send Feedback Button</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">&lt;!-- HTML: the structure — a button exists --&gt;</span>
+<span class="ck">&lt;button</span> <span class="cf">id</span>=<span class="cs">"diag-send-btn"</span>
+        <span class="cf">class</span>=<span class="cs">"btn btn-primary btn-full"</span>
+        <span class="cf">onclick</span>=<span class="cs">"submitFeedback()"</span><span class="ck">&gt;</span>
+  Send Feedback
+<span class="ck">&lt;/button&gt;</span>
+
+<span class="cc">/* CSS: the appearance — it looks like a gold button */</span>
+<span class="cf">.btn-primary</span> {
+  <span class="ck">background</span>: <span class="cs">var(--gold)</span>;
+  <span class="ck">color</span>: <span class="cs">var(--bg0)</span>;
+}
+
+<span class="cc">// JavaScript: the behavior — clicking it does something</span>
+<span class="ck">function</span> <span class="cf">submitFeedback</span>() {
+  <span class="cc">// gather form data and send to Discord</span>
+}</div>
+  </div>
+</div>`;
+}
+
+function quiz_m1l3(){
+  return [
+    {q:"What makes JavaScript different from HTML and CSS?",opts:["It controls colors","It is a programming language that can make decisions and respond to actions","It defines the page structure","It only works on mobile devices"],correct:1,explain:"JS is a full programming language. HTML = structure, CSS = appearance, JS = behavior and logic."},
+    {q:"What is the DOM?",opts:["A type of CSS selector","A JavaScript error","A live representation of the page that JavaScript can read and modify","The database where Pilgrim stores notes"],correct:2,explain:"DOM = Document Object Model. It's the live version of your HTML that JavaScript interacts with."},
+    {q:"In Pilgrim, when JavaScript runs: form.style.display = 'block' — what happens?",opts:["The form is deleted","The form becomes visible (was hidden with display:none)","The form submits data","The form's color changes to gold"],correct:1,explain:"display:none hides an element. Setting display to 'block' makes it visible again. This is exactly how Pilgrim shows the feedback form."},
+    {q:"Which attribute in HTML triggers a JavaScript function when a button is clicked?",opts:["class","id","onclick","style"],correct:2,explain:"onclick='functionName()' tells the browser to run that JavaScript function when the element is clicked."}
+  ];
+}
+
+function buildLesson_m2l1(){
+  return `
+<div class="lesson-section">
+  <div class="lesson-section-title">What Is a Function?</div>
+  <div class="lesson-body">
+    <p>A function is a <strong>named block of code</strong> that does a specific job. You define it once, then <em>call</em> it by name whenever you need it to run.</p>
+    <p>Functions are how you avoid writing the same code over and over. If you need to show a toast notification 12 times in your app, you write the toast code once inside a function, then call that function 12 times.</p>
+  </div>
+  <div class="analogy-box">
+    <div class="analogy-label">&#9670; Analogy</div>
+    A function is like a recipe. You write the recipe once. Whenever you want to make that dish, you "call" the recipe — follow it, produce the result. You don't re-invent the dish every time.
+  </div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">Defining vs Calling</div>
+  <div class="lesson-body">
+    <p><strong>Defining</strong> a function writes the instructions. <strong>Calling</strong> it runs them. These are two completely separate things — defining does nothing by itself.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">JavaScript — Define vs Call</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">// DEFINING — writing the recipe (nothing happens yet)</span>
+<span class="ck">function</span> <span class="cf">closeDiagModal</span>() {
+  <span class="ck">var</span> overlay = document.<span class="cf">getElementById</span>(<span class="cs">'diag-overlay'</span>);
+  <span class="ck">if</span> (overlay) overlay.style.display = <span class="cs">'none'</span>;
+  <span class="cf">renderDiagLog</span>();
+}
+
+<span class="cc">// CALLING — running the recipe (this actually does something)</span>
+<span class="cf">closeDiagModal</span>();
+
+<span class="cc">// HTML calls it too — when user clicks the Close button</span>
+<span class="cc">// &lt;button onclick="closeDiagModal()"&gt;Close&lt;/button&gt;</span></div>
+  </div>
+  <div class="annotation"><div class="ann-num">&#9650; FROM YOUR APP</div>closeDiagModal() is a real Pilgrim function. It hides the modal overlay and re-renders the diagnostic log. Notice it also calls renderDiagLog() — a function calling another function.</div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">Recognizing Functions in the Wild</div>
+  <div class="lesson-body">
+    <p>You can spot a function definition by the keyword <code>function</code>, a name, parentheses <code>()</code>, and curly braces <code>{}</code>. A function call is the name followed by <code>()</code> — no curly braces.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">JavaScript — Spotting Functions</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">// These are DEFINITIONS (the blueprint):</span>
+<span class="ck">function</span> <span class="cf">openDiagModal</span>() { <span class="cc">/* ... */</span> }
+<span class="ck">function</span> <span class="cf">runDiagnostics</span>() { <span class="cc">/* ... */</span> }
+<span class="ck">function</span> <span class="cf">submitFeedback</span>() { <span class="cc">/* ... */</span> }
+
+<span class="cc">// These are CALLS (running the blueprint):</span>
+<span class="cf">openDiagModal</span>();
+<span class="cf">renderDiagLog</span>();
+<span class="cf">diagFbReset</span>();
+
+<span class="cc">// Key visual difference:
+// Definition: function name() { code here }
+// Call:       name()</span></div>
+  </div>
+</div>`;
+}
+
+function quiz_m2l1(){
+  return [
+    {q:"What is a function in JavaScript?",opts:["A CSS class","A named block of code that does a specific job","An HTML attribute","A type of variable"],correct:1,explain:"A function is a named, reusable block of code. Write it once, call it whenever needed."},
+    {q:"What is the difference between 'defining' and 'calling' a function?",opts:["They are the same thing","Defining writes the instructions; calling runs them","Calling writes the instructions; defining runs them","Defining deletes the function"],correct:1,explain:"Defining a function does nothing by itself. Calling it (name()) is what actually executes the code inside."},
+    {q:"Which of these is a function CALL (not a definition)?",opts:["function openModal() { }","var openModal = function() { }","openModal()","function openModal"],correct:2,explain:"openModal() — a name followed by () with no curly braces — is a call. It runs whatever that function defined."},
+    {q:"In Pilgrim, closeDiagModal() also calls renderDiagLog(). What does this tell you?",opts:["There is a bug — functions shouldn't call other functions","Functions can call other functions — this is normal and common","renderDiagLog() runs automatically without being called","closeDiagModal() is broken"],correct:1,explain:"Functions calling other functions is completely normal. It's how complex behavior gets broken into manageable pieces."}
+  ];
+}
+
+function buildLesson_m2l2(){
+  return `
+<div class="lesson-section">
+  <div class="lesson-section-title">Inputs — Parameters & Arguments</div>
+  <div class="lesson-body">
+    <p>A function can accept <strong>inputs</strong> — values passed in when it's called. These are called <em>parameters</em> in the definition and <em>arguments</em> in the call.</p>
+    <p>Parameters are like labeled containers that hold whatever value you pass in. Inside the function, you use the parameter name to access that value.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">JavaScript — Parameters (from Pilgrim)</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">// 'service' is the parameter — a placeholder for whatever is passed in</span>
+<span class="ck">async function</span> <span class="cf">runQuickTest</span>(service) {
+  <span class="cc">// 'service' holds the value passed when called</span>
+  <span class="ck">var</span> btn = document.<span class="cf">getElementById</span>(<span class="cs">'qbtn-'</span> + service);
+  <span class="ck">var</span> dot = document.<span class="cf">getElementById</span>(<span class="cs">'qdot-'</span> + service);
+  <span class="cc">// ...</span>
+}
+
+<span class="cc">// Calling it — 'groq' is the argument (the actual value)</span>
+<span class="cf">runQuickTest</span>(<span class="cs">'groq'</span>);   <span class="cc">// service = 'groq'</span>
+<span class="cf">runQuickTest</span>(<span class="cs">'esv'</span>);    <span class="cc">// service = 'esv'</span>
+<span class="cf">runQuickTest</span>(<span class="cs">'sync'</span>);   <span class="cc">// service = 'sync'</span></div>
+  </div>
+  <div class="annotation"><div class="ann-num">&#9650; FROM YOUR APP</div>runQuickTest() was built in this session. One function handles all 4 services — groq, ocr, sync, esv — because 'service' is a parameter. Without parameters, you'd need 4 separate functions.</div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">Outputs — Return Values</div>
+  <div class="lesson-body">
+    <p>A function can also produce an <strong>output</strong> using the <code>return</code> keyword. Whatever follows <code>return</code> is sent back to wherever the function was called from.</p>
+    <p>Once a function hits <code>return</code>, it stops running immediately. Anything after return in that function is ignored.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">JavaScript — Return Values (from Pilgrim)</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">// This function returns an object with pass and detail</span>
+<span class="ck">async function</span> <span class="cf">testGroq</span>() {
+  <span class="ck">var</span> r = <span class="ck">await</span> <span class="cf">fetch</span>(WORKER_URL + <span class="cs">'/groq'</span>, { <span class="cc">/* ... */</span> });
+  <span class="ck">return</span> { pass: r.ok, detail: r.ok ? <span class="cs">'Groq OK'</span> : <span class="cs">'HTTP '</span> + r.status };
+}
+
+<span class="cc">// The caller receives that returned object</span>
+<span class="ck">var</span> result = <span class="ck">await</span> <span class="cf">testGroq</span>();
+<span class="ck">if</span> (result.pass) {
+  <span class="cc">// show green dot</span>
+} <span class="ck">else</span> {
+  <span class="cc">// show red dot with result.detail</span>
+}</div>
+  </div>
+</div>`;
+}
+
+function quiz_m2l2(){
+  return [
+    {q:"What is a 'parameter' in a function?",opts:["A CSS variable","A placeholder that holds a value passed into the function","A type of HTML attribute","An error message"],correct:1,explain:"Parameters are placeholders in the function definition. They get filled with actual values (arguments) when the function is called."},
+    {q:"In runQuickTest('groq'), what is 'groq'?",opts:["A parameter","A return value","An argument (the actual value passed in)","A CSS class"],correct:2,explain:"'groq' is the argument — the actual value passed in when calling the function. Inside the function, the parameter 'service' holds this value."},
+    {q:"What does the 'return' keyword do?",opts:["Deletes the function","Loops through the function again","Sends a value back to wherever the function was called","Opens the browser console"],correct:2,explain:"return sends a value back to the caller and immediately stops the function from running further."},
+    {q:"Why does runQuickTest() use a parameter instead of 4 separate functions?",opts:["Parameters are required by JavaScript","One function with a parameter handles all cases — less repetition","Parameters make functions run faster","It was a mistake that should be fixed"],correct:1,explain:"This is a core principle: parameters make functions reusable. One runQuickTest handles groq, esv, ocr, and sync."}
+  ];
+}
+
+function buildLesson_m3l1(){
+  return `
+<div class="lesson-section">
+  <div class="lesson-section-title">What Is a Variable?</div>
+  <div class="lesson-body">
+    <p>A variable is a <strong>named container for a value</strong>. Instead of writing the same value repeatedly, you store it in a variable and use the name. The value can be a number, text, true/false, an object, or almost anything.</p>
+  </div>
+  <div class="analogy-box">
+    <div class="analogy-label">&#9670; Analogy</div>
+    A variable is like a labeled box. You write a name on the box, put something inside it, and refer to it by the label. You can change what's in the box, but the label stays the same.
+  </div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">var, let, and const</div>
+  <div class="lesson-body">
+    <p>JavaScript has three keywords for declaring variables. In Pilgrim, you'll see <code>var</code> almost exclusively — this is intentional for compatibility reasons.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">JavaScript — var, let, const</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">// var — the original. Function-scoped. Can be redeclared.</span>
+<span class="cc">// Used throughout Pilgrim for compatibility.</span>
+<span class="ck">var</span> WORKER_URL = <span class="cs">'https://arche-proxy.archestudytools.workers.dev'</span>;
+<span class="ck">var</span> btn = document.<span class="cf">getElementById</span>(<span class="cs">'diag-run-btn'</span>);
+
+<span class="cc">// let — modern. Block-scoped. Can be changed, not redeclared.</span>
+<span class="ck">let</span> count = <span class="cn">0</span>;
+count = <span class="cn">1</span>; <span class="cc">// fine</span>
+
+<span class="cc">// const — modern. Block-scoped. Cannot be changed after set.</span>
+<span class="ck">const</span> MAX = <span class="cn">100</span>;
+<span class="cc">// MAX = 200; &lt;-- this would throw an error</span></div>
+  </div>
+  <div class="annotation"><div class="ann-num">&#9650; WHY VAR IN PILGRIM</div>Pilgrim uses var everywhere because it avoids scope-related bugs on older browsers and in certain runtime environments. It's a deliberate architectural choice — not outdated code.</div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">Data Types</div>
+  <div class="lesson-body">
+    <p>Variables can hold different <strong>types</strong> of data. Recognizing the type tells you what you can do with it.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">JavaScript — Data Types (from Pilgrim)</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">// String — text in quotes</span>
+<span class="ck">var</span> url = <span class="cs">'https://arche-proxy.archestudytools.workers.dev'</span>;
+<span class="ck">var</span> status = <span class="cs">'Running...'</span>;
+
+<span class="cc">// Number</span>
+<span class="ck">var</span> t0 = Date.<span class="cf">now</span>();    <span class="cc">// timestamp in milliseconds</span>
+<span class="ck">var</span> ms = Date.<span class="cf">now</span>() - t0;
+
+<span class="cc">// Boolean — true or false only</span>
+<span class="ck">var</span> allPass = <span class="ck">true</span>;
+<span class="ck">var</span> disabled = <span class="ck">false</span>;
+
+<span class="cc">// Object — multiple values grouped together</span>
+<span class="ck">var</span> result = { pass: <span class="ck">true</span>, detail: <span class="cs">'Groq responded'</span>, ms: <span class="cn">240</span> };
+
+<span class="cc">// Array — ordered list of values</span>
+<span class="ck">var</span> log = [<span class="cs">'entry1'</span>, <span class="cs">'entry2'</span>, <span class="cs">'entry3'</span>];</div>
+  </div>
+</div>`;
+}
+
+function quiz_m3l1(){
+  return [
+    {q:"What is a variable?",opts:["A CSS selector","A named container for a value","A type of HTML tag","A function that runs automatically"],correct:1,explain:"A variable is a named container. You store a value in it and refer to it by name throughout your code."},
+    {q:"Why does Pilgrim use 'var' instead of 'let' or 'const'?",opts:["var is faster","var is the only option in HTML files","It's a deliberate choice for compatibility — not outdated code","var is required when using CSS variables"],correct:2,explain:"Pilgrim uses var intentionally for compatibility and to avoid scope-related bugs in certain environments."},
+    {q:"Which data type would hold the text 'Running...'?",opts:["Number","Boolean","String","Array"],correct:2,explain:"Text values (in single or double quotes) are strings. 'Running...' is a string."},
+    {q:"What is an object in JavaScript?",opts:["A physical device","Multiple values grouped together under one variable","A type of HTML element","A function without a name"],correct:1,explain:"An object groups multiple values: { pass: true, detail: 'OK', ms: 240 }. Each value has a key (pass, detail, ms)."}
+  ];
+}
+
+function buildLesson_m4l1(){
+  return `
+<div class="lesson-section">
+  <div class="lesson-section-title">The Browser Console</div>
+  <div class="lesson-body">
+    <p>The browser console is a developer tool built into every browser. It shows errors, warnings, and any messages your code deliberately logs. It's the first place you look when something breaks.</p>
+    <p>To open it: <strong>F12</strong> on Windows/Chrome, or right-click anywhere on the page → Inspect → Console tab.</p>
+  </div>
+  <div class="analogy-box">
+    <div class="analogy-label">&#9670; Analogy</div>
+    The console is like a flight recorder on a plane. When something goes wrong, it has a log of exactly what happened and where. Learning to read it means you stop guessing and start diagnosing.
+  </div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">Reading a JavaScript Error</div>
+  <div class="lesson-body">
+    <p>JavaScript errors follow a consistent pattern. Once you know what each part means, you can pinpoint the problem in seconds.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">Console — Error Anatomy</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">// A typical console error looks like this:</span>
+<span class="ck">TypeError</span>: Cannot read properties of null (reading <span class="cs">'style'</span>)
+    at <span class="cf">openDiagModal</span> (Pilgrim-Private.html:<span class="cn">3935</span>:<span class="cn">14</span>)
+    at <span class="cf">HTMLButtonElement.onclick</span> (Pilgrim-Private.html:<span class="cn">901</span>:<span class="cn">52</span>)
+
+<span class="cc">// Breaking it down:
+// TypeError        — the type of error
+// Cannot read...   — what went wrong (tried to use something that is null)
+// at openDiagModal — which function was running
+// :3935:14         — line 3935, character 14 in the file
+// at onclick       — what triggered it (clicking a button on line 901)</span></div>
+  </div>
+  <div class="annotation"><div class="ann-num">&#9650; KEY INSIGHT</div>"Cannot read properties of null" almost always means getElementById() didn't find the element — either the id is wrong, misspelled, or the element doesn't exist yet when the code runs.</div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">Common Error Types</div>
+  <div class="lesson-body">
+    <p>You'll see the same error types repeatedly. Recognize them and you'll know immediately what to look for.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">Console — Common Error Types</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">// ReferenceError — you used a name that doesn't exist</span>
+<span class="ck">ReferenceError</span>: renderDiagLog is not defined
+<span class="cc">// → The function was called before it was defined, or name is misspelled</span>
+
+<span class="cc">// TypeError — wrong type, or null/undefined used as an object</span>
+<span class="ck">TypeError</span>: Cannot read properties of null
+<span class="cc">// → getElementById returned null — element not found</span>
+
+<span class="cc">// SyntaxError — the code itself is written incorrectly</span>
+<span class="ck">SyntaxError</span>: Unexpected token <span class="cs">'}'</span>
+<span class="cc">// → Missing bracket, quote, or parenthesis somewhere above this line</span></div>
+  </div>
+</div>`;
+}
+
+function quiz_m4l1(){
+  return [
+    {q:"What is the browser console used for?",opts:["Styling HTML elements","Editing JavaScript files","Showing errors, warnings, and logged messages","Managing browser bookmarks"],correct:2,explain:"The console is a developer tool that shows errors, warnings, and console.log() output. It's the primary debugging tool."},
+    {q:"In an error that says 'at openDiagModal (file.html:3935:14)', what does 3935 tell you?",opts:["The number of functions in the file","The line number where the error occurred","The number of milliseconds the function took","The size of the file in bytes"],correct:1,explain:"The number after the filename and colon is the line number. :3935:14 means line 3935, character 14."},
+    {q:"'Cannot read properties of null (reading style)' — what most likely caused this?",opts:["A CSS syntax error","getElementById didn't find an element — returned null","The JavaScript file is missing","A network request failed"],correct:1,explain:"When getElementById returns null (element not found), any attempt to use it like an object produces this exact error."},
+    {q:"Which error type means the code itself is written incorrectly (bad syntax)?",opts:["TypeError","ReferenceError","SyntaxError","NetworkError"],correct:2,explain:"SyntaxError means the JavaScript parser couldn't understand the code — usually a missing bracket, parenthesis, or quote."}
+  ];
+}
+
+function buildLesson_m5l1(){
+  return `
+<div class="lesson-section">
+  <div class="lesson-section-title">The Cascade</div>
+  <div class="lesson-body">
+    <p>The "C" in CSS stands for <strong>Cascading</strong>. It means rules flow downward — when multiple rules target the same element, there's a defined system for deciding which one wins.</p>
+    <p>This is both CSS's greatest feature and the source of most CSS confusion. Once you understand the cascade, "why isn't my style working?" becomes answerable in seconds.</p>
+  </div>
+  <div class="analogy-box">
+    <div class="analogy-label">&#9670; Analogy</div>
+    Think of CSS rules as instructions from different levels of management. A specific instruction from your direct manager overrides a general policy from HR. Specificity is the hierarchy.
+  </div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">Specificity — Who Wins?</div>
+  <div class="lesson-body">
+    <p>When two rules conflict, the more <strong>specific</strong> one wins. The hierarchy from lowest to highest specificity:</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">CSS — Specificity Hierarchy</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">/* LOWEST — element tags */</span>
+<span class="cf">input</span> { <span class="ck">width</span>: <span class="cn">100%</span>; }       <span class="cc">/* targets all inputs */</span>
+
+<span class="cc">/* HIGHER — class selectors (.) */</span>
+<span class="cf">.btn</span> { <span class="ck">color</span>: <span class="cs">var(--txt1)</span>; } <span class="cc">/* targets class="btn" */</span>
+
+<span class="cc">/* HIGHER STILL — id selectors (#) */</span>
+<span class="cf">#diag-send-btn</span> { <span class="ck">color</span>: <span class="cs">red</span>; } <span class="cc">/* targets id="diag-send-btn" */</span>
+
+<span class="cc">/* HIGHEST — inline styles */</span>
+<span class="cc">/* &lt;button style="color:blue"&gt; — always wins over stylesheet rules */</span>
+
+<span class="cc">/* NUCLEAR OPTION — !important (avoid if possible) */</span>
+<span class="cf">.btn</span> { <span class="ck">color</span>: <span class="cn">gold</span> <span class="ck">!important</span>; } <span class="cc">/* overrides everything */</span></div>
+  </div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">The Checkbox Bug — A Real Example</div>
+  <div class="lesson-body">
+    <p>The checkbox bug we fixed in Pilgrim is a perfect specificity example. The global <code>input</code> rule was overriding how checkboxes should look — because it targeted all inputs including checkboxes.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">CSS — The Checkbox Fix (Pilgrim)</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">/* This global rule applied to ALL inputs — including checkboxes */</span>
+<span class="cf">input</span> {
+  <span class="ck">width</span>: <span class="cn">100%</span>;            <span class="cc">/* made checkboxes full-width */</span>
+  <span class="ck">-webkit-appearance</span>: <span class="ck">none</span>; <span class="cc">/* stripped checkbox appearance */</span>
+  <span class="ck">padding</span>: <span class="cn">10px 12px</span>;     <span class="cc">/* added text-field padding */</span>
+}
+
+<span class="cc">/* The fix — more specific rule overrides the global one */</span>
+<span class="cf">input[type="checkbox"]</span> {
+  <span class="ck">width</span>: <span class="cn">16px</span>;             <span class="cc">/* proper checkbox size */</span>
+  <span class="ck">-webkit-appearance</span>: <span class="ck">checkbox</span>; <span class="cc">/* restore checkbox look */</span>
+  <span class="ck">padding</span>: <span class="cn">0</span>;             <span class="cc">/* no text-field padding */</span>
+}
+
+<span class="cc">/* input[type="checkbox"] is MORE specific than input alone
+   So it wins — checkboxes now look like checkboxes */</span></div>
+  </div>
+  <div class="annotation"><div class="ann-num">&#9650; THE LESSON</div>Understanding specificity meant we could fix the bug with ONE new CSS rule instead of rewriting the global input styles and potentially breaking everything else.</div>
+</div>`;
+}
+
+function quiz_m5l1(){
+  return [
+    {q:"What does 'cascading' mean in CSS?",opts:["CSS files download in order","Rules flow downward and a defined system decides which rule wins when they conflict","CSS only works on mobile","Styles cascade from parent to child automatically"],correct:1,explain:"Cascading means when rules conflict, a specificity hierarchy determines which one wins. More specific = higher priority."},
+    {q:"Which CSS selector has the highest specificity?",opts:["An element tag (input)","A class (.btn)","An id (#diag-send-btn)","A body tag"],correct:2,explain:"ID selectors (#name) are more specific than class selectors (.name), which are more specific than element tags (input, div, button)."},
+    {q:"In the checkbox bug, why did checkboxes look like text inputs?",opts:["The checkbox HTML was written incorrectly","A global 'input' rule set width:100% and removed appearance — affecting all inputs including checkboxes","The CSS file was missing","JavaScript was hiding the checkboxes"],correct:1,explain:"The global input rule applied to ALL input types. Since input[type='checkbox'] wasn't specified, checkboxes inherited the full-width text-field styling."},
+    {q:"Why did adding 'input[type=\"checkbox\"]' fix the problem?",opts:["It deleted the original input rule","It's more specific than the generic 'input' rule, so it wins for checkboxes","It added !important to all styles","It changed the HTML structure"],correct:1,explain:"input[type='checkbox'] is more specific than input alone — it targets only checkboxes. More specific = higher priority = override."}
+  ];
+}
+
+function buildLesson_m6l1(){
+  return `
+<div class="lesson-section">
+  <div class="lesson-section-title">Pilgrim's File Structure</div>
+  <div class="lesson-body">
+    <p>Pilgrim is a <strong>single HTML file</strong> — around 4,400 lines. Everything lives in one place: the HTML structure, the CSS styles, and all the JavaScript. This is intentional — it makes deployment simple (one file upload = new version).</p>
+    <p>The file is organized in sections you can identify visually. Knowing where each section lives helps you find things fast.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">Pilgrim — File Map</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">&lt;!-- Lines 1-23: Document setup --&gt;</span>
+<span class="ck">&lt;!DOCTYPE html&gt;</span>
+<span class="ck">&lt;html&gt;&lt;head&gt;</span>
+  <span class="cc">&lt;!-- meta tags, font links, external libraries --&gt;</span>
+
+<span class="cc">&lt;!-- Lines 24-400+: All CSS --&gt;</span>
+<span class="ck">&lt;style&gt;</span>
+  :root { <span class="cc">/* CSS variables */</span> }
+  <span class="cc">/* all visual rules */</span>
+<span class="ck">&lt;/style&gt;</span>
+
+<span class="cc">&lt;!-- Lines 400-1600+: All HTML screens --&gt;</span>
+<span class="ck">&lt;body&gt;</span>
+  <span class="cc">&lt;!-- Settings screen, Library screen, etc. --&gt;</span>
+  <span class="cc">&lt;!-- Diagnostic modal, overlays --&gt;</span>
+
+<span class="cc">&lt;!-- Lines 1600-4400+: All JavaScript --&gt;</span>
+<span class="ck">&lt;script&gt;</span>
+  <span class="cc">// Constants, storage keys</span>
+  <span class="cc">// All functions</span>
+  <span class="cc">// CHANGELOG array</span>
+  <span class="cc">// App initialization</span>
+<span class="ck">&lt;/script&gt;</span></div>
+  </div>
+</div>
+<div class="lesson-section">
+  <div class="lesson-section-title">How Pilgrim Shows and Hides Screens</div>
+  <div class="lesson-body">
+    <p>Pilgrim doesn't reload the page to navigate between sections. Instead, each screen is an HTML element that gets shown or hidden. The CSS class <code>.on</code> makes a screen visible. Without it, the screen has <code>display:none</code>.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-label">Pilgrim — Screen System</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+    <div class="code-body"><span class="cc">&lt;!-- CSS: .scr is hidden by default, .scr.on is visible --&gt;</span>
+<span class="cf">.scr</span> { <span class="ck">display</span>: <span class="ck">none</span>; }
+<span class="cf">.scr.on</span> { <span class="ck">display</span>: <span class="cs">flex</span>; }
+
+<span class="cc">&lt;!-- HTML: each screen has the .scr class --&gt;</span>
+<span class="ck">&lt;div</span> <span class="cf">class</span>=<span class="cs">"scr"</span> <span class="cf">id</span>=<span class="cs">"scr-settings"</span><span class="ck">&gt;</span>...settings...<span class="ck">&lt;/div&gt;</span>
+<span class="ck">&lt;div</span> <span class="cf">class</span>=<span class="cs">"scr"</span> <span class="cf">id</span>=<span class="cs">"scr-library"</span><span class="ck">&gt;</span>...library...<span class="ck">&lt;/div&gt;</span>
+
+<span class="cc">// JavaScript: switching screens — adds/removes 'on' class</span>
+<span class="ck">function</span> <span class="cf">showScreen</span>(id) {
+  <span class="cc">// hide all screens</span>
+  document.<span class="cf">querySelectorAll</span>(<span class="cs">'.scr'</span>).<span class="cf">forEach</span>(<span class="ck">function</span>(s) {
+    s.classList.<span class="cf">remove</span>(<span class="cs">'on'</span>);
+  });
+  <span class="cc">// show the one we want</span>
+  document.<span class="cf">getElementById</span>(id).classList.<span class="cf">add</span>(<span class="cs">'on'</span>);
+}</div>
+  </div>
+  <div class="annotation"><div class="ann-num">&#9650; THE PATTERN</div>This pattern — hide everything, show one thing — is used in virtually every web app. It's called a Single Page Application (SPA) pattern. Pilgrim, Codex, Waypoint, and DPS all use this.</div>
+</div>`;
+}
+
+function quiz_m6l1(){
+  return [
+    {q:"Why is Pilgrim a single HTML file?",opts:["Because multi-file apps don't work","It's simpler to deploy — one file upload equals a new version","HTML files can't reference other files","Single files load faster on all devices"],correct:1,explain:"A single file means deployment is one upload. No build step, no multiple files to manage. A deliberate architectural choice."},
+    {q:"In what order do the three layers appear in Pilgrim's file?",opts:["JS → CSS → HTML","CSS → HTML → JS","HTML setup → CSS → HTML screens → JS","HTML → JS → CSS"],correct:2,explain:"Pilgrim's file: document setup (head) → all CSS (style tag) → all HTML screens (body) → all JavaScript (script tag)."},
+    {q:"How does Pilgrim show a screen without reloading the page?",opts:["It loads a new HTML file","It removes all elements and rebuilds them","It adds/removes the 'on' CSS class which controls display:none vs display:flex","It uses an iframe"],correct:2,explain:"Each screen is always in the HTML — just hidden (no .on class) or visible (.on class applied). JavaScript switches the class."},
+    {q:"What does querySelectorAll('.scr') return?",opts:["One element with id='scr'","All elements that have the class 'scr'","All CSS rules for .scr","The first element with class 'scr'"],correct:1,explain:"querySelectorAll('.scr') returns ALL elements that have the class 'scr'. It's how Pilgrim finds every screen at once to hide them before showing the target screen."}
+  ];
+}
+
+// ── PROGRESS STORAGE ─────────────────────────────────────────
+var progress = {};
+
+function loadProgress(){
+  try { progress = JSON.parse(localStorage.getItem(SK) || '{}'); } catch(e){ progress = {}; }
+}
+function saveProgress(){
+  localStorage.setItem(SK, JSON.stringify(progress));
+}
+function getLessonProgress(lessonId){
+  return progress[lessonId] || { status:'locked', score:0, attempts:0, confidence:0, nextReview:null, lastPassed:null };
+}
+function setLessonProgress(lessonId, data){
+  progress[lessonId] = Object.assign(getLessonProgress(lessonId), data);
+  saveProgress();
+}
+
+// ── EBBINGHAUS SCHEDULER ─────────────────────────────────────
+function getDaysUntilReview(conf){
+  var days = [1,3,7,14,30,60];
+  return days[Math.min(conf-1, days.length-1)] || 1;
+}
+function scheduleReview(lessonId, confidence){
+  var days = getDaysUntilReview(confidence);
+  var next = new Date();
+  next.setDate(next.getDate() + days);
+  setLessonProgress(lessonId, { confidence:confidence, nextReview:next.toISOString(), lastPassed:new Date().toISOString() });
+}
+function isDueForReview(lessonId){
+  var p = getLessonProgress(lessonId);
+  if(p.status !== 'passed' || !p.nextReview) return false;
+  return new Date() >= new Date(p.nextReview);
+}
+function getDueReviews(){
+  var due = [];
+  MODULES.forEach(function(m){ m.lessons.forEach(function(l){
+    if(isDueForReview(l.id)) due.push(l);
+  });});
+  return due;
+}
+
+// ── PREREQUISITE CHECKING ────────────────────────────────────
+function prereqsMet(prereqs){
+  return prereqs.every(function(pid){
+    return getLessonProgress(pid).status === 'passed';
+  });
+}
+function getUnmetPrereqs(prereqs){
+  return prereqs.filter(function(pid){ return getLessonProgress(pid).status !== 'passed'; });
+}
+function findLesson(lessonId){
+  var found = null;
+  MODULES.forEach(function(m){ m.lessons.forEach(function(l){ if(l.id===lessonId) found=l; }); });
+  return found;
+}
+function getLessonTitle(lessonId){
+  var l = findLesson(lessonId);
+  return l ? l.title : lessonId;
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────
+var _navStack = ['dash'];
+var _activeModule = null;
+var _activeLesson = null;
+
+function nav(screen){
+  document.querySelectorAll('.scr').forEach(function(s){ s.classList.remove('on'); });
+  document.getElementById('scr-' + screen).classList.add('on');
+  _navStack = [screen];
+  // Update shared nav active state
+  var navIds = ['dash','progress','review','about'];
+  navIds.forEach(function(id){
+    var btn = document.getElementById('nav-'+id);
+    if(btn) btn.className = 'navbtn' + (id===screen?' on':'');
+  });
+  // Show shared nav on main screens, hide on sub-screens
+  var botnav = document.getElementById('shared-botnav');
+  if(botnav) botnav.style.display = 'flex';
+  if(screen==='dash') renderDash();
+  if(screen==='progress') renderProgress();
+  if(screen==='review') renderReview();
+  if(screen==='about') cdxInitAboutVoices();
+}
+function goBack(){
+  cdxClosePlayer();
+  if(_navStack.length > 1){
+    _navStack.pop();
+    var prev = _navStack[_navStack.length-1];
+    if(prev==='module') openModule(_activeModule, false);
+    else nav(prev);
+  } else { nav('dash'); }
+}
+function openModule(mod, pushNav){
+  if(pushNav !== false) _navStack.push('module');
+  _activeModule = mod;
+  document.querySelectorAll('.scr').forEach(function(s){ s.classList.remove('on'); });
+  document.getElementById('scr-module').classList.add('on');
+  document.getElementById('mod-title').textContent = mod.title;
+  var botnav = document.getElementById('shared-botnav');
+  if(botnav) botnav.style.display = 'none';
+  renderModuleLessons(mod);
+}
+function openLesson(lesson){
+  _navStack.push('lesson');
+  _activeLesson = lesson;
+  document.querySelectorAll('.scr').forEach(function(s){ s.classList.remove('on'); });
+  document.getElementById('scr-lesson').classList.add('on');
+  document.getElementById('lesson-title-bar').textContent = lesson.title;
+  var botnav = document.getElementById('shared-botnav');
+  if(botnav) botnav.style.display = 'none';
+  renderLesson(lesson);
+  document.getElementById('lesson-scroll').scrollTop = 0;
+  cdxOpenPlayer();
+}
+
+// ── RENDER: DASHBOARD ─────────────────────────────────────────
+function renderDash(){
+  // Stats
+  var total=0,passed=0,due=getDueReviews().length;
+  MODULES.forEach(function(m){ m.lessons.forEach(function(l){ total++; if(getLessonProgress(l.id).status==='passed') passed++; }); });
+  document.getElementById('dash-stats').innerHTML =
+    statBox(passed, 'Passed') + statBox(total-passed, 'Remaining') + statBox(due, 'Due Review');
+
+  // Reviews
+  var reviews = getDueReviews();
+  var revSec = document.getElementById('dash-reviews-section');
+  if(reviews.length){
+    revSec.style.display='block';
+    document.getElementById('dash-reviews').innerHTML = reviews.map(function(l){
+      return '<div class="review-item" onclick="openLesson(findLesson(\''+l.id+'\'))"><div class="review-dot" style="background:var(--crimsonbright)"></div><div class="review-name">'+escHtml(l.title)+'</div><div class="review-due">Review due</div></div>';
+    }).join('');
+  } else { revSec.style.display='none'; }
+
+  // Modules
+  document.getElementById('dash-modules').innerHTML = MODULES.map(function(m){
+    var total=m.lessons.length, passed=0, hasActive=false;
+    m.lessons.forEach(function(l){ var p=getLessonProgress(l.id); if(p.status==='passed') passed++; if(p.status==='active') hasActive=true; });
+    var modUnlocked = prereqsMet(m.prereqs);
+    var pct = total>0?Math.round(passed/total*100):0;
+    var status = !modUnlocked?'locked':passed===total?'complete':hasActive?'active':'active';
+    var pill = !modUnlocked?'<span class="module-pill pill-locked">Locked</span>':passed===total?'<span class="module-pill pill-done">&#10003; Complete</span>':'<span class="module-pill pill-active">'+passed+'/'+total+' done</span>';
+    return '<div class="module-card'+(status==='locked'?' locked':status==='complete'?' complete':'')+'" onclick="'+(modUnlocked?'openModule(MODULES['+MODULES.indexOf(m)+'])':'')+'">'+
+      '<div class="module-num">Module '+(MODULES.indexOf(m)+1)+'</div>'+
+      '<div class="module-title">'+escHtml(m.title)+'</div>'+
+      '<div class="module-desc">'+escHtml(m.desc)+'</div>'+
+      '<div class="module-meta">'+pill+'<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:'+pct+'%"></div></div></div>'+
+    '</div>';
+  }).join('');
+
+  // Version
+  document.getElementById('dash-version').textContent = 'v'+CODEX_VERSION;
+}
+function statBox(num, label){
+  return '<div class="stat-box"><div class="stat-num">'+num+'</div><div class="stat-lbl">'+label+'</div></div>';
+}
+
+// ── RENDER: MODULE LESSONS ────────────────────────────────────
+function renderModuleLessons(mod){
+  document.getElementById('mod-lessons').innerHTML = mod.lessons.map(function(l){
+    var p = getLessonProgress(l.id);
+    var unlocked = prereqsMet(l.prereqs);
+    var unmet = getUnmetPrereqs(l.prereqs);
+    var iconClass = !unlocked?'icon-locked':p.status==='passed'?'icon-done':'icon-active';
+    var iconChar = !unlocked?'&#128274;':p.status==='passed'?'&#10003;':'&#9670;';
+    var dueStr = isDueForReview(l.id)?'<span class="badge badge-red">Review due</span>':'';
+    var prereqWarn = (!unlocked && unmet.length)?'<div class="prereq-warn">&#9888; Needs: '+unmet.map(getLessonTitle).join(', ')+'</div>':'';
+    return '<div class="lesson-row'+(unlocked?'':' locked')+'" onclick="'+(unlocked?'openLesson(findLesson(\''+l.id+'\'))':'')+'">'+
+      '<div class="lesson-icon '+iconClass+'">'+iconChar+'</div>'+
+      '<div style="flex:1">'+
+        '<div class="lesson-title">'+escHtml(l.title)+'</div>'+
+        '<div style="display:flex;align-items:center;gap:6px;margin-top:3px">'+
+          (p.status==='passed'?'<span style="font-size:11px;color:var(--txt4)">'+renderStars(p.confidence,10)+'</span>':'')+
+          dueStr+
+        '</div>'+
+        prereqWarn+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+// ── RENDER: LESSON ────────────────────────────────────────────
+var _quizState = {};
+
+function renderLesson(lesson){
+  var p = getLessonProgress(lesson.id);
+  var badge = p.status==='passed'?'<span class="badge badge-green">&#10003; Passed</span>':'';
+  document.getElementById('lesson-status-badge').innerHTML = badge;
+
+  var html = lesson.content;
+
+  // Quiz section
+  html += '<div class="divider"></div>';
+  html += '<div id="quiz-area">';
+  html += renderQuizHTML(lesson);
+  html += '</div>';
+
+  document.getElementById('lesson-content').innerHTML = html;
+  _quizState = { lessonId:lesson.id, current:0, answers:{}, revealed:false, passed:false };
+  if(p.status==='passed') initConfidenceRating(lesson.id);
+}
+
+function renderQuizHTML(lesson){
+  var p = getLessonProgress(lesson.id);
+  var q = lesson.quiz[0];
+  return '<div class="quiz-wrap">'+
+    '<div class="quiz-title">Knowledge Check</div>'+
+    '<div class="quiz-sub">Pass at 70% ('+Math.ceil(lesson.quiz.length*.7)+'/'+lesson.quiz.length+' correct) to complete this lesson.</div>'+
+    '<div class="quiz-progress" id="quiz-dots">'+lesson.quiz.map(function(_,i){ return '<div class="quiz-dot" id="qdot-'+i+'"></div>'; }).join('')+'</div>'+
+    '<div id="quiz-question-area">'+renderQuestion(lesson, 0)+'</div>'+
+  '</div>';
+}
+
+function renderQuestion(lesson, idx){
+  var q = lesson.quiz[idx];
+  return '<div class="quiz-q">'+(idx+1)+'. '+escHtml(q.q)+'</div>'+
+    q.opts.map(function(opt, oi){
+      return '<button class="quiz-opt" onclick="selectAnswer('+idx+','+oi+')">'+escHtml(opt)+'</button>';
+    }).join('');
+}
+
+function selectAnswer(qIdx, optIdx){
+  if(_quizState.answers.hasOwnProperty(qIdx)) return; // already answered
+  var lesson = _activeLesson;
+  var q = lesson.quiz[qIdx];
+  var correct = optIdx === q.correct;
+  _quizState.answers[qIdx] = { selected:optIdx, correct:correct };
+
+  // Update dot
+  var dot = document.getElementById('qdot-'+qIdx);
+  if(dot){ dot.className='quiz-dot '+(correct?'correct-dot':'wrong-dot'); }
+
+  // Update button styles
+  var area = document.getElementById('quiz-question-area');
+  var btns = area.querySelectorAll('.quiz-opt');
+  btns.forEach(function(b,i){
+    if(i===q.correct) b.className='quiz-opt correct';
+    else if(i===optIdx && !correct) b.className='quiz-opt wrong';
+  });
+
+  // Show explanation
+  var fb = document.createElement('div');
+  fb.className='annotation';
+  fb.innerHTML='<div class="ann-num">'+(correct?'&#10003; Correct':'&#10007; Incorrect')+'</div>'+escHtml(q.explain);
+  area.appendChild(fb);
+
+  // Next question or finish
+  setTimeout(function(){
+    var nextIdx = qIdx + 1;
+    if(nextIdx < lesson.quiz.length){
+      _quizState.current = nextIdx;
+      area.innerHTML = renderQuestion(lesson, nextIdx);
+    } else {
+      finishQuiz(lesson);
+    }
+  }, 1600);
+}
+
+function finishQuiz(lesson){
+  var total = lesson.quiz.length;
+  var correct = Object.values(_quizState.answers).filter(function(a){ return a.correct; }).length;
+  var pct = correct/total;
+  var passed = pct >= 0.70;
+  var p = getLessonProgress(lesson.id);
+
+  setLessonProgress(lesson.id, {
+    status: passed ? 'passed' : 'attempted',
+    score: Math.round(pct*100),
+    attempts: (p.attempts||0) + 1
+  });
+
+  var area = document.getElementById('quiz-area');
+  area.innerHTML = '<div class="quiz-wrap">'+
+    '<div class="quiz-title">'+(passed?'&#10003; Passed':'&#10007; Not Yet')+'</div>'+
+    '<div class="quiz-sub">'+correct+'/'+total+' correct ('+Math.round(pct*100)+'%)'+(passed?' — lesson complete!':' — need 70% to pass')+'</div>'+
+    '<div class="quiz-feedback '+(passed?'quiz-pass':'quiz-fail')+'">'+
+      (passed?'Well done. Rate your confidence below to set your next review date.':'Review the lesson and try again when ready.')+
+    '</div>'+
+    (passed?'':'<button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="retryQuiz()">Try Again</button>')+
+  '</div>';
+
+  if(passed){
+    initConfidenceRating(lesson.id);
+    codexPush(true); // silent auto-push on pass
+  }
+}
+
+function retryQuiz(){
+  _quizState = { lessonId:_activeLesson.id, current:0, answers:{}, revealed:false, passed:false };
+  document.getElementById('quiz-area').innerHTML = renderQuizHTML(_activeLesson);
+}
+
+function initConfidenceRating(lessonId){
+  var p = getLessonProgress(lessonId);
+  var existing = p.confidence || 0;
+  var labels = ['','Very unsure — review tomorrow','Shaky — review in 3 days','Getting it — review in 7 days','Solid — review in 14 days','Confident — review in 30 days'];
+  var confHtml = '<div class="conf-wrap">'+
+    '<div class="conf-title">How confident do you feel?</div>'+
+    '<div class="conf-sub">This sets your next review date using spaced repetition.</div>'+
+    '<div class="conf-stars" id="conf-stars">'+
+      [1,2,3,4,5].map(function(i){
+        return '<span class="conf-star'+(i<=existing?' active':'')+'" onclick="setConf('+i+')" onmouseover="hoverConf('+i+')" onmouseout="unhoverConf()">&#9733;</span>';
+      }).join('')+
+    '</div>'+
+    '<div class="conf-label" id="conf-label">'+(existing?labels[existing]:'Tap a star')+'</div>'+
+    '<button class="btn btn-primary btn-full" id="conf-save" onclick="saveConf()" '+(existing?'':'disabled')+'>Save & Schedule Review</button>'+
+  '</div>';
+  var existing_el = document.getElementById('conf-section');
+  if(existing_el){ existing_el.innerHTML = confHtml; return; }
+  var el = document.createElement('div');
+  el.id = 'conf-section';
+  el.innerHTML = confHtml;
+  document.getElementById('lesson-content').appendChild(el);
+}
+
+var _selectedConf = 0;
+function hoverConf(n){
+  var labels=['','Very unsure — review tomorrow','Shaky — review in 3 days','Getting it — review in 7 days','Solid — review in 14 days','Confident — review in 30 days'];
+  var stars = document.querySelectorAll('.conf-star');
+  stars.forEach(function(s,i){ s.className='conf-star'+(i<n?' active':''); });
+  var lbl=document.getElementById('conf-label'); if(lbl)lbl.textContent=labels[n]||'';
+}
+function unhoverConf(){
+  var stars=document.querySelectorAll('.conf-star');
+  stars.forEach(function(s,i){ s.className='conf-star'+(i<_selectedConf?' active':''); });
+  var labels=['','Very unsure — review tomorrow','Shaky — review in 3 days','Getting it — review in 7 days','Solid — review in 14 days','Confident — review in 30 days'];
+  var lbl=document.getElementById('conf-label'); if(lbl)lbl.textContent=_selectedConf?labels[_selectedConf]:'Tap a star';
+}
+function setConf(n){
+  _selectedConf=n;
+  var btn=document.getElementById('conf-save'); if(btn)btn.disabled=false;
+  unhoverConf();
+}
+function saveConf(){
+  if(!_selectedConf) return;
+  scheduleReview(_activeLesson.id, _selectedConf);
+  showToast('Review scheduled &#10003;');
+  var btn=document.getElementById('conf-save'); if(btn){btn.textContent='Scheduled &#10003;';btn.disabled=true;}
+  renderDash();
+}
+
+// ── RENDER: PROGRESS ─────────────────────────────────────────
+function renderProgress(){
+  var html='';
+  MODULES.forEach(function(m,mi){
+    var modUnlocked=prereqsMet(m.prereqs);
+    html+='<div style="margin-bottom:20px"><div class="dash-label">Module '+(mi+1)+' — '+escHtml(m.title)+'</div>';
+    m.lessons.forEach(function(l){
+      var p=getLessonProgress(l.id);
+      var unlocked=prereqsMet(l.prereqs);
+      var statusColor=!unlocked?'var(--txt4)':p.status==='passed'?'var(--sagebright)':'var(--gold)';
+      var statusText=!unlocked?'Locked':p.status==='passed'?'Passed':p.attempts>0?'Attempted':'Available';
+      html+='<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px">'+
+        '<div style="width:8px;height:8px;border-radius:50%;background:'+statusColor+';flex-shrink:0"></div>'+
+        '<div style="flex:1"><div style="font-size:14px;color:var(--txt1)">'+escHtml(l.title)+'</div>'+
+          (p.status==='passed'?'<div style="font-size:11px;color:var(--txt4)">'+renderStars(p.confidence,11)+' · Score: '+p.score+'%'+(isDueForReview(l.id)?' · <span style="color:var(--crimsonbright)">Review due</span>':'')+'</div>':'')+
+        '</div>'+
+        '<span style="font-size:11px;color:'+statusColor+'">'+statusText+'</span>'+
+      '</div>';
+    });
+    html+='</div>';
+  });
+  document.getElementById('progress-content').innerHTML=html;
+}
+
+// ── RENDER: REVIEW ────────────────────────────────────────────
+function renderReview(){
+  var due=getDueReviews();
+  var el=document.getElementById('review-content');
+  if(!due.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">&#9200;</div>No reviews due today.<br>Come back after your next scheduled interval.</div>';
+    return;
+  }
+  el.innerHTML='<div class="dash-label" style="margin-bottom:10px">&#9670; '+due.length+' Lesson'+(due.length>1?'s':'')+' Due</div>'+
+    due.map(function(l){
+      return '<div class="review-item" onclick="openLesson(findLesson(\''+l.id+'\'))">'+
+        '<div class="review-dot" style="background:var(--crimsonbright)"></div>'+
+        '<div class="review-name">'+escHtml(l.title)+'</div>'+
+        '<div style="font-size:12px"><span class="badge badge-red">Review</span></div>'+
+      '</div>';
+    }).join('');
+}
+
+// ── UTILITIES ─────────────────────────────────────────────────
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function renderStars(n, size){
+  size=size||14;
+  return [1,2,3,4,5].map(function(i){ return '<span style="font-size:'+size+'px;color:'+(i<=n?'var(--gold)':'var(--bg4)')+'">&#9733;</span>'; }).join('');
+}
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.innerHTML=msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2000);
+}
+function copyCode(btn){
+  var code=btn.closest('.code-block').querySelector('.code-body').innerText;
+  navigator.clipboard.writeText(code).then(function(){ showToast('Copied &#10003;'); });
+}
+
+// ── GIST SYNC ─────────────────────────────────────────────────
+function setSyncStatus(msg, color){
+  var el = document.getElementById('codex-sync-status');
+  if(el){ el.textContent = msg; el.style.color = color || 'var(--txt4)'; }
+}
+async function codexPush(silent){
+  if(!silent) setSyncStatus('Pushing\u2026', 'var(--txt3)');
+  try {
+    var payload = JSON.stringify({ progress: progress, updatedAt: new Date().toISOString() });
+    var body = { description:'Arché Codex Progress', public:false, files:{} };
+    body.files[GIST_FILE] = { content: payload };
+    var r = await fetch(WORKER_URL + '/gist', { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if(r.ok){
+      if(!silent) setSyncStatus('Pushed \u2713 ' + new Date().toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}), 'var(--sagebright)');
+    } else {
+      if(!silent) setSyncStatus('Push failed \u2014 HTTP ' + r.status, 'var(--crimsonbright)');
+    }
+  } catch(e) {
+    if(!silent) setSyncStatus('Push error \u2014 ' + e.message, 'var(--crimsonbright)');
+  }
+}
+async function codexPull(){
+  setSyncStatus('Pulling\u2026', 'var(--txt3)');
+  try {
+    var metaR = await fetch(WORKER_URL + '/gist?cb=' + Date.now());
+    if(!metaR.ok){ setSyncStatus('Pull failed \u2014 HTTP ' + metaR.status, 'var(--crimsonbright)'); return; }
+    var meta = await metaR.json();
+    var file = meta.files && meta.files[GIST_FILE];
+    if(!file){ setSyncStatus('No Codex progress found in Gist yet \u2014 Push first.', 'var(--txt4)'); return; }
+    var rawR = await fetch(WORKER_URL + '/gist-raw?url=' + encodeURIComponent(file.raw_url));
+    if(!rawR.ok){ setSyncStatus('Could not read Gist data', 'var(--crimsonbright)'); return; }
+    var data = await rawR.json();
+    if(data && data.progress){
+      progress = data.progress;
+      saveProgress();
+      renderDash();
+      setSyncStatus('Pulled \u2713 ' + new Date().toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}), 'var(--sagebright)');
+      showToast('Progress synced \u2713');
+    } else {
+      setSyncStatus('No valid progress data found', 'var(--txt4)');
+    }
+  } catch(e) {
+    setSyncStatus('Pull error \u2014 ' + e.message, 'var(--crimsonbright)');
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+window.addEventListener('load', function(){
+  loadProgress();
+  // Unlock first lesson if no progress yet
+  var firstLesson = MODULES[0].lessons[0];
+  var fp = getLessonProgress(firstLesson.id);
+  if(fp.status==='locked'){ setLessonProgress(firstLesson.id, {status:'active'}); }
+  renderDash();
+});
+
+// ── CODEX TTS ENGINE ─────────────────────────────────────────
+// Shares voice/rate settings with Pilgrim via bsn_tts_sett
+var _cdxTracks=[];       // [{title,text}] — all sections
+var _cdxSections=[];     // parallel array of DOM section elements
+var _cdxSelected=[];     // indices of selected tracks (all by default)
+var _cdxTrackIdx=0;      // absolute index into _cdxTracks
+var _cdxRepeat=false;
+var _cdxPlaylistMode=false;
+var _cdxActive=false;
+var _cdxPaused=false;
+var _cdxRate=1;
+var _cdxVoice='';
+var _cdxSettOpen=false;
+
+function cdxLoadTTSSett(){
+  try{var s=JSON.parse(localStorage.getItem('bsn_tts_sett'));if(s){if(s.rate)_cdxRate=s.rate;if(s.voice)_cdxVoice=s.voice;}}catch(e){}
+  cdxUpdateRateUI();
+}
+function cdxSaveTTSSett(){
+  localStorage.setItem('bsn_tts_sett',JSON.stringify({rate:_cdxRate,voice:_cdxVoice}));
+}
+function cdxSetRate(r){_cdxRate=r;cdxSaveTTSSett();cdxUpdateRateUI();}
+function cdxSetVoice(name){_cdxVoice=name;cdxSaveTTSSett();}
+function cdxUpdateRateUI(){
+  var lbl=document.getElementById('cdx-rate-lbl');
+  if(lbl)lbl.textContent=_cdxRate+'×';
+  [0.75,1,1.25,1.5,2].forEach(function(r){
+    var id='cdx-rp-'+r.toString().replace('.','_');
+    var btn=document.getElementById(id);
+    if(btn){if(r===_cdxRate)btn.classList.add('active');else btn.classList.remove('active');}
+  });
+}
+function cdxInitVoices(){
+  var sel=document.getElementById('cdx-voice-sel');
+  if(sel&&window.speechSynthesis){
+    var voices=window.speechSynthesis.getVoices();
+    if(voices.length){
+      sel.innerHTML='<option value="">Default</option>'+voices.map(function(v){
+        return '<option value="'+v.name+'"'+(v.name===_cdxVoice?' selected':'')+'>'+v.name+(v.default?' ★':'')+'</option>';
+      }).join('');
+    }
+  }
+  cdxInitAboutVoices();
+}
+function cdxInitAboutVoices(){
+  var sel=document.getElementById('about-voice-sel');
+  if(!sel||!window.speechSynthesis)return;
+  var voices=window.speechSynthesis.getVoices();
+  if(!voices.length)return;
+  sel.innerHTML='<option value="">Default</option>'+voices.map(function(v){
+    return '<option value="'+v.name+'"'+(v.name===_cdxVoice?' selected':'')+'>'+v.name+(v.default?' ★':'')+'</option>';
+  }).join('');
+  cdxSyncAboutRate();
+}
+function cdxSyncAboutVoice(){
+  // keep player selector in sync
+  var ps=document.getElementById('cdx-voice-sel');
+  if(ps)ps.value=_cdxVoice;
+}
+function cdxSyncAboutRate(){
+  // sync about-screen rate buttons
+  [0.75,1,1.25,1.5,2].forEach(function(r){
+    var id='about-rp-'+r.toString().replace('.','_');
+    var btn=document.getElementById(id);
+    if(btn){if(r===_cdxRate)btn.classList.add('active');else btn.classList.remove('active');}
+  });
+  // keep player rate in sync
+  cdxUpdateRateUI();
+}
+function cdxTestVoice(){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  var btn=document.getElementById('about-tts-test');
+  if(btn&&btn.textContent.indexOf('Stop')>=0){window.speechSynthesis.cancel();btn.textContent='▶ Test Voice';return;}
+  var utt=new SpeechSynthesisUtterance('HTML is the skeleton of every web page. It defines structure, not style.');
+  utt.rate=_cdxRate||1;utt.pitch=1;
+  var v=cdxGetVoice();if(v)utt.voice=v;
+  utt.onstart=function(){if(btn)btn.textContent='■ Stop';};
+  utt.onend=function(){if(btn)btn.textContent='▶ Test Voice';};
+  utt.onerror=function(){if(btn)btn.textContent='▶ Test Voice';};
+  window.speechSynthesis.speak(utt);
+}
+function cdxGetVoice(){
+  if(!window.speechSynthesis)return null;
+  var voices=window.speechSynthesis.getVoices();
+  if(!voices.length||!_cdxVoice)return null;
+  return voices.find(function(v){return v.name===_cdxVoice;})||null;
+}
+
+// Build tracks from lesson DOM — each lesson-section = 1 track, code-blocks skipped
+function cdxBuildTracks(){
+  _cdxTracks=[];_cdxSections=[];_cdxSelected=[];
+  var sections=document.querySelectorAll('#lesson-content .lesson-section');
+  sections.forEach(function(sec){
+    var titleEl=sec.querySelector('.lesson-section-title');
+    var title=titleEl?titleEl.textContent.trim():'Section';
+    var text='';
+    sec.childNodes.forEach(function(node){
+      if(node.nodeType===1&&(node.classList.contains('code-block')||node.tagName==='PRE'||node.tagName==='CODE'))return;
+      text+=' '+(node.textContent||'');
+    });
+    text=text.replace(/\s+/g,' ').trim();
+    if(text){
+      _cdxSections.push(sec);
+      _cdxTracks.push({title:title,text:text});
+      _cdxSelected.push(_cdxTracks.length-1); // all selected by default
+    }
+  });
+}
+
+// Returns sorted array of selected track indices
+function cdxGetActiveSet(){
+  return _cdxSelected.slice().sort(function(a,b){return a-b;});
+}
+// Next selected track after currentIdx, or -1 if none
+function cdxNextActive(currentIdx){
+  var set=cdxGetActiveSet();
+  for(var i=0;i<set.length;i++){if(set[i]>currentIdx)return set[i];}
+  return -1;
+}
+// Prev selected track before currentIdx, or first selected if none
+function cdxPrevActive(currentIdx){
+  var set=cdxGetActiveSet();
+  for(var i=set.length-1;i>=0;i--){if(set[i]<currentIdx)return set[i];}
+  return set[0]!=null?set[0]:-1;
+}
+// First selected track
+function cdxFirstActive(){
+  var set=cdxGetActiveSet();
+  return set.length?set[0]:-1;
+}
+
+function cdxRenderDots(){
+  var el=document.getElementById('cdx-track-dots');
+  if(!el)return;
+  var set=cdxGetActiveSet();
+  el.innerHTML=_cdxTracks.map(function(_,i){
+    var active=i===_cdxTrackIdx;
+    var selected=set.indexOf(i)>=0;
+    var bg=active?'var(--gold)':selected?'var(--borderlit)':'var(--bg3)';
+    var w=active?'18':'6';
+    return '<div style="width:'+w+'px;height:6px;border-radius:3px;background:'+bg+';transition:width .2s,background .2s;cursor:pointer;opacity:'+(selected?'1':'0.35')+'" onclick="cdxJumpTo('+i+')"></div>';
+  }).join('');
+}
+function cdxJumpTo(idx){
+  cdxStop();
+  _cdxTrackIdx=idx;
+  cdxUpdateTrackUI();
+  cdxPlayTrack();
+}
+function cdxUpdateTrackUI(){
+  var nm=document.getElementById('cdx-track-name');
+  if(nm&&_cdxTracks[_cdxTrackIdx])nm.textContent=_cdxTracks[_cdxTrackIdx].title;
+  cdxRenderDots();
+}
+
+function cdxStop(){
+  if(window.speechSynthesis)window.speechSynthesis.cancel();
+  _cdxActive=false;_cdxPaused=false;
+  cdxSetPlayIcon(false);
+}
+function cdxSetPlayIcon(playing){
+  var icon=document.getElementById('cdx-play-icon');
+  if(!icon)return;
+  if(playing)icon.innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+  else icon.innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>';
+}
+
+function cdxPlayTrack(){
+  if(!window.speechSynthesis)return;
+  if(!_cdxTracks.length)return;
+  // If current track not selected, jump to first active
+  if(_cdxSelected.indexOf(_cdxTrackIdx)<0){
+    var first=cdxFirstActive();
+    if(first<0){cdxSetPlayIcon(false);return;}
+    _cdxTrackIdx=first;
+  }
+  var track=_cdxTracks[_cdxTrackIdx];
+  if(!track)return;
+  _cdxActive=true;_cdxPaused=false;
+  cdxSetPlayIcon(true);
+  cdxUpdateTrackUI();
+  cdxHighlightSection(_cdxTrackIdx);
+  var sentences=track.text.replace(/\n+/g,' ').match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[track.text];
+  var idx=0;
+  function speakNext(){
+    if(!_cdxActive||idx>=sentences.length){
+      if(!_cdxActive)return; // manually stopped
+      // find next selected track
+      var next=cdxNextActive(_cdxTrackIdx);
+      if(next>=0){
+        _cdxTrackIdx=next;
+        cdxUpdateTrackUI();
+        setTimeout(cdxPlayTrack,400);
+      } else if(_cdxRepeat){
+        // loop back to first selected
+        var first=cdxFirstActive();
+        if(first>=0){_cdxTrackIdx=first;cdxUpdateTrackUI();setTimeout(cdxPlayTrack,400);}
+      } else {
+        _cdxActive=false;cdxSetPlayIcon(false);cdxHighlightSection(-1);
+      }
+      return;
+    }
+    var s=sentences[idx].trim();
+    if(!s){idx++;speakNext();return;}
+    var utt=new SpeechSynthesisUtterance(s);
+    utt.rate=_cdxRate||1;utt.pitch=1;
+    var v=cdxGetVoice();if(v)utt.voice=v;
+    utt.onend=function(){idx++;speakNext();};
+    utt.onerror=function(){idx++;speakNext();};
+    window.speechSynthesis.speak(utt);
+  }
+  window.speechSynthesis.cancel();
+  setTimeout(speakNext,100);
+}
+
+function cdxTTSToggle(){
+  if(_cdxActive){
+    // pause
+    window.speechSynthesis.cancel();
+    _cdxActive=false;_cdxPaused=true;
+    cdxSetPlayIcon(false);
+    return;
+  }
+  if(_cdxPaused){
+    // resume from start of current track (Web Speech can't resume mid-sentence)
+    _cdxPaused=false;
+    cdxPlayTrack();
+    return;
+  }
+  // fresh start from first selected track
+  var first=cdxFirstActive();
+  _cdxTrackIdx=first>=0?first:0;
+  cdxUpdateTrackUI();
+  cdxPlayTrack();
+}
+function cdxTTSSkipNext(){
+  var next=cdxNextActive(_cdxTrackIdx);
+  if(next<0&&_cdxRepeat)next=cdxFirstActive();
+  if(next>=0){cdxStop();_cdxTrackIdx=next;cdxUpdateTrackUI();cdxPlayTrack();}
+}
+function cdxTTSSkipPrev(){
+  var prev=cdxPrevActive(_cdxTrackIdx);
+  if(prev>=0){cdxStop();_cdxTrackIdx=prev;cdxUpdateTrackUI();cdxPlayTrack();}
+}
+function cdxTTSShowSettings(){
+  _cdxSettOpen=!_cdxSettOpen;
+  var row=document.getElementById('cdx-settings-row');
+  if(row)row.style.display=_cdxSettOpen?'block':'none';
+  cdxInitVoices();
+}
+
+// ── REPEAT ────────────────────────────────────────────────────
+function cdxToggleRepeat(){
+  _cdxRepeat=!_cdxRepeat;
+  var btn=document.getElementById('cdx-repeat-btn');
+  if(btn){btn.style.color=_cdxRepeat?'var(--gold)':'var(--txt4)';btn.style.borderColor=_cdxRepeat?'var(--gold)':'var(--border)';}
+}
+
+// ── PLAYLIST ─────────────────────────────────────────────────
+function cdxTogglePlaylist(){
+  _cdxPlaylistMode=!_cdxPlaylistMode;
+  var btn=document.getElementById('cdx-playlist-btn');
+  if(btn){btn.style.color=_cdxPlaylistMode?'var(--gold)':'var(--txt4)';btn.style.borderColor=_cdxPlaylistMode?'var(--gold)':'var(--border)';}
+  cdxApplyCheckboxes();
+}
+function cdxApplyCheckboxes(){
+  _cdxSections.forEach(function(sec,i){
+    var existing=sec.querySelector('.cdx-chk-row');
+    if(_cdxPlaylistMode){
+      if(!existing){
+        var row=document.createElement('div');
+        row.className='cdx-chk-row';
+        row.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 0 2px;margin-bottom:4px;cursor:pointer';
+        var chk=document.createElement('input');
+        chk.type='checkbox';
+        chk.checked=_cdxSelected.indexOf(i)>=0;
+        chk.style.cssText='width:16px;height:16px;accent-color:var(--gold);cursor:pointer;flex-shrink:0';
+        chk.onchange=function(){cdxToggleSection(i,chk.checked);};
+        var lbl=document.createElement('span');
+        lbl.style.cssText='font-size:12px;color:var(--txt4);font-family:"Crimson Pro",serif';
+        lbl.textContent='Include in playlist';
+        row.appendChild(chk);row.appendChild(lbl);
+        row.onclick=function(e){if(e.target!==chk){chk.checked=!chk.checked;cdxToggleSection(i,chk.checked);}};
+        sec.insertBefore(row,sec.firstChild);
+      } else {
+        existing.querySelector('input').checked=_cdxSelected.indexOf(i)>=0;
+      }
+      sec.style.opacity=_cdxSelected.indexOf(i)>=0?'1':'0.4';
+    } else {
+      if(existing)existing.remove();
+      sec.style.opacity='1';
+    }
+  });
+  cdxRenderDots();
+}
+function cdxToggleSection(idx,checked){
+  var pos=_cdxSelected.indexOf(idx);
+  if(checked&&pos<0)_cdxSelected.push(idx);
+  else if(!checked&&pos>=0)_cdxSelected.splice(pos,1);
+  // ensure at least one selected
+  if(_cdxSelected.length===0){_cdxSelected.push(idx);var chk=_cdxSections[idx]&&_cdxSections[idx].querySelector('.cdx-chk-row input');if(chk)chk.checked=true;}
+  cdxApplyCheckboxes();
+  cdxRenderDots();
+}
+
+// ── SECTION HIGHLIGHT ─────────────────────────────────────────
+function cdxHighlightSection(idx){
+  _cdxSections.forEach(function(sec,i){
+    sec.style.borderLeft=i===idx?'3px solid var(--gold)':'';
+    sec.style.paddingLeft=i===idx?'10px':'';
+    sec.style.transition='border-left .2s,padding-left .2s';
+  });
+  if(idx>=0&&_cdxSections[idx]){
+    _cdxSections[idx].scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+}
+
+function cdxOpenPlayer(){
+  cdxStop();
+  _cdxTrackIdx=0;
+  _cdxRepeat=false;
+  _cdxPlaylistMode=false;
+  _cdxSettOpen=false;
+  cdxLoadTTSSett();
+  var bar=document.getElementById('cdx-player');
+  if(bar)bar.style.display='block';
+  // Reset button states
+  var rb=document.getElementById('cdx-repeat-btn');
+  if(rb){rb.style.color='var(--txt4)';rb.style.borderColor='var(--border)';}
+  var pb=document.getElementById('cdx-playlist-btn');
+  if(pb){pb.style.color='var(--txt4)';pb.style.borderColor='var(--border)';}
+  var row=document.getElementById('cdx-settings-row');
+  if(row)row.style.display='none';
+  cdxBuildTracks();
+  cdxUpdateTrackUI();
+}
+function cdxClosePlayer(){
+  cdxStop();
+  cdxHighlightSection(-1);
+  // Remove any leftover checkboxes
+  document.querySelectorAll('.cdx-chk-row').forEach(function(el){el.remove();});
+  document.querySelectorAll('#lesson-content .lesson-section').forEach(function(s){s.style.opacity='1';});
+  var bar=document.getElementById('cdx-player');
+  if(bar)bar.style.display='none';
+}
+
+</script>
+</body>
+</html>
